@@ -45,6 +45,7 @@ vim.opt.fillchars:append {
 
 vim.opt.shortmess:append "c"
 vim.opt.winborder = 'rounded'
+vim.opt.completeopt = { "menu", "menuone", "noselect" }
 
 vim.cmd "set whichwrap+=<,>,[,],h,l"
 vim.cmd [[set iskeyword+=-]]

@@ -27,9 +27,11 @@ GET "soul.plugins.toggleterm"
 GET "soul.plugins.render_md"
 
 
-GET "soul.lsp.lspconfig"
-GET "soul.lsp.mason"
+-- require("soul.lsp.lspconfig").config()
+-- GET "soul.lsp.lspconfig"
+-- GET "soul.lsp.mason"
 -- GET "soul.cmp.main_cmp"
+GET "soul.lsp.lsp"
 GET "soul.cmp.blink"
 
 -- GET "soul.exras.nvimtree"

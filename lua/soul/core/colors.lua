@@ -1,4 +1,3 @@
-return {
   vim.cmd [[
   highlight NormalFloat guibg=NONE
   highlight FloatBorder guibg=NONE guifg=NONE
@@ -6,4 +5,3 @@ return {
   highlight PmenuSbar guibg=NONE
   highlight PmenuThumb guibg=NONE
 ]]
-}
