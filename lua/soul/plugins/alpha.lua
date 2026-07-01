@@ -67,7 +67,8 @@ function M.config()
     pattern = { "AlphaReady" },
     callback = function()
       vim.cmd [[
-      set laststatus=0 | autocmd BufUnload <buffer> set laststatus=3
+      set laststatus=0 | autocmd BufUnload <buffer> set laststatus=0
+      set showtabline=0 | autocmd BufUnload <buffer> set showtabline=2
     ]]
     end,
   })

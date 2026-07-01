@@ -3,7 +3,7 @@ local M = {}
 -- Called when language server attaches to buffer
 function M.on_attach(client, bufnr)
   -- Your keymap setup here, e.g., lsp_keymaps(bufnr) if defined
-  if client.supports_method("textDocument/inlayHint") then
+  if client:supports_method("textDocument/inlayHint") then
     vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })  -- pass bufnr as table
   end
 end
@@ -53,7 +53,7 @@ local plugins = {
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(ev)
           local client = vim.lsp.get_client_by_id(ev.data.client_id)
-          if client and client.supports_method("textDocument/completion") then
+          if client and client:supports_method("textDocument/completion") then
             vim.keymap.set("i", "<C-Space>", function()
               -- Hook your completion plugin here
             end, { buffer = ev.buf })
