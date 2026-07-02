@@ -10,7 +10,7 @@ return {
         enable = false,
       },
       diagnostics = {
-        globals = { "vim", "spec", "GET", "OPTS" },
+        globals = { "vim", "spec", "GET", "OPTS", "keymap", "hl" },
       },
       runtime = {
         version = "LuaJIT",

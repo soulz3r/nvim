@@ -7,4 +7,4 @@
 ]]
 vim.cmd.colorscheme("catppuccin")
 vim.api.nvim_exec_autocmds('ColorScheme', { pattern = 'catppuccin', modeline = false })
-vim.g.neovide_opacity = 0.8
+vim.g.neovide_opacity = 0.86

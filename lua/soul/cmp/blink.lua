@@ -17,12 +17,25 @@ return {
       accept = {
         auto_brackets = { enabled = true },
       },
+      trigger = {
+        -- Force the popup to show immediately when you begin typing command keywords
+        show_on_keyword = true,
+        -- Set to true if you want the menu to appear immediately when you type a trigger character (like '/')
+        show_on_trigger_character = true,
+      },
     },
     appearance = {
       nerd_font_variant = 'nerd',
     },
     sources = {
       default = { 'lsp', 'path', 'snippets', 'buffer' },
+    },
+    cmdline = {
+      -- Fixed: Enabled auto_show inside cmdline completion so it triggers as you type
+      completion = {
+        menu = { auto_show = true },
+      },
+      sources = { 'cmdline', 'buffer' },
     },
     fuzzy = { implementation = "prefer_rust_with_warning" },
   },
@@ -32,21 +45,21 @@ return {
   config = function(_, opts)
     require("blink.cmp").setup(opts)
 
-    -- Transparent backgrounds
-    vim.api.nvim_set_hl(0, "Pmenu", { bg = "none" })
-    vim.api.nvim_set_hl(0, "PmenuSel", { bg = "none" })
-    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
-    vim.api.nvim_set_hl(0, "FloatBorder", { bg = "none" })
-    vim.api.nvim_set_hl(0, "PmenuSbar", { bg = "none" })
-    vim.api.nvim_set_hl(0, "PmenuThumb", { bg = "none" })
-
-    -- BlinkCmp-specific
-    vim.api.nvim_set_hl(0, "BlinkCmpMenu", { bg = "none" })
-    vim.api.nvim_set_hl(0, "BlinkCmpMenuBorder", { bg = "none" })
-    vim.api.nvim_set_hl(0, "BlinkCmpDoc", { bg = "none" })
-    vim.api.nvim_set_hl(0, "BlinkCmpDocBorder", { bg = "none" })
-    vim.api.nvim_set_hl(0, "BlinkCmpSignatureHelp", { bg = "none" })
-    vim.api.nvim_set_hl(0, "BlinkCmpSignatureHelpBorder", { bg = "none" })
+    -- -- Transparent backgrounds
+    -- vim.api.nvim_set_hl(0, "Pmenu", { bg = "none" })
+    -- vim.api.nvim_set_hl(0, "PmenuSel", { bg = "none" })
+    -- vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
+    -- vim.api.nvim_set_hl(0, "FloatBorder", { bg = "none" })
+    -- vim.api.nvim_set_hl(0, "PmenuSbar", { bg = "none" })
+    -- vim.api.nvim_set_hl(0, "PmenuThumb", { bg = "none" })
+    --
+    -- -- BlinkCmp-specific
+    -- vim.api.nvim_set_hl(0, "BlinkCmpMenu", { bg = "none" })
+    -- vim.api.nvim_set_hl(0, "BlinkCmpMenuBorder", { bg = "none" })
+    -- vim.api.nvim_set_hl(0, "BlinkCmpDoc", { bg = "none" })
+    -- vim.api.nvim_set_hl(0, "BlinkCmpDocBorder", { bg = "none" })
+    -- vim.api.nvim_set_hl(0, "BlinkCmpSignatureHelp", { bg = "none" })
+    -- vim.api.nvim_set_hl(0, "BlinkCmpSignatureHelpBorder", { bg = "none" })
   end,
 }
 

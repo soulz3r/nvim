@@ -25,10 +25,11 @@ return {
       },
     })
 
-    -- Change Neovim's working directory
+    -- Change working directory to selected entry
     local set_cwd = function()
       local entry = MiniFiles.get_fs_entry()
-      if not entry then
+
+      if not entry or not entry.path then
         return vim.notify("Cursor is not on a valid entry")
       end
 
@@ -43,7 +44,7 @@ return {
       vim.notify("cwd → " .. vim.fn.getcwd())
     end
 
-    -- Add keymaps inside mini.files
+    -- Keymap inside mini.files buffer
     vim.api.nvim_create_autocmd("User", {
       pattern = "MiniFilesBufferCreate",
       callback = function(args)
@@ -54,12 +55,18 @@ return {
       end,
     })
 
-    -- Open mini.files
+    -- Open mini.files in current file directory
     local function open_mini_files()
       vim.opt.showtabline = 0
       vim.opt.laststatus = 0
 
-      MiniFiles.open()
+      local path = vim.api.nvim_buf_get_name(0)
+
+      if path == "" then
+        path = vim.fn.getcwd()
+      end
+
+      MiniFiles.open(vim.fs.dirname(path))
 
       vim.api.nvim_create_autocmd("WinClosed", {
         once = true,
