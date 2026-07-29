@@ -35,6 +35,7 @@ local plugins = {
       -- Enable LSP servers using new native API
       vim.lsp.enable("lua_ls")
       vim.lsp.enable("clangd")
+      vim.lsp.enable("bashls")
 
       vim.diagnostic.config({
         virtual_lines = false,
