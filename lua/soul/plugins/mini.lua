@@ -16,12 +16,39 @@ return {
     require("mini.pairs").setup()
     require("mini.surround").setup()
 
+    -- Hidden file filters
+    local show_hidden = false
+
+    local filter_show = function(fs_entry)
+      return true
+    end
+
+    local filter_hide = function(fs_entry)
+      return not vim.startswith(fs_entry.name, ".")
+    end
+
+    local toggle_hidden = function()
+      show_hidden = not show_hidden
+
+      local new_filter = show_hidden and filter_show or filter_hide
+
+      MiniFiles.refresh({
+        content = {
+          filter = new_filter,
+        },
+      })
+    end
+
     MiniFiles.setup({
       mappings = {
         go_in = "<CR>",
         go_in_plus = "<CR>",
         go_out = ",",
         go_out_plus = ",",
+      },
+
+      content = {
+        filter = filter_hide,
       },
     })
 
@@ -48,15 +75,22 @@ return {
     vim.api.nvim_create_autocmd("User", {
       pattern = "MiniFilesBufferCreate",
       callback = function(args)
+        local buf_id = args.data.buf_id
+
         vim.keymap.set("n", "g~", set_cwd, {
-          buffer = args.data.buf_id,
+          buffer = buf_id,
           desc = "Set current working directory",
+        })
+
+        vim.keymap.set("n", "H", toggle_hidden, {
+          buffer = buf_id,
+          desc = "Toggle hidden files",
         })
       end,
     })
 
     -- Open mini.files in current file directory
-    local function open_mini_files()
+    function open_mini_files()
       vim.opt.showtabline = 0
       vim.opt.laststatus = 0
 

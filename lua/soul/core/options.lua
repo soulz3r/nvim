@@ -34,7 +34,7 @@ vim.opt.signcolumn = "yes" -- always show the sign column, otherwise it would sh
 vim.opt.wrap = false -- display lines as one long line
 vim.opt.scrolloff = 0
 vim.opt.sidescrolloff = 8
-vim.opt.guifont = "FiraCode Nerd Font:h15" -- the font used in graphical neovim applications
+vim.opt.guifont = "FiraCode Nerd Font:h10" -- the font used in graphical neovim applications
 vim.opt.title = false
 -- colorcolumn = "80",
 -- colorcolumn = "120",
@@ -66,4 +66,15 @@ if vim.fn.has('wsl') == 1 then
     },
     cache_enabled = 0,
   }
+end
+if vim.fn.has("win32") == 1 then
+  local pwsh_dir =
+    "C:/Program Files/WindowsApps/Microsoft.PowerShell_7.6.6.0_x64__8wekyb3d8bbwe"
+
+  vim.env.PATH = pwsh_dir .. ";" .. vim.env.PATH
+
+  vim.opt.shell = "pwsh.exe"
+  vim.opt.shellcmdflag = "-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command"
+  vim.opt.shellquote = ""
+  vim.opt.shellxquote = ""
 end

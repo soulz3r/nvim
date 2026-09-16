@@ -66,6 +66,9 @@ keymap("n", "<leader>wa", ":w!<CR>", OPTS("Save force"))
 keymap("n", "<leader>qq", ":q<CR>", OPTS("Quit"))
 keymap("n", "<leader>qa", ":q!<CR>", OPTS("Quit without saving"))
 
+-- debug messages of neovim
+keymap("n", "<leader>nm", ":messages<CR>", OPTS("Open Neovim debug messages"))
+
 -- Clear search / escape insert
 keymap({ "i", "x" }, ",,", "<ESC>", OPTS())
 keymap("n", ",,", "<CMD>nohl<CR>", OPTS("Remove highlight"))
@@ -110,3 +113,6 @@ vim.keymap.set("n", "<leader>u", function()
   vim.cmd.packadd("nvim.undotree")
   require("undotree").open()
 end, { desc = "Toggle Builtin Undotree" })
+vim.keymap.set("n", "gd", vim.lsp.buf.definition, {
+    desc = "Go to definition",
+})
