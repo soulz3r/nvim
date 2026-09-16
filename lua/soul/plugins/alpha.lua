@@ -41,7 +41,7 @@ function M.config()
     button("q", icons.ui.SignOut .. " Quit", ":qa<CR>"),
   }
   local function footer()
-    return "soulz3r"
+    return "chrisatmachine.com"
   end
 
   dashboard.section.footer.val = footer()
@@ -68,7 +68,7 @@ function M.config()
     callback = function()
       vim.cmd [[
       set laststatus=0 | autocmd BufUnload <buffer> set laststatus=0
-      set showtabline=0 | autocmd BufUnload <buffer> set showtabline=2
+      "set showtabline=0 | autocmd BufUnload <buffer> set showtabline=2
     ]]
     end,
   })

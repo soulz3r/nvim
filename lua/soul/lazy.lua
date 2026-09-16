@@ -24,5 +24,3 @@ require("lazy").setup {
     notify = false,
   },
 }
-
-keymap("n", "<leader>L", "<cmd>Lazy<cr>", OPTS("Lazy"))
