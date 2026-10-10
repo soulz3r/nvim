@@ -1,179 +1,179 @@
 local M = {}
 
--- Called when language server attaches to buffer
+function M.capabilities()
+	local capabilities = vim.lsp.protocol.make_client_capabilities()
+
+	local ok, cmp = pcall(require, "cmp_nvim_lsp")
+
+	if ok then
+		capabilities = cmp.default_capabilities(capabilities)
+	end
+
+	return capabilities
+end
+
 function M.on_attach(client, bufnr)
-  -- Your keymap setup here, e.g., lsp_keymaps(bufnr) if defined
-  if client and client:supports_method("textDocument/inlayHint") then
-    vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
-  end
+	if client.name == "lua_ls" then
+		client.server_capabilities.documentFormattingProvider = false
+	end
+
+	if vim.lsp.inlay_hint and client:supports_method("textDocument/inlayHint") then
+		vim.lsp.inlay_hint.enable(false, {
+			bufnr = bufnr,
+		})
+	end
 end
 
--- Return capabilities extended with snippet support
-function M.common_capabilities()
-  local orig_capabilities = vim.lsp.protocol.make_client_capabilities()
+function M.setup_keymaps(bufnr)
+	local map = function(key, func, desc)
+		vim.keymap.set("n", key, func, {
+			buffer = bufnr,
+			desc = desc,
+			silent = true,
+		})
+	end
 
-  local cmp_status_ok, cmp_lsp = pcall(require, "cmp_nvim_lsp")
+	-- Navigation
+	map("<leader>ld", vim.lsp.buf.definition, "Definition")
+	map("<leader>lD", vim.lsp.buf.declaration, "Declaration")
+	map("<leader>li", vim.lsp.buf.implementation, "Implementation")
+	map("<leader>lt", vim.lsp.buf.type_definition, "Type Definition")
+	map("<leader>lr", vim.lsp.buf.references, "References")
 
-  if cmp_status_ok then
-    orig_capabilities = cmp_lsp.default_capabilities(orig_capabilities)
-  end
+	-- Documentation
+	map("<leader>lh", vim.lsp.buf.hover, "Hover Documentation")
+	map("<leader>ls", vim.lsp.buf.signature_help, "Signature Help")
 
-  orig_capabilities.textDocument.completion.completionItem.snippetSupport = true
+	-- Actions
+	map("<leader>la", vim.lsp.buf.code_action, "Code Action")
+	map("<leader>ln", vim.lsp.buf.rename, "Rename")
 
-  return orig_capabilities
+	-- Formatting
+	map("<leader>lf", function()
+		vim.lsp.buf.format({
+			filter = function(client)
+				return client.name == "clangd" or client.name == "stylua"
+			end,
+		})
+	end, "Format")
+
+	-- Diagnostics
+	map("<leader>lj", function()
+		vim.diagnostic.jump({
+			count = 1,
+		})
+	end, "Next Diagnostic")
+
+	map("<leader>lk", function()
+		vim.diagnostic.jump({
+			count = -1,
+		})
+	end, "Previous Diagnostic")
+
+	map("<leader>lo", vim.diagnostic.open_float, "Show Diagnostics")
+
+	map("<leader>lq", vim.diagnostic.setloclist, "Diagnostic List")
+
+	-- Workspace
+	map("<leader>lw", vim.lsp.buf.workspace_symbol, "Workspace Symbols")
+	map("<leader>lS", vim.lsp.buf.document_symbol, "Document Symbols")
+
+	-- LSP utilities
+	map("<leader>lI", "<cmd>checkhealth vim.lsp<CR>", "LSP Info")
+
+	map("<leader>lH", function()
+		if vim.lsp.inlay_hint then
+			local enabled = vim.lsp.inlay_hint.is_enabled({
+				bufnr = bufnr,
+			})
+
+			vim.lsp.inlay_hint.enable(not enabled, {
+				bufnr = bufnr,
+			})
+		end
+	end, "Toggle Inlay Hints")
+
+	map("<leader>lC", "<cmd>LspRestart<CR>", "Restart LSP")
 end
 
--- Toggle inlay hints manually
-function M.toggle_inlay_hints()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local is_enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr })
+return {
 
-  vim.lsp.inlay_hint.enable(not is_enabled, { bufnr = bufnr })
-end
+	{
+		"neovim/nvim-lspconfig",
 
-local plugins = {
-  {
-    "neovim/nvim-lspconfig",
-    event = { "BufReadPre", "BufNewFile" },
+		event = {
+			"BufReadPre",
+			"BufNewFile",
+		},
 
-    dependencies = {
-      "folke/neodev.nvim",
-    },
+		config = function()
+			-- Capabilities
+			vim.lsp.config("*", {
+				capabilities = M.capabilities(),
+			})
 
-    config = function()
-      -- ============================================================
-      -- LSP server configuration
-      -- ============================================================
+			-- Attach event (Neovim 0.12 recommended)
+			vim.api.nvim_create_autocmd("LspAttach", {
 
-      -- Shared capabilities
-      local capabilities = M.common_capabilities()
+				callback = function(args)
+					local client = vim.lsp.get_client_by_id(args.data.client_id)
 
-      -- Configure language servers using the native Neovim LSP API
-      vim.lsp.config("lua_ls", {
-        capabilities = capabilities,
-      })
+					if not client then
+						return
+					end
 
-      vim.lsp.config("clangd", {
-        capabilities = capabilities,
-      })
+					M.on_attach(client, args.buf)
+					M.setup_keymaps(args.buf)
+				end,
+			})
 
-      vim.lsp.config("bashls", {
-        capabilities = capabilities,
-      })
+			-- StyLua
+			vim.lsp.config("stylua", {
 
-      -- Enable language servers
-      vim.lsp.enable("lua_ls")
-      vim.lsp.enable("clangd")
-      vim.lsp.enable("bashls")
+				cmd = {
+					"stylua",
+					"--lsp",
+				},
 
+				filetypes = {
+					"lua",
+					"luau",
+				},
 
-      -- ============================================================
-      -- Diagnostics
-      -- ============================================================
+				root_markers = {
+					".stylua.toml",
+					"stylua.toml",
+					".git",
+				},
 
-      vim.diagnostic.config({
-        virtual_lines = false,
-        signs = true,
-        underline = true,
-        update_in_insert = false,
-        severity_sort = true,
+				workspace_required = false,
+			})
 
-        float = {
-          focusable = true,
-          style = "minimal",
-          border = "rounded",
-          source = "always",
-        },
-      })
+			-- Enable servers
+			vim.lsp.enable({
+				"lua_ls",
+				"stylua",
+				"clangd",
+				"bashls",
+			})
 
+			-- Diagnostics
+			vim.diagnostic.config({
 
-      -- ============================================================
-      -- LSP Attach
-      -- ============================================================
+				virtual_text = true,
+				virtual_lines = false,
 
-      vim.api.nvim_create_autocmd("LspAttach", {
-        callback = function(ev)
-          local client = vim.lsp.get_client_by_id(ev.data.client_id)
+				signs = true,
+				underline = true,
 
-          if client and client:supports_method("textDocument/completion") then
-            vim.keymap.set("i", "<C-Space>", function()
-              -- Hook your completion plugin here
-            end, {
-              buffer = ev.buf,
-            })
-          end
+				update_in_insert = false,
+				severity_sort = true,
 
-          M.on_attach(client, ev.buf)
-        end,
-      })
-
-
-      -- ============================================================
-      -- Which-Key LSP mappings
-      -- ============================================================
-
-      local wk = require("which-key")
-
-      wk.add({
-        { "<leader>l", group = "LSP" },
-
-        { "<leader>la", "<cmd>lua vim.lsp.buf.code_action()<cr>", desc = "Code Action" },
-
-        { "<leader>lb", "<C-o>", desc = "Go Back" },
-
-        { "<leader>ld", "<cmd>lua vim.lsp.buf.definition()<cr>", desc = "Definition" },
-
-        { "<leader>lD", "<cmd>lua vim.lsp.buf.declaration()<cr>", desc = "Declaration" },
-
-        { "<leader>lf", "<cmd>lua vim.lsp.buf.format({ async = true })<cr>", desc = "Format" },
-
-        { "<leader>lh", function()
-            M.toggle_inlay_hints()
-          end, desc = "Toggle Hints" },
-
-        { "<leader>lI", "<cmd>LspInfo<cr>", desc = "LSP Info" },
-
-        { "<leader>lj", "<cmd>lua vim.diagnostic.goto_next()<cr>", desc = "Next Diagnostic" },
-
-        { "<leader>lk", "<cmd>lua vim.diagnostic.goto_prev()<cr>", desc = "Previous Diagnostic" },
-
-        { "<leader>ll", "<cmd>lua vim.lsp.codelens.run()<cr>", desc = "CodeLens Action" },
-
-        { "<leader>lm", "<cmd>lua vim.lsp.buf.implementation()<cr>", desc = "Implementation" },
-
-        { "<leader>lo", "<cmd>lua vim.lsp.buf.hover()<cr>", desc = "Hover Documentation" },
-
-        { "<leader>lq", "<cmd>lua vim.diagnostic.setloclist()<cr>", desc = "Quickfix" },
-
-        { "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "Rename" },
-
-        { "<leader>lR", "<cmd>lua vim.lsp.buf.references()<cr>", desc = "References" },
-
-        { "<leader>li", "<cmd>lua vim.lsp.buf.implementation()<cr>", desc = "Implementation" },
-
-        { "<leader>lt", "<cmd>lua vim.lsp.buf.type_definition()<cr>", desc = "Type Definition" },
-
-        { "<leader>lw", "<cmd>lua vim.lsp.buf.workspace_symbol()<cr>", desc = "Workspace Symbols" },
-      })
-
-
-      -- ============================================================
-      -- Completion options
-      -- ============================================================
-
-      -- Uncomment if you want to set completeopt here:
-      -- vim.opt.completeopt = { "menu", "menuone", "noselect" }
-    end,
-  },
+				float = {
+					border = "rounded",
+					source = true,
+				},
+			})
+		end,
+	},
 }
-
--- ============================================================
--- Optional Telescope code action mapping
--- ============================================================
-
--- vim.keymap.set("n", "<leader>la", function()
---   require("telescope").extensions["ui-select"].code_actions()
--- end, { desc = "LSP Code Actions" })
-
-
-return plugins

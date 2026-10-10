@@ -22,7 +22,6 @@ M.config = function()
   require("gitsigns").setup {
     signs = {
 
-      -- Pretty sure these are defined in the theme.
       add = {
         -- current_line_blame_formatter
         -- hl = "GitSignsAdd",

@@ -22,6 +22,8 @@ keymap("n", "<m-k>", "<C-w>k", OPTS())
 keymap("n", "<m-l>", "<C-w>l", OPTS())
 keymap("n", "<m-tab>", "<c-6>", OPTS())
 
+keymap("n", "<ma>", "<mA>", OPTS())
+
 -- Centered movement
 keymap("n", "n", "nzz", OPTS())
 keymap("n", "N", "Nzz", OPTS())
@@ -112,7 +114,7 @@ vim.keymap.set("n", "<leader>nm", "<cmd>messages<cr>", OPTS("Open logs messages"
 vim.keymap.set("n", "<leader>u", function()
   vim.cmd.packadd("nvim.undotree")
   require("undotree").open()
-end, { desc = "Toggle Builtin Undotree" })
+end, { desc = "Builtin Undotree" })
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, {
     desc = "Go to definition",
 })

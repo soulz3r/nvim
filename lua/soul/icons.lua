@@ -17,7 +17,6 @@ return {
     Key = " ",
     Keyword = " ",
     Method = " ",
-    -- Module = " ",
     Module = " ",
     Namespace = " ",
     Null = "󰟢 ",
@@ -36,6 +35,7 @@ return {
     Value = " ",
     Variable = " ",
   },
+
   git = {
     LineAdded = " ",
     LineModified = " ",
@@ -43,116 +43,186 @@ return {
     FileDeleted = " ",
     FileIgnored = "◌",
     FileRenamed = " ",
-    FileStaged = "S",
-    FileUnmerged = "",
-    FileUnstaged = "",
-    FileUntracked = "U",
+    FileStaged = " ",
+    FileUnmerged = " ",
+    FileUnstaged = " ",
+    FileUntracked = " ",
     Diff = " ",
     Repo = " ",
     Octoface = " ",
     Copilot = " ",
-    Branch = "",
+    Branch = " ",
   },
+
   ui = {
-    ArrowCircleDown = "",
-    ArrowCircleLeft = "",
-    ArrowCircleRight = "",
-    ArrowCircleUp = "",
+    ArrowCircleDown = " ",
+    ArrowCircleLeft = " ",
+    ArrowCircleRight = " ",
+    ArrowCircleUp = " ",
+
     BoldArrowDown = "",
     BoldArrowLeft = "",
     BoldArrowRight = "",
     BoldArrowUp = "",
+
     BoldClose = "",
+
     BoldDividerLeft = "",
     BoldDividerRight = "",
+
     BoldLineLeft = "▎",
     BoldLineMiddle = "┃",
     BoldLineDashedMiddle = "┋",
+
     BookMark = "",
-    BoxChecked = " ",
-    Bug = " ",
+    BoxChecked = "",
+
+    Bug = "",
     Stacks = "",
     Scopes = "",
     Watches = "󰂥",
     DebugConsole = " ",
+
     Calendar = " ",
-    Check = "",
+    Check = " ",
+
     ChevronRight = "",
     ChevronShortDown = "",
     ChevronShortLeft = "",
     ChevronShortRight = "",
     ChevronShortUp = "",
+
     Circle = " ",
     Close = "󰅖",
+
     CloudDownload = " ",
+    CloudUpload = " ",
+
     Code = "",
     Comment = "",
-    Dashboard = "",
+
+    Dashboard = " ",
+
     DividerLeft = "",
     DividerRight = "",
+
     DoubleChevronRight = "»",
     Ellipsis = "",
-    EmptyFolder = " ",
-    EmptyFolderOpen = " ",
-    File = " ",
+
+    EmptyFolder = "",
+    EmptyFolderOpen = "",
+
+    File = "",
     FileSymlink = "",
-    Files = " ",
+    Files = "",
+
     FindFile = "󰈞",
     FindText = "󰊄",
+
     Fire = "",
-    Folder = "󰉋 ",
-    FolderOpen = " ",
-    FolderSymlink = " ",
-    Forward = " ",
-    Gear = " ",
-    History = " ",
-    Lightbulb = " ",
+
+    Folder = "󰉋",
+    FolderOpen = "",
+    FolderSymlink = "",
+
+    Forward = "",
+
+    Gear = "",
+    History = "",
+
+    Lightbulb = "",
+
     LineLeft = "▏",
     LineMiddle = "│",
-    List = " ",
-    Lock = " ",
-    NewFile = " ",
-    Note = " ",
-    Package = " ",
-    Pencil = "󰏫 ",
-    Plus = " ",
-    Project = " ",
-    Search = " ",
-    SignIn = " ",
-    SignOut = " ",
-    Tab = "󰌒 ",
-    Table = " ",
-    Target = "󰀘 ",
-    Telescope = " ",
-    Text = " ",
+
+    List = "",
+
+    Lock = "",
+    Unlock = "",
+
+    NewFile = "",
+    Note = "",
+
+    Package = "",
+
+    Pencil = "󰏫",
+    Plus = "",
+
+    Project = "",
+
+    Refresh = "󰑓 ",
+    Search = "",
+
+    SignIn = "",
+    SignOut = "",
+
+    Tab = "󰌒",
+    Table = "",
+
+    Target = "󰀘",
+
+    Telescope = " ",
+
+    Text = "",
     Tree = "",
+
     Triangle = "󰐊",
     TriangleShortArrowDown = "",
     TriangleShortArrowLeft = "",
     TriangleShortArrowRight = "",
     TriangleShortArrowUp = "",
   },
+
   diagnostics = {
     BoldError = "",
     Error = "",
+
     BoldWarning = "",
     Warning = "",
+
     BoldInformation = "",
     Information = "",
+
     BoldQuestion = "",
     Question = "",
+
     BoldHint = "",
     Hint = "󰌶",
+
     Debug = "",
     Trace = "✎",
   },
+
   misc = {
-    Robot = "󰚩 ",
-    Squirrel = " ",
-    Tag = " ",
+    Robot = "󰚩",
+    Squirrel = "",
+    Tag = "",
     Watch = "",
-    Smiley = " ",
-    Package = " ",
-    CircuitBoard = " ",
+    Smiley = "",
+    Package = "",
+    CircuitBoard = "",
+
+    Terminal = "",
+    TerminalLinux = "",
+    Command = "",
+    Keyboard = "󰌌",
+    Plug = "󰐱",
+    Server = "󰒋",
+    Database = "",
+    Globe = "󰖟",
+    Link = "󰌷",
+    Bookmark = "󰂺",
+  },
+
+  which_key = {
+    Telescope = " ",
+    Mark = "󰂺",
+    Code = "󰚗 ",
+    Plugins = "󰏔 ",
+    Neovim = "",
+    Exit = "󰅜",
+    Save = "󰆓 ",
+    Explorer = " ",
   },
 }
+

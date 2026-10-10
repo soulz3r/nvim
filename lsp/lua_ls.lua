@@ -7,7 +7,7 @@ return {
   settings = {
     Lua = {
       format = {
-        enable = false,
+        enable = true,
       },
       diagnostics = {
         globals = { "vim", "spec", "GET", "OPTS", "keymap", "hl" },

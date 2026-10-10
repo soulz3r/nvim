@@ -1,5 +1,5 @@
-local s3d_dir = "C:/Users/soulz3r/Desktop/Projects/s3d"
-local code_dir = s3d_dir .. "/code"
+local s3d_dir = "C:/Users/soulz3r/Documents/projects/"
+local code_dir = s3d_dir .. "/s3d"
 
 local function open_build_float(lines)
   local buf = vim.api.nvim_create_buf(false, true)

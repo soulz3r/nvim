@@ -69,7 +69,7 @@ function M.config()
   end
 
   require("toggleterm").setup {
-    size = 20,
+    size = 10,
     open_mapping = [[<c-\>]],
     hide_numbers = true, -- hide the number column in toggleterm buffers
     shade_filetypes = {},
@@ -90,7 +90,7 @@ function M.config()
       },
     },
     winbar = {
-      enabled = true,
+      enabled = false,
       name_formatter = function(term) --  term: Terminal
         return term.count
       end,

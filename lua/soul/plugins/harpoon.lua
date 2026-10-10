@@ -18,13 +18,11 @@ return {
         desc = 'Harpoon Quick Menu'
       },
 
-      -- Add file to Harpoon
       { '<leader>ha', function() 
         local harpoon = require('harpoon')
         harpoon:list():add() 
       end, desc = 'Add File to Harpoon' },
 
-      -- Open/Mark your quicknotes file
       {
         '<leader>ni',
         function()
@@ -36,7 +34,6 @@ return {
         desc = 'Open neovim init file'
       },
 
-      -- Jump to file 1-10
       { '<leader>hq', function() require('harpoon'):list():select(1) end, OPTS("Open file 1")},
       { '<leader>hw', function() require('harpoon'):list():select(2) end , OPTS("Open file 2")},
       { '<leader>he', function() require('harpoon'):list():select(3) end , OPTS("Open file 3")},
