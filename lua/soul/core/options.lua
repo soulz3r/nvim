@@ -83,13 +83,14 @@ if vim.fn.has("wsl") == 1 then
 end
 
 if vim.fn.has("win32") == 1 then
-  local pwsh_dir =
-    "C:/Program Files/WindowsApps/Microsoft.PowerShell_7.6.6.0_x64__8wekyb3d8bbwe"
+  vim.opt.shell =
+    vim.env.LOCALAPPDATA
+    .. "/Microsoft/WindowsApps/Microsoft.PowerShell_8wekyb3d8bbwe/pwsh.exe"
 
-  vim.env.PATH = pwsh_dir .. ";" .. vim.env.PATH
+  vim.opt.shellcmdflag =
+    "-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command"
 
-  vim.opt.shell = "pwsh.exe"
-  vim.opt.shellcmdflag = "-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command"
   vim.opt.shellquote = ""
   vim.opt.shellxquote = ""
 end
+

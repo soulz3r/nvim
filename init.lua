@@ -18,6 +18,7 @@ GET "soul.plugins.toggleterm"
 GET "soul.plugins.render_md"
 GET "soul.plugins.mini"
 GET "soul.plugins.lualine"
+GET "soul.plugins.trouble"
 
 
 GET "soul.lsp.lsp"
@@ -29,6 +30,7 @@ GET "soul.extras.ufo"
 GET "soul.extras.todo"
 GET "soul.extras.colorizer"
 GET "soul.extras.everforest"
+-- GET "soul.extras.cyberpunk"
 
 require "soul.lazy"
 require "soul.core.colors"
