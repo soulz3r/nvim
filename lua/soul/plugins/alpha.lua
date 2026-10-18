@@ -44,21 +44,13 @@ function M.config()
     fg = "#E69875",
   })
 
-  ---------------------------------------------------------------------------
-  -- Button
-  ---------------------------------------------------------------------------
-
   local function button(sc, txt, keybind, keybind_opts)
     local b = dashboard.button(sc, txt, keybind, keybind_opts)
     b.opts.hl_shortcut = "Include"
     return b
   end
 
-  ---------------------------------------------------------------------------
-  -- Header
-  ---------------------------------------------------------------------------
-
-  local header = {
+    local header = {
     "███████╗ ██████╗ ██╗   ██╗██╗灵魂",
     "██╔════╝██╔═══██╗██║   ██║██║士兵",
     "███████╗██║no ██║██║   ██║██║国王",
@@ -134,10 +126,6 @@ function M.config()
     hl = utils.charhl_to_bytehl(header_hl, header),
   }
 
-  ---------------------------------------------------------------------------
-  -- Button icons
-  ---------------------------------------------------------------------------
-
   local button_icons = {
     files = icons.ui.Files,
     explorer = icons.ui.Folder,
@@ -151,10 +139,6 @@ function M.config()
     health = icons.ui.Bug,
     quit = icons.ui.SignOut,
   }
-
-  ---------------------------------------------------------------------------
-  -- Buttons
-  ---------------------------------------------------------------------------
 
   dashboard.section.buttons.val = {
     button(
@@ -226,10 +210,6 @@ function M.config()
 
   dashboard.section.buttons.opts.hl = "Include"
 
-  ---------------------------------------------------------------------------
-  -- Color individual button icons
-  ---------------------------------------------------------------------------
-
   local button_icon_highlights = {
     { button_icons.files, "AlphaBlue" },
     { button_icons.explorer, "AlphaAqua" },
@@ -257,10 +237,6 @@ function M.config()
     }
   end
 
-  ---------------------------------------------------------------------------
-  -- Git
-  ---------------------------------------------------------------------------
-
   local function get_git_branch()
     local git_dir = vim.fn.finddir(".git", ".;")
 
@@ -281,10 +257,6 @@ function M.config()
 
     return branch
   end
-
-  ---------------------------------------------------------------------------
-  -- Footer
-  ---------------------------------------------------------------------------
 
   local function footer()
     local stats = require("lazy").stats()
@@ -364,10 +336,6 @@ function M.config()
     },
   }
 
-  ---------------------------------------------------------------------------
-  -- Update footer
-  ---------------------------------------------------------------------------
-
   local function update_footer()
     local lines = footer()
 
@@ -378,10 +346,6 @@ function M.config()
   end
 
   update_footer()
-
-  ---------------------------------------------------------------------------
-  -- Layout
-  ---------------------------------------------------------------------------
 
   dashboard.opts.layout = {
     { type = "padding", val = 2 },
@@ -402,10 +366,6 @@ function M.config()
   dashboard.opts.opts = {
     noautocmd = true,
   }
-
-  ---------------------------------------------------------------------------
-  -- Animation
-  ---------------------------------------------------------------------------
 
   local daad_frames = {
     "d ",

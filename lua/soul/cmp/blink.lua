@@ -18,9 +18,7 @@ return {
         auto_brackets = { enabled = true },
       },
       trigger = {
-        -- Force the popup to show immediately when you begin typing command keywords
         show_on_keyword = true,
-        -- Set to true if you want the menu to appear immediately when you type a trigger character (like '/')
         show_on_trigger_character = true,
       },
     },
@@ -31,7 +29,6 @@ return {
       default = { 'lsp', 'path', 'snippets', 'buffer' },
     },
     cmdline = {
-      -- Fixed: Enabled auto_show inside cmdline completion so it triggers as you type
       completion = {
         menu = { auto_show = true },
       },
@@ -45,7 +42,6 @@ return {
   config = function(_, opts)
     require("blink.cmp").setup(opts)
 
-    -- Transparent backgrounds
     vim.api.nvim_set_hl(0, "Pmenu", { bg = "none" })
     vim.api.nvim_set_hl(0, "PmenuSel", { bg = "none" })
     vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
@@ -53,7 +49,6 @@ return {
     vim.api.nvim_set_hl(0, "PmenuSbar", { bg = "none" })
     vim.api.nvim_set_hl(0, "PmenuThumb", { bg = "none" })
 
-    -- BlinkCmp-specific
     vim.api.nvim_set_hl(0, "BlinkCmpMenu", { bg = "none" })
     vim.api.nvim_set_hl(0, "BlinkCmpMenuBorder", { bg = "none" })
     vim.api.nvim_set_hl(0, "BlinkCmpMenuSelection", {

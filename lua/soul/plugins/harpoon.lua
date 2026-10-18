@@ -8,7 +8,6 @@ return {
   end,
   keys = function()
     return {
-      -- Open Harpoon (marked files)
       {
         '<leader>hh',
         function()

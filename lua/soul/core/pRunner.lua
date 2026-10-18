@@ -42,7 +42,6 @@ vim.keymap.set("n", "<leader>nn", function()
   local pwsh = "pwsh.exe"
   local output = {}
 
-  -- Build engine
   local engine_build = vim.fn.system({
     pwsh,
     "-NoLogo",
@@ -65,7 +64,6 @@ vim.keymap.set("n", "<leader>nn", function()
     return
   end
 
-  -- Build testbed
   local testbed_build = vim.fn.system({
     pwsh,
     "-NoLogo",
@@ -89,7 +87,6 @@ vim.keymap.set("n", "<leader>nn", function()
     return
   end
 
-  -- Launch testbed
   vim.fn.jobstart({
     "bin/testbed.exe",
   }, {

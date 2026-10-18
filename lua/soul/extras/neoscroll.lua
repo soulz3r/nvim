@@ -12,7 +12,6 @@ function M.config()
 ]]
 
   require("neoscroll").setup {
-    -- All these keys will be mapped to their corresponding default scrolling animation
     mappings = { "<C-u>", "<C-d>", "<C-b>", "<C-f>", "<C-y>", "<C-e>", "zt", "zz", "zb", "C-k", "C-j" },
     hide_cursor = true, -- Hide cursor while scrolling
     stop_eof = true, -- Stop at <EOF> when scrolling downwards
@@ -25,7 +24,6 @@ function M.config()
   }
 
   local t = {}
-  -- Syntax: t[keys] = {function, {function arguments}}
   t["<C-u>"] = { "scroll", { "-vim.wo.scroll", "true", "250" } }
   t["<C-d>"] = { "scroll", { "vim.wo.scroll", "true", "250" } }
   t["<C-k>"] = { "scroll", { "-vim.wo.scroll", "true", "250" } }

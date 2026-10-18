@@ -77,8 +77,6 @@ function M.config()
         i = cmp.mapping.abort(),
         c = cmp.mapping.close(),
       },
-      -- Accept currently selected item. If none selected, `select` first item.
-      -- Set `select` to `false` to only confirm explicitly selected items.
       ["<CR>"] = cmp.mapping.confirm { select = true },
       ["<Tab>"] = cmp.mapping(function(fallback)
         if cmp.visible() then
@@ -165,14 +163,12 @@ function M.config()
       ghost_text = false,
     },
   }
-  -- `/` cmdline setup.
   cmp.setup.cmdline('/', {
     mapping = cmp.mapping.preset.cmdline(),
     sources = {
       { name = 'buffer' }
     }
   })
-  -- `:` cmdline setup.
   cmp.setup.cmdline(':', {
     mapping = cmp.mapping.preset.cmdline(),
     sources = cmp.config.sources({

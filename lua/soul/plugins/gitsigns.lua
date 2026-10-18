@@ -23,7 +23,6 @@ M.config = function()
     signs = {
 
       add = {
-        -- current_line_blame_formatter
         -- hl = "GitSignsAdd",
         text = icons.ui.BoldLineMiddle,
         -- numhl = "GitSignsAddNr",

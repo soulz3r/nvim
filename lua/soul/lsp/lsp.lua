@@ -33,22 +33,18 @@ function M.setup_keymaps(bufnr)
 		})
 	end
 
-	-- Navigation
 	map("<leader>ld", vim.lsp.buf.definition, "Definition")
 	map("<leader>lD", vim.lsp.buf.declaration, "Declaration")
 	map("<leader>li", vim.lsp.buf.implementation, "Implementation")
 	map("<leader>lt", vim.lsp.buf.type_definition, "Type Definition")
 	map("<leader>lr", vim.lsp.buf.references, "References")
 
-	-- Documentation
 	map("<leader>lh", vim.lsp.buf.hover, "Hover Documentation")
 	map("<leader>ls", vim.lsp.buf.signature_help, "Signature Help")
 
-	-- Actions
 	map("<leader>la", vim.lsp.buf.code_action, "Code Action")
 	map("<leader>ln", vim.lsp.buf.rename, "Rename")
 
-	-- Formatting
 	map("<leader>lf", function()
 		vim.lsp.buf.format({
 			filter = function(client)
@@ -57,7 +53,6 @@ function M.setup_keymaps(bufnr)
 		})
 	end, "Format")
 
-	-- Diagnostics
 	map("<leader>lj", function()
 		vim.diagnostic.jump({
 			count = 1,
@@ -74,11 +69,9 @@ function M.setup_keymaps(bufnr)
 
 	map("<leader>lq", vim.diagnostic.setloclist, "Diagnostic List")
 
-	-- Workspace
 	map("<leader>lw", vim.lsp.buf.workspace_symbol, "Workspace Symbols")
 	map("<leader>lS", vim.lsp.buf.document_symbol, "Document Symbols")
 
-	-- LSP utilities
 	map("<leader>lI", "<cmd>checkhealth vim.lsp<CR>", "LSP Info")
 
 	map("<leader>lH", function()
@@ -107,12 +100,10 @@ return {
 		},
 
 		config = function()
-			-- Capabilities
 			vim.lsp.config("*", {
 				capabilities = M.capabilities(),
 			})
 
-			-- Attach event (Neovim 0.12 recommended)
 			vim.api.nvim_create_autocmd("LspAttach", {
 
 				callback = function(args)
@@ -127,7 +118,6 @@ return {
 				end,
 			})
 
-			-- StyLua
 			vim.lsp.config("stylua", {
 
 				cmd = {
@@ -149,7 +139,6 @@ return {
 				workspace_required = false,
 			})
 
-			-- Enable servers
 			vim.lsp.enable({
 				"lua_ls",
 				"stylua",
@@ -157,7 +146,6 @@ return {
 				"bashls",
 			})
 
-			-- Diagnostics
 			vim.diagnostic.config({
 
 				virtual_text = true,

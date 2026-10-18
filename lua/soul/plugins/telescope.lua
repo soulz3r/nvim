@@ -19,7 +19,6 @@ function M.config()
   local actions = require("telescope.actions")
   local actions_layout = require("telescope.actions.layout")
 
-  -- Replace with your icons module if it exists
   local ok, icons = pcall(require, "soul.icons")
 
   if not ok then
@@ -61,7 +60,6 @@ function M.config()
 
       mappings = {
         i = {
-          -- Move through results
           ["<C-n>"] = actions.move_selection_next,
           ["<C-p>"] = actions.move_selection_previous,
 
@@ -71,7 +69,6 @@ function M.config()
           ["<C-a>"] = actions.select_all,
           ["<C-x>"] = actions.drop_all,
 
-          -- Keep prompt history available
           ["<C-Up>"] = actions.cycle_history_prev,
           ["<C-Down>"] = actions.cycle_history_next,
 
@@ -220,7 +217,6 @@ function M.config()
     },
   })
 
-  -- Load extensions AFTER setup
   pcall(telescope.load_extension, "fzf")
   pcall(telescope.load_extension, "ui-select")
 

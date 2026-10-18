@@ -10,7 +10,6 @@ function M.config()
     preset = "modern",
 
     spec = {
-      -- Telescope
       {
         "<leader>f",
         group = "Telescope",
@@ -22,49 +21,42 @@ function M.config()
         icon = icons.which_key.Explorer,
       },
 
-      -- Mark / Harpoon
       {
         "<leader>h",
         group = "Mark Harpoon",
         icon = icons.which_key.Mark,
       },
 
-      -- Code / LSP
       {
         "<leader>l",
         group = "Code",
         icon = icons.which_key.Code,
       },
 
-      -- Plugins
       {
         "<leader>L",
         group = "Plugins",
         icon = icons.which_key.Plugins,
       },
 
-      -- Neovim
       {
         "<leader>n",
         group = "Neovim",
         icon = icons.which_key.Neovim,
       },
 
-      -- Quit
       {
         "<leader>q",
         group = "Exit",
         icon = icons.which_key.Exit,
       },
 
-      -- Save
       {
         "<leader>w",
         group = "Save",
         icon = icons.which_key.Save,
       },
 
-      -- Telescope mappings
       {
         "<leader>ff",
         desc = "Find Files",
@@ -119,7 +111,6 @@ function M.config()
         icon = icons.ui.Files,
       },
 
-      -- Telescope LSP mappings
       {
         "<leader>flr",
         desc = "References",
@@ -150,33 +141,12 @@ function M.config()
         icon = icons.kind.TypeParameter,
       },
 
-      -- Neovim mappings
-      {
-        "<leader>nc",
-        desc = "Colorscheme",
-        icon = icons.ui.Pencil,
-      },
-
-      {
-        "<leader>nh",
-        desc = "Health",
-        icon = icons.ui.Bug,
-      },
-
-      {
-        "<leader>nl",
-        desc = "Messages",
-        icon = icons.ui.List,
-      },
-
-      -- Save
       {
         "<leader>wa",
         desc = "Save All",
         icon = icons.ui.Files,
       },
 
-      -- Quit
       {
         "<leader>qq",
         desc = "Quit",
@@ -229,8 +199,6 @@ function M.config()
       group = icons.ui.Plus,
       ellipsis = icons.ui.Ellipsis,
 
-      -- IMPORTANT:
-      -- Do not use mini.icons for coloring.
       colors = false,
     },
 

@@ -17,7 +17,6 @@ function M.config()
   require("mini.pairs").setup()
   require("mini.surround").setup()
 
-  -- Hidden file filters
   local show_hidden = false
 
   local filter_show = function()
@@ -54,7 +53,6 @@ function M.config()
     },
   })
 
-  -- Change working directory to selected entry
   local set_cwd = function()
     local entry = MiniFiles.get_fs_entry()
 
@@ -73,7 +71,6 @@ function M.config()
     vim.notify("cwd → " .. vim.fn.getcwd())
   end
 
-  -- Keymap inside mini.files buffer
   vim.api.nvim_create_autocmd("User", {
     pattern = "MiniFilesBufferCreate",
     callback = function(args)
@@ -91,7 +88,6 @@ function M.config()
     end,
   })
 
-  -- Open mini.files in current working directory
   function open_mini_files()
     MiniFiles.open(vim.fn.getcwd())
   end

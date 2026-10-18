@@ -48,7 +48,6 @@ function M.config()
         local hlGroup = chunk[2]
         table.insert(newVirtText, { chunkText, hlGroup })
         chunkWidth = vim.fn.strdisplaywidth(chunkText)
-        -- str width returned from truncate() may less than 2nd argument, need padding
         if curWidth + chunkWidth < targetWidth then
           suffix = suffix .. (" "):rep(targetWidth - curWidth - chunkWidth)
         end
@@ -71,7 +70,6 @@ function M.config()
     close_fold_kinds = {},
     -- close_fold_kinds = { "imports", "comment" },
     provider_selector = function(bufnr, filetype, buftype)
-      -- if you prefer treesitter provider rather than lsp,
       -- return ftMap[filetype] or {'treesitter', 'indent'}
       return ftMap[filetype]
       -- return { "treesitter", "indent" }

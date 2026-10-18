@@ -1,22 +1,18 @@
 local M = {
   "nvim-treesitter/nvim-treesitter",
 
-  -- The new nvim-treesitter does NOT support lazy-loading.
   lazy = false,
 
-  -- Keep parsers updated whenever the plugin updates.
   build = ":TSUpdate",
 }
 
 function M.config()
   local treesitter = require("nvim-treesitter")
 
-  -- Where parsers and queries are installed.
   treesitter.setup({
     install_dir = vim.fn.stdpath("data") .. "/site",
   })
 
-  -- Languages I actually use.
   treesitter.install({
     "c",
     "cpp",
@@ -35,7 +31,6 @@ function M.config()
     "typescript",
   })
 
-  -- Enable Treesitter highlighting.
   vim.api.nvim_create_autocmd("FileType", {
     pattern = {
       "c",
@@ -58,7 +53,6 @@ function M.config()
     end,
   })
 
-  -- Treesitter folding.
   vim.api.nvim_create_autocmd("FileType", {
     pattern = {
       "c",
