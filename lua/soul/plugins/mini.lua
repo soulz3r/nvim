@@ -3,7 +3,6 @@ local M = {
   version = "*",
   dependencies = {
     "nvim-mini/mini.pick",
-    "nvim-mini/mini.surround",
     "nvim-mini/mini.extra",
     "nvim-mini/mini.icons",
     "nvim-mini/mini.pairs",
@@ -15,7 +14,6 @@ function M.config()
 
   require("mini.icons").setup()
   require("mini.pairs").setup()
-  require("mini.surround").setup()
 
   local show_hidden = false
 
@@ -88,7 +86,7 @@ function M.config()
     end,
   })
 
-  function open_mini_files()
+  local function open_mini_files()
     MiniFiles.open(vim.fn.getcwd())
   end
 

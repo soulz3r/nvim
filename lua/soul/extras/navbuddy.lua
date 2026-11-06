@@ -7,11 +7,6 @@ local M = {
 }
 
 function M.config()
-  local wk = require "which-key"
-  wk.add {
-    { "<leader>o", "<cmd>Navbuddy<cr>", desc = "Nav" },
-  }
-
   local navbuddy = require "nvim-navbuddy"
   -- local actions = require("nvim-navbuddy.actions")
   navbuddy.setup {
@@ -25,8 +20,7 @@ function M.config()
   local opts = { noremap = true, silent = true }
   local keymap = vim.api.nvim_set_keymap
 
-  keymap("n", "<m-s>", ":silent only | Navbuddy<cr>", opts)
-  keymap("n", "<m-o>", ":silent only | Navbuddy<cr>", opts)
+  keymap("n", "<leader>lO", ":silent only | Navbuddy<cr>", opts)
 end
 
 return M

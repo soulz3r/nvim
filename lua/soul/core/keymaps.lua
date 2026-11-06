@@ -1,11 +1,11 @@
 keymap = vim.keymap.set
 
 function OPTS(description)
-  return {
-    noremap = true,
-    silent = true,
-    desc = description or nil,
-  }
+	return {
+		noremap = true,
+		silent = true,
+		desc = description or nil,
+	}
 end
 
 vim.g.mapleader = " "
@@ -34,7 +34,6 @@ keymap({ "n", "o", "x" }, "<s-l>", "g_", OPTS())
 
 keymap("x", "p", [["_dP]])
 keymap("v", "p", [["_dP]], { desc = "Paste over selection without losing yanked text" })
-keymap({ "n", "v" }, "<leader>d", [["_d]], { desc = "Delete without yanking" })
 
 keymap("n", "J", "mzJ`z", { desc = "Join lines without moving cursor" })
 
@@ -65,31 +64,31 @@ vim.cmd([[
   :amenu 10.120 mousemenu.-sep- *
 ]])
 
-vim.keymap.set("n", "<RightMouse>", "<cmd>:popup mousemenu<CR>")
-vim.keymap.set("n", "<Tab>", "<cmd>:popup mousemenu<CR>")
+keymap("n", "<RightMouse>", "<cmd>:popup mousemenu<CR>")
+keymap("n", "<Tab>", "<cmd>:popup mousemenu<CR>")
 
-vim.keymap.set(
-  "n",
-  "<leader>c",
-  [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
-  { desc = "Replace word cursor is on globally" }
+keymap(
+	"n",
+	"<leader>c",
+	[[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
+	{ desc = "Replace word cursor is on globally" }
 )
 
-vim.keymap.set(
-  "n",
-  "<leader>X",
-  "<cmd>!chmod +x %<CR>",
-  { silent = true, desc = "makes file executable" }
+keymap("n", "<leader>X", "<cmd>!chmod +x %<CR>", { silent = true, desc = "makes file executable" })
+
+keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart config :restart)" })
+keymap(
+	"n",
+	"<leader>ni",
+	"<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>",
+	{ desc = "Open config file" }
 )
+keymap("n", "<leader>nm", "<cmd>messages<cr>", OPTS("Open logs messages"))
 
-vim.keymap.set("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart config :restart)" })
-
-vim.keymap.set("n", "<leader>nm", "<cmd>messages<cr>", OPTS("Open logs messages"))
-
-vim.keymap.set("n", "<leader>u", function()
-  vim.cmd.packadd("nvim.undotree")
-  require("undotree").open()
+keymap("n", "<leader>u", function()
+	vim.cmd.packadd("nvim.undotree")
+	require("undotree").open()
 end, { desc = "Builtin Undotree" })
-vim.keymap.set("n", "gd", vim.lsp.buf.definition, {
-    desc = "Go to definition",
+keymap("n", "gd", vim.lsp.buf.definition, {
+	desc = "Go to definition",
 })

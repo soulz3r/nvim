@@ -11,14 +11,23 @@ function M.config()
 
     spec = {
       {
-        "<leader>f",
-        group = "Telescope",
-        icon = icons.which_key.Telescope,
+        "<leader>d",
+        group = "Debug",
+        icon = icons.diagnostics.Debug,
       },
       {
         "<leader>e",
         group = "Explorer",
         icon = icons.which_key.Explorer,
+      },
+      {
+        "<leader>f",
+        group = "Telescope",
+        icon = icons.which_key.Telescope,
+      },
+      {
+        "<leader>g",
+        group = "Git",
       },
 
       {

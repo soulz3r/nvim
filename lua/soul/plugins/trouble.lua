@@ -11,11 +11,11 @@ function M.config()
     auto_close = true,
     auto_preview = true,
     focus = true,
-    follow = false,
+    follow = true,
     indent_guides = true,
     max_items = 200,
     multiline = true,
-    warn_no_results = false,
+    warn_no_results = true,
     open_no_results = false,
 
     win = {

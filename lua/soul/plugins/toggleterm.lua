@@ -97,7 +97,7 @@ function M.config()
 
 		float_opts = {
 			border = "rounded",
-			width = 45,
+			width = 50,
 			height = 30,
 			winblend = 1,
 			highlights = {

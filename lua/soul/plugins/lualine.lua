@@ -79,11 +79,7 @@ function M.config()
 				"location",
 				function()
 					local win = vim.api.nvim_get_current_win()
-					return string.format(
-						"%d×%d",
-						vim.api.nvim_win_get_height(win),
-						vim.api.nvim_win_get_width(win)
-					)
+					return string.format("%d×%d", vim.api.nvim_win_get_height(win), vim.api.nvim_win_get_width(win))
 				end,
 			},
 			lualine_y = {},
@@ -120,6 +116,8 @@ function M.config()
 		inactive_winbar = {},
 		extensions = {},
 	})
+
+	vim.api.nvim_set_hl(0, "lualine_c_normal", { bg = "#272e33" })
 end
 
 return M

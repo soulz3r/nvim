@@ -25,7 +25,7 @@ function M.on_attach(client, bufnr)
 end
 
 function M.setup_keymaps(bufnr)
-	local map = function(key, func, desc)
+	local function map(key, func, desc)
 		vim.keymap.set("n", key, func, {
 			buffer = bufnr,
 			desc = desc,
@@ -33,62 +33,63 @@ function M.setup_keymaps(bufnr)
 		})
 	end
 
+	-- Navigation
 	map("<leader>ld", vim.lsp.buf.definition, "Definition")
 	map("<leader>lD", vim.lsp.buf.declaration, "Declaration")
 	map("<leader>li", vim.lsp.buf.implementation, "Implementation")
 	map("<leader>lt", vim.lsp.buf.type_definition, "Type Definition")
 	map("<leader>lr", vim.lsp.buf.references, "References")
 
+	-- Documentation
 	map("<leader>lh", vim.lsp.buf.hover, "Hover Documentation")
 	map("<leader>ls", vim.lsp.buf.signature_help, "Signature Help")
 
+	-- Refactoring
 	map("<leader>la", vim.lsp.buf.code_action, "Code Action")
-	map("<leader>ln", vim.lsp.buf.rename, "Rename")
+	map("<leader>lR", vim.lsp.buf.rename, "Rename")
 
+	-- Formatting: only use an attached client that supports it
 	map("<leader>lf", function()
 		vim.lsp.buf.format({
+			bufnr = bufnr,
 			filter = function(client)
-				return client.name == "clangd" or client.name == "stylua"
+				return client:supports_method("textDocument/formatting")
+					and (client.name == "clangd" or client.name == "stylua")
 			end,
 		})
 	end, "Format")
 
+	-- Diagnostics
 	map("<leader>lj", function()
-		vim.diagnostic.jump({
-			count = 1,
-		})
+		vim.diagnostic.jump({ count = 1, wrap = true })
 	end, "Next Diagnostic")
 
 	map("<leader>lk", function()
-		vim.diagnostic.jump({
-			count = -1,
-		})
+		vim.diagnostic.jump({ count = -1, wrap = true })
 	end, "Previous Diagnostic")
 
-	map("<leader>lo", vim.diagnostic.open_float, "Show Diagnostics")
+	map("<leader>lo", function()
+		vim.diagnostic.open_float(bufnr)
+	end, "Show Diagnostics")
 
-	map("<leader>lq", vim.diagnostic.setloclist, "Diagnostic List")
+	map("<leader>lq", function()
+		vim.diagnostic.setloclist({ bufnr = bufnr })
+	end, "Diagnostic List")
 
+	-- Symbols
 	map("<leader>lw", vim.lsp.buf.workspace_symbol, "Workspace Symbols")
 	map("<leader>lS", vim.lsp.buf.document_symbol, "Document Symbols")
 
-	map("<leader>lI", "<cmd>checkhealth vim.lsp<CR>", "LSP Info")
+	-- LSP utilities
+	map("<leader>lI", "<cmd>checkhealth vim.lsp<CR>", "LSP Health")
 
 	map("<leader>lH", function()
-		if vim.lsp.inlay_hint then
-			local enabled = vim.lsp.inlay_hint.is_enabled({
-				bufnr = bufnr,
-			})
-
-			vim.lsp.inlay_hint.enable(not enabled, {
-				bufnr = bufnr,
-			})
-		end
+		local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr })
+		vim.lsp.inlay_hint.enable(not enabled, { bufnr = bufnr })
 	end, "Toggle Inlay Hints")
 
-	map("<leader>lC", "<cmd>LspRestart<CR>", "Restart LSP")
+	map("<leader>lC", "<cmd>lsp restart<CR>", "Restart LSP")
 end
-
 return {
 
 	{
@@ -148,7 +149,7 @@ return {
 
 			vim.diagnostic.config({
 
-				virtual_text = true,
+				virtual_text = false,
 				virtual_lines = false,
 
 				signs = true,

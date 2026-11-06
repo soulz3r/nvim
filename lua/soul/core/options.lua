@@ -40,6 +40,11 @@ vim.opt.wrap = false -- display lines as one long line
 vim.opt.scrolloff = 0
 vim.opt.sidescrolloff = 8
 
+vim.g.loaded_node_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_python3_provider = 0
+vim.g.loaded_ruby_provider = 0
+
 -- vim.opt.guifont = "FiraCode Nerd Font:h10"
 -- vim.opt.guifont = "MonaspiceRn Nerd Font:h9"
 vim.opt.guifont = "ComicShannsMono Nerd Font:h9"
@@ -51,16 +56,16 @@ vim.opt.title = false
 
 vim.opt.fillchars = vim.opt.fillchars + "eob: "
 
-vim.opt.fillchars:append {
-  stl = " ",
-}
+vim.opt.fillchars:append({
+	stl = " ",
+})
 
-vim.opt.shortmess:append "c"
+vim.opt.shortmess:append("c")
 
 vim.opt.winborder = "rounded"
 
-vim.cmd "set whichwrap+=<,>,[,],h,l"
-vim.cmd [[set iskeyword+=-]]
+vim.cmd("set whichwrap+=<,>,[,],h,l")
+vim.cmd([[set iskeyword+=-]])
 
 vim.g.netrw_banner = 0
 vim.g.netrw_mouse = 2
@@ -68,29 +73,39 @@ vim.g.netrw_mouse = 2
 vim.opt.clipboard = "unnamedplus"
 
 if vim.fn.has("wsl") == 1 then
-  vim.g.clipboard = {
-    name = "WslClipboard",
-    copy = {
-      ["+"] = "clip.exe",
-      ["*"] = "clip.exe",
-    },
-    paste = {
-      ["+"] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-      ["*"] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-    },
-    cache_enabled = 0,
-  }
+	vim.g.clipboard = {
+		name = "WslClipboard",
+		copy = {
+			["+"] = "clip.exe",
+			["*"] = "clip.exe",
+		},
+		paste = {
+			["+"] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+			["*"] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+		},
+		cache_enabled = 0,
+	}
 end
 
 if vim.fn.has("win32") == 1 then
-  vim.opt.shell =
-    vim.env.LOCALAPPDATA
-    .. "/Microsoft/WindowsApps/Microsoft.PowerShell_8wekyb3d8bbwe/pwsh.exe"
+	vim.opt.shell = vim.env.LOCALAPPDATA .. "/Microsoft/WindowsApps/Microsoft.PowerShell_8wekyb3d8bbwe/pwsh.exe"
 
-  vim.opt.shellcmdflag =
-    "-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command"
+	vim.opt.shellcmdflag = "-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command"
 
-  vim.opt.shellquote = ""
-  vim.opt.shellxquote = ""
+	vim.opt.shellquote = ""
+	vim.opt.shellxquote = ""
 end
 
+if vim.g.neovide then
+	local normal = vim.api.nvim_get_hl(0, { name = "Normal" })
+	if normal.bg then
+		vim.g.neovide_title_background_color = string.format("%06x", normal.bg)
+	end
+	vim.g.neovide_theme = "dark"
+	vim.g.neovide_corner_preference = "round"
+	vim.g.neovide_remember_window_size = true
+	vim.g.neovide_padding_top = 10
+	vim.g.neovide_padding_bottom = 4
+	vim.g.neovide_padding_left = 6
+	vim.g.neovide_padding_right = 6
+end
