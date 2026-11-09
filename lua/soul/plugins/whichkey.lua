@@ -29,6 +29,11 @@ function M.config()
         "<leader>g",
         group = "Git",
       },
+      {
+        "<leader>s",
+        group = "Sessions",
+        icon = icons.ui.History,
+      },
 
       {
         "<leader>h",

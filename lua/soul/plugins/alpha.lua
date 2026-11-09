@@ -166,8 +166,8 @@ function M.config()
 		local seen_files = {}
 		local seen_projects = {}
 
-		for _, path in ipairs(vim.v.oldfiles) do
-			if #files >= 5 and #projects >= 5 then
+		for index, path in ipairs(vim.v.oldfiles) do
+			if index > 100 or (#files >= 5 and #projects >= 5) then
 				break
 			end
 
