@@ -16,7 +16,7 @@ jobs:
       - name: Install Lua parser and JSON validator
         run: |
           sudo apt-get update
-          sudo apt-get install -y lua5.1 python3
+          sudo apt-get install -y python3
 
       - name: Run static checks
         run: bash scripts/check.sh
