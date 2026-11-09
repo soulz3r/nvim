@@ -141,7 +141,7 @@ function M.config()
 
 		button("n", button_icons.new_file .. " New file", "<cmd>ene | startinsert<CR>"),
 
-		button("p", button_icons.project .. " Project files", "<cmd>Telescope find_files<CR>"),
+		button("p", button_icons.project .. " Projects", "<cmd>Telescope projects<CR>"),
 
 		button("r", button_icons.recent .. " Recent files", "<cmd>Telescope oldfiles<CR>"),
 
@@ -265,7 +265,7 @@ function M.config()
 		recent_projects,
 		{ "6", "7", "8", "9", "0" },
 		function(path)
-			return "<cmd>lua vim.cmd.cd(" .. string.format("%q", path) .. "); require('telescope.builtin').find_files()<CR>"
+			return "<cmd>lua vim.cmd.cd(" .. string.format("%q", path) .. "); vim.cmd.enew()<CR>"
 		end
 	)
 
