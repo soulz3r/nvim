@@ -188,27 +188,29 @@ function M.config()
 	end
 
 	local function get_git_branch()
-		local git_dir = vim.fn.finddir(".git", ".;")
+		local ok, process = pcall(vim.system, {
+			"git",
+			"-C",
+			vim.fn.getcwd(),
+			"branch",
+			"--show-current",
+		}, {
+			text = true,
+		})
 
-		if git_dir == "" then
+		if not ok then
 			return nil
 		end
 
-		-- Cross-platform redirect
-		local redirect = vim.fn.has("win32") == 1 and "2>nul" or "2>/dev/null"
+		local result = process:wait()
 
-		local branch =
-			vim.fn.system("git -C " .. vim.fn.shellescape(vim.fn.getcwd()) .. " branch --show-current " .. redirect)
-
-		branch = vim.trim(branch)
-
-		if branch == "" or branch:find("fatal") then
+		if result.code ~= 0 then
 			return nil
 		end
 
-		return branch
+		local branch = vim.trim(result.stdout or "")
+		return branch ~= "" and branch or nil
 	end
-
 	local function footer()
 		local stats = require("lazy").stats()
 
