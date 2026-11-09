@@ -37,7 +37,7 @@ vim.opt.showcmd = false
 vim.opt.ruler = false
 
 vim.opt.wrap = false
-vim.opt.scrolloff = 0
+vim.opt.scrolloff = 4
 vim.opt.sidescrolloff = 8
 
 vim.g.loaded_node_provider = 0

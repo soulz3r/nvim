@@ -195,7 +195,7 @@ function M.config()
 		return files, projects
 	end
 
-	local function recent_section(title, entries, prefix, action)
+	local function recent_section(title, entries, shortcuts, action)
 		local values = {
 			{
 				type = "text",
@@ -221,7 +221,7 @@ function M.config()
 				local label = vim.fn.fnamemodify(path, ":~:.")
 				local command = action(path)
 				table.insert(values, button(
-					prefix .. index,
+					shortcuts[index],
 					" " .. label,
 					command
 				))
@@ -242,7 +242,7 @@ function M.config()
 	dashboard.section.recent_files = recent_section(
 		"Recent files",
 		recent_files,
-		"",
+		{ "1", "2", "3", "4", "5" },
 		function(path)
 			return "<cmd>edit " .. vim.fn.fnameescape(path) .. "<CR>"
 		end
@@ -251,7 +251,7 @@ function M.config()
 	dashboard.section.recent_projects = recent_section(
 		"Recent projects",
 		recent_projects,
-		"",
+		{ "6", "7", "8", "9", "0" },
 		function(path)
 			return "<cmd>lua vim.cmd.cd(" .. string.format("%q", path) .. "); require('telescope.builtin').find_files()<CR>"
 		end

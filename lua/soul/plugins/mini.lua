@@ -14,6 +14,22 @@ function M.config()
 
   require("mini.icons").setup()
   require("mini.pairs").setup()
+  require("mini.ai").setup()
+  require("mini.surround").setup()
+
+  require("mini.notify").setup({
+    window = {
+      config = {
+        border = "rounded",
+      },
+      max_width_share = 0.45,
+      winblend = 0,
+    },
+    lsp_progress = {
+      enable = true,
+      duration_last = 1200,
+    },
+  })
 
   local MiniSessions = require("mini.sessions")
 
@@ -122,6 +138,7 @@ function M.config()
   })
 
   function M.open(path)
+    show_hidden = false
     MiniFiles.open(path or vim.fn.getcwd())
   end
 
@@ -156,6 +173,10 @@ function M.config()
     MiniFilesFile = { fg = "#D3C6AA", bg = "NONE" },
     MiniFilesNormal = { bg = "NONE" },
     MiniFilesCursorLine = { bg = "#343F44" },
+    MiniNotifyBorder = { fg = "#859289", bg = "#272e33" },
+    MiniNotifyNormal = { fg = "#D3C6AA", bg = "#272e33" },
+    MiniNotifyTitle = { fg = "#A7C080", bg = "#272e33", bold = true },
+    MiniNotifyLspProgress = { fg = "#7FBBB3", bg = "#272e33" },
   }
 
   for group, opts in pairs(highlights) do

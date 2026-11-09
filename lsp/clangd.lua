@@ -117,6 +117,20 @@ local M = {
 	end,
 
 	on_attach = function(client, bufnr)
+		vim.keymap.set("n", "gS", function()
+			switch_source_header(bufnr, client)
+		end, {
+			buffer = bufnr,
+			desc = "Switch source/header",
+		})
+
+		vim.keymap.set("n", "gI", function()
+			symbol_info(bufnr, client)
+		end, {
+			buffer = bufnr,
+			desc = "Show symbol info",
+		})
+
 		vim.api.nvim_buf_create_user_command(bufnr, "LspClangdSwitchSourceHeader", function()
 			switch_source_header(bufnr, client)
 		end, { desc = "Switch between source/header" })

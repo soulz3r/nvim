@@ -155,6 +155,7 @@ return {
 
 					M.on_attach(client, args.buf)
 					M.setup_keymaps(args.buf)
+					M.setup_format_on_save(client, args.buf)
 				end,
 			})
 
