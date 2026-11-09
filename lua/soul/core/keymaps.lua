@@ -14,10 +14,10 @@ vim.g.maplocalleader = " "
 keymap("n", "<Space>", "", OPTS())
 keymap("n", "<C-i>", "<C-i>", OPTS())
 
-keymap("n", "<m-h>", "<C-w>h", OPTS())
-keymap("n", "<m-j>", "<C-w>j", OPTS())
-keymap("n", "<m-k>", "<C-w>k", OPTS())
-keymap("n", "<m-l>", "<C-w>l", OPTS())
+keymap("n", "<C-h>", "<C-w>h", OPTS("Window left"))
+keymap("n", "<C-j>", "<C-w>j", OPTS("Window down"))
+keymap("n", "<C-k>", "<C-w>k", OPTS("Window up"))
+keymap("n", "<C-l>", "<C-w>l", OPTS("Window right"))
 keymap("n", "<m-tab>", "<c-6>", OPTS())
 
 keymap("n", "<ma>", "<mA>", OPTS())
@@ -32,7 +32,6 @@ keymap("n", "g#", "g#zz", OPTS())
 keymap({ "n", "o", "x" }, "<s-h>", "^", OPTS())
 keymap({ "n", "o", "x" }, "<s-l>", "g_", OPTS())
 
-keymap("x", "p", [["_dP]])
 keymap("v", "p", [["_dP]], { desc = "Paste without losing yank" })
 
 keymap("n", "J", "mzJ`z", { desc = "Join lines" })

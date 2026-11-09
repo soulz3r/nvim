@@ -1,108 +1,190 @@
 # soulz3r/nvim
 
-A modular Neovim configuration for Windows and Linux, built around Lazy.nvim, Blink completion, native LSP, LLDB debugging, and an Everforest-oriented UI.
+A personal Neovim configuration for **Windows 11** and **Arch Linux** (including Hyprland).
+
+The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Telescope, Mini Files, Treesitter, custom LLDB debugging, and an Everforest-oriented UI.
+
+> **Target:** Neovim 0.12.x. This configuration uses modern Neovim APIs such as `vim.lsp.config`, `vim.lsp.enable`, and the current Treesitter setup API. Older versions are not a supported target.
+
+## Features
+
+- Lazy.nvim plugin management with automatic bootstrap
+- Native Neovim LSP configuration, without Mason
+- Blink.cmp completion
+- clangd support for C and C++
+- Project-aware LLDB DAP configuration and executable discovery
+- Per-user DAP project registry stored outside the repository
+- Telescope pickers and Mini Files
+- Treesitter highlighting and folding integration
+- ToggleTerm with horizontal, vertical, and floating terminals
+- Alpha dashboard with a small animated header
+- Everforest-oriented highlights and rounded UI
+- Windows and Linux path, shell, clipboard, and debugger handling
 
 ## Requirements
 
-- **Neovim 0.12+**. The command-line UI uses Neovim's experimental UI2 feature.
-- Git.
-- A Nerd Font for the icons.
-- **ripgrep** and **fd** for Telescope search.
-- A C compiler and **make** for Treesitter parsers and the Telescope FZF native extension.
-- A shell for the build runner:
-  - Windows: PowerShell 7 (**pwsh**).
-  - Linux: Bash.
-- Optional language tools:
-  - **clangd**: C and C++ language server.
-  - **lldb-dap**: C/C++/Rust debugging adapter.
-  - **lua-language-server**: Lua language server.
-  - **bash-language-server**: Bash language server.
-  - **stylua**: Lua formatter.
+### Core
 
-The language servers and debugger are external programs. This configuration does not install them through Mason.
+- Neovim 0.12.x
+- Git
+- A Nerd Font
+- `ripgrep` (`rg`) for live grep
+- `fd` for file discovery
+- `make` and a C compiler for `telescope-fzf-native.nvim`
+
+### Language tools
+
+Install the tools you intend to use and make sure they are available on `PATH`:
+
+- `clangd` for C and C++
+- `lua-language-server` for Lua
+- `bash-language-server` for shell scripts
+- `stylua` for Lua formatting
+- `lldb-dap` for C/C++ debugging
+
+On Windows, PowerShell 7 (`pwsh`) is used as the configured shell and by the S3D build task. On Linux, the S3D build task uses Bash.
+
+The LSP servers and debugger are intentionally installed outside Neovim. **Mason is not used.**
 
 ## Installation
 
+Clone this repository into the directory returned by:
+
+```vim
+:echo stdpath('config')
+```
+
 ### Linux
 
-Clone the repository to Neovim's config directory:
+The default Neovim config directory is usually `~/.config/nvim`.
 
-    git clone https://github.com/soulz3r/nvim ~/.config/nvim
+```sh
+git clone https://github.com/soulz3r/nvim.git ~/.config/nvim
+nvim
+```
 
-### Windows (PowerShell)
+### Windows
 
-Clone it to Neovim's default config directory:
+The standard Neovim config directory is usually `%LOCALAPPDATA%\nvim`.
 
-    git clone https://github.com/soulz3r/nvim "$env:LOCALAPPDATA/nvim"
+```powershell
+git clone https://github.com/soulz3r/nvim.git "$env:LOCALAPPDATA\nvim"
+nvim
+```
 
-If you use a custom Neovim config directory, clone the repository there instead.
+If you use a custom location (for example, `D:\.config\nvim`), clone the repository into that directory instead.
 
-Start Neovim. The configuration bootstraps Lazy.nvim on the first launch. Then run:
+On the first launch, Lazy.nvim bootstraps itself and installs the configured plugins. Then run:
 
-    :Lazy sync
-    :checkhealth
+```vim
+:Lazy sync
+:checkhealth
+```
 
-The committed lazy-lock.json pins plugin revisions. Use :Lazy sync to install the pinned plugins and :Lazy update when you intentionally want to update them.
+Install the external tools listed above separately. A plugin manager cannot install your system toolchain by telepathy, sadly.
+
+## C and C++ development
+
+clangd reads project build metadata. Prefer a generated `compile_commands.json` when your build system supports it. For small projects, a `compile_flags.txt` in the project root also works.
+
+Example for a C23 project:
+
+```text
+-std=c23
+-Iinclude
+-Isrc
+-g
+```
+
+Keep the language standard in the project configuration rather than forcing `-std=c23` globally. That lets C++ projects choose their own standard.
+
+The clangd configuration recognizes project markers including:
+
+- `.clangd`
+- `.clang-tidy`
+- `.clang-format`
+- `compile_commands.json`
+- `compile_flags.txt`
+- `.git`
+
+Useful LSP mappings are documented in [docs/keymaps.md](docs/keymaps.md).
+
+## Debugging with LLDB
+
+The custom DAP configuration uses `lldb-dap` directly. No Mason adapter is required.
+
+The adapter defaults to:
+
+- Windows: `C:/Program Files/LLVM/bin/lldb-dap.exe`
+- Linux: `lldb-dap` from `PATH`
+
+Override the executable with the `LLDB_DAP` environment variable if it is installed elsewhere.
+
+The debugger detects project roots from common markers such as `.git`, `CMakeLists.txt`, `Makefile`, `compile_commands.json`, `meson.build`, and `Cargo.toml`. It searches common build directories for executables and also lets you select an executable manually.
+
+See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry details.
 
 ## Environment variables
 
-The following variables let you override machine-specific paths without editing the Lua config.
-
 | Variable | Purpose | Default |
-| --- | --- | --- |
-| PROJECTS_DIR | Root directory for personal projects | D:/config/projects on Windows; ~/projects elsewhere |
-| PWSH | PowerShell executable used by the Windows build runner | pwsh or pwsh.exe |
-| LLDB_DAP | LLDB DAP adapter executable | C:/Program Files/LLVM/bin/lldb-dap.exe on Windows; lldb-dap elsewhere |
+|---|---|---|
+| `PROJECTS_DIR` | Base directory for personal projects and the S3D task | Windows: `D:/config/projects`; Linux: `~/projects` |
+| `LLDB_DAP` | Full path or command name for `lldb-dap` | Windows LLVM path; Linux `lldb-dap` |
+| `PWSH` | PowerShell executable on Windows | `pwsh` or `pwsh.exe` |
 
-The S3D build helper expects PROJECTS_DIR/s3d (or ~/projects/s3d on Linux when PROJECTS_DIR is unset). It builds the engine and testbed in sequence.
+The optional S3D build task expects this layout:
 
-## C and C++ support
+```text
+$PROJECTS_DIR/
+└── s3d/
+    ├── engine/
+    │   ├── build.bat   # Windows
+    │   └── build.sh    # Linux
+    ├── testbed/
+    │   ├── build.bat   # Windows
+    │   └── build.sh    # Linux
+    └── bin/
+        ├── testbed.exe # Windows
+        └── testbed     # Linux
+```
 
-clangd reads compiler flags from the project build system. For a small C project, create a compile_flags.txt in the project root with one flag per line:
+Press `<leader>nn` to build the engine, build the testbed, and launch it. This is a personal S3D task, not a generic project builder.
 
-    -std=c23
-    -Iinclude
-    -Isrc
+## Local DAP state
 
-Use -std=c++23 for a C++ project. If compile_commands.json is present, clangd uses that compilation database instead of compile_flags.txt.
+The DAP registry is runtime state and is not committed to Git. It is stored under:
 
-## Debugging
+```text
+stdpath("state")/soul/dap-projects.json
+```
 
-The DAP configuration uses lldb-dap directly. It does not require Mason or codelldb.
+The configuration can migrate the previous file at `stdpath("config")/lsp/dap-projects.json` when that file is present.
 
-Project roots are detected from common markers such as .git, .clangd, CMakeLists.txt, Makefile, compile_commands.json, and compile_flags.txt.
+**When upgrading from an older checkout:** back up the old `lsp/dap-projects.json` before switching branches or pulling changes that remove it. Restore the backup at the old path once, start Neovim, and the configuration will migrate it.
 
-When starting a debug session, the configuration searches for executables in:
+## Repository layout
 
-- bin/
-- build/, build/Debug/, and build/Release/
-- Debug/ and Release/
-- The project root
+See [docs/architecture.md](docs/architecture.md) for the module map.
 
-If more than one executable is found, choose the one to launch. You can also set its full path manually. The project registry is stored under stdpath('state')/soul/dap-projects.json.
+## Checks
 
-### Debug keymaps
+Run the repository's static checks with:
 
-| Key | Action |
-| --- | --- |
-| F5 | Start or continue debugging |
-| F9 | Toggle breakpoint |
-| F10 | Step over |
-| F11 | Step into |
-| F12 | Step out |
-| <leader>dc | Start/continue and enter program arguments |
-| <leader>de | Set the executable path |
-| <leader>dp | Select a saved project |
-| <leader>du | Toggle the DAP UI |
+```sh
+bash scripts/check.sh
+```
 
-## Structure
+The checks compile every Lua file with Lua 5.1's parser and validate the JSON configuration files. They do not replace a real Neovim startup test or testing on both Windows and Linux.
 
-- lua/soul/core/: editor options, keymaps, autocmds, paths, terminal/build helpers, and Neovide settings.
-- lua/soul/plugins/: plugin specifications and UI integrations.
-- lua/soul/lsp/: LSP and DAP configuration.
-- lua/soul/extras/: optional appearance and editing plugins.
-- lsp/: Neovim's per-server LSP configuration files.
+## Troubleshooting
 
-## Validation
+- Run `:checkhealth` after installation.
+- Run `:Lazy` and check whether plugin installation or compilation failed.
+- Make sure `rg`, `fd`, `clangd`, `stylua`, language servers, and `lldb-dap` are visible on `PATH`.
+- If DAP cannot start, check `LLDB_DAP` and confirm that the executable exists.
+- If C diagnostics are missing or use the wrong standard, check the project's `compile_commands.json` or `compile_flags.txt`.
+- If Treesitter highlighting is missing after first install, run `:TSUpdate` and reopen the buffer.
 
-GitHub Actions checks the Lua syntax of every Lua source file with luac -p. This catches syntax errors; it does not replace testing the configuration inside Neovim on each target operating system.
+## License
+
+This is a personal configuration repository. Check individual plugin licenses for the software managed by the configuration.
