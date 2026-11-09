@@ -6,7 +6,7 @@ local M = {
     "nvim-mini/mini.extra",
     "nvim-mini/mini.icons",
     "nvim-mini/mini.pairs",
-  }
+  },
 }
 
 function M.config()
@@ -17,33 +17,43 @@ function M.config()
 
   local show_hidden = false
 
-  local filter_show = function()
+  local function filter_show()
     return true
   end
 
-  local filter_hide = function(fs_entry)
-    return not vim.startswith(fs_entry.name, ".")
+  local function filter_hide(entry)
+    return not vim.startswith(entry.name, ".")
   end
 
-  local toggle_hidden = function()
+  local function toggle_hidden()
     show_hidden = not show_hidden
-
-    local new_filter = show_hidden and filter_show or filter_hide
 
     MiniFiles.refresh({
       content = {
-        filter = new_filter,
+        filter = show_hidden and filter_show or filter_hide,
       },
     })
   end
 
   MiniFiles.setup({
-
     mappings = {
       go_in = "<CR>",
-      go_in_plus = "<CR>",
+      go_in_plus = "L",
       go_out = ",",
-      go_out_plus = ",",
+      go_out_plus = "H",
+      synchronize = "s",
+    },
+
+    options = {
+      use_as_default_explorer = false,
+      permanent_delete = false,
+    },
+
+    windows = {
+      preview = true,
+      width_focus = 32,
+      width_nofocus = 18,
+      width_preview = 48,
     },
 
     content = {
@@ -51,37 +61,48 @@ function M.config()
     },
   })
 
-  local set_cwd = function()
+  local function set_cwd()
     local entry = MiniFiles.get_fs_entry()
 
     if not entry or not entry.path then
-      return vim.notify("Cursor is not on a valid entry")
+      return vim.notify("Cursor is not on a valid entry", vim.log.levels.WARN)
     end
 
     local path = entry.path
+    local directory = vim.fn.isdirectory(path) == 1 and path or vim.fs.dirname(path)
 
-    if vim.fn.isdirectory(path) == 1 then
-      vim.cmd.cd(path)
-    else
-      vim.cmd.cd(vim.fs.dirname(path))
+    vim.cmd.cd(vim.fn.fnameescape(directory))
+    vim.notify("Working directory: " .. vim.fn.fnamemodify(directory, ":~"))
+  end
+
+  local function open_entry()
+    local entry = MiniFiles.get_fs_entry()
+
+    if not entry or not entry.path then
+      return
     end
 
-    vim.notify("cwd → " .. vim.fn.getcwd())
+    vim.ui.open(entry.path)
   end
 
   vim.api.nvim_create_autocmd("User", {
     pattern = "MiniFilesBufferCreate",
     callback = function(args)
-      local buf_id = args.data.buf_id
+      local buf = args.data.buf_id
 
       vim.keymap.set("n", "g~", set_cwd, {
-        buffer = buf_id,
-        desc = "Set current working directory",
+        buffer = buf,
+        desc = "Set working directory",
       })
 
       vim.keymap.set("n", "H", toggle_hidden, {
-        buffer = buf_id,
+        buffer = buf,
         desc = "Toggle hidden files",
+      })
+
+      vim.keymap.set("n", "gx", open_entry, {
+        buffer = buf,
+        desc = "Open with system application",
       })
     end,
   })
@@ -91,8 +112,21 @@ function M.config()
   end
 
   vim.keymap.set("n", "<leader>e", M.open, {
-    desc = "Open file explorer",
+    desc = "Open Mini.files",
   })
+
+  local highlights = {
+    MiniFilesBorder = { fg = "#859289", bg = "NONE" },
+    MiniFilesTitle = { fg = "#A7C080", bg = "NONE", bold = true },
+    MiniFilesDirectory = { fg = "#7FBBB3", bg = "NONE" },
+    MiniFilesFile = { fg = "#D3C6AA", bg = "NONE" },
+    MiniFilesNormal = { bg = "NONE" },
+    MiniFilesCursorLine = { bg = "#343F44" },
+  }
+
+  for group, opts in pairs(highlights) do
+    vim.api.nvim_set_hl(0, group, opts)
+  end
 end
 
 return M

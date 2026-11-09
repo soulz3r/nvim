@@ -160,6 +160,103 @@ function M.config()
 
 	dashboard.section.buttons.opts.hl = "Include"
 
+	local function recent_entries()
+		local files = {}
+		local projects = {}
+		local seen_files = {}
+		local seen_projects = {}
+
+		for _, path in ipairs(vim.v.oldfiles) do
+			if #files >= 5 and #projects >= 5 then
+				break
+			end
+
+			path = vim.fn.fnamemodify(path, ":p")
+
+			if vim.fn.filereadable(path) == 1 and not seen_files[path] then
+				seen_files[path] = true
+				table.insert(files, path)
+			end
+
+			local directory = vim.fs.dirname(path)
+			local root = vim.fs.root(directory, {
+				".git",
+				"Makefile",
+				"CMakeLists.txt",
+				"compile_commands.json",
+			})
+
+			if root and not seen_projects[root] then
+				seen_projects[root] = true
+				table.insert(projects, root)
+			end
+		end
+
+		return files, projects
+	end
+
+	local function recent_section(title, entries, prefix, action)
+		local values = {
+			{
+				type = "text",
+				val = title,
+				opts = {
+					position = "center",
+					hl = "AlphaMuted",
+				},
+			},
+		}
+
+		if #entries == 0 then
+			table.insert(values, {
+				type = "text",
+				val = "  No recent " .. title:lower(),
+				opts = {
+					position = "center",
+					hl = "AlphaMuted",
+				},
+			})
+		else
+			for index, path in ipairs(entries) do
+				local label = vim.fn.fnamemodify(path, ":~:.")
+				local command = action(path)
+				table.insert(values, button(
+					prefix .. index,
+					" " .. label,
+					command
+				))
+			end
+		end
+
+		return {
+			type = "group",
+			val = values,
+			opts = {
+				spacing = 0,
+			},
+		}
+	end
+
+	local recent_files, recent_projects = recent_entries()
+
+	dashboard.section.recent_files = recent_section(
+		"Recent files",
+		recent_files,
+		"",
+		function(path)
+			return "<cmd>edit " .. vim.fn.fnameescape(path) .. "<CR>"
+		end
+	)
+
+	dashboard.section.recent_projects = recent_section(
+		"Recent projects",
+		recent_projects,
+		"",
+		function(path)
+			return "<cmd>lua vim.cmd.cd(" .. string.format("%q", path) .. ")<CR>"
+		end
+	)
+
 	local button_icon_highlights = {
 		{ button_icons.files, "AlphaBlue" },
 		{ button_icons.explorer, "AlphaAqua" },
@@ -293,9 +390,17 @@ function M.config()
 
 		dashboard.section.header,
 
-		{ type = "padding", val = 2 },
+		{ type = "padding", val = 1 },
 
 		dashboard.section.buttons,
+
+		{ type = "padding", val = 1 },
+
+		dashboard.section.recent_files,
+
+		{ type = "padding", val = 1 },
+
+		dashboard.section.recent_projects,
 
 		{ type = "padding", val = 2 },
 
