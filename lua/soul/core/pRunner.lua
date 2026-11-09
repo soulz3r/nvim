@@ -62,20 +62,21 @@ local function open_build_float()
   }
 end
 
-local function append_job_output(view, data)
+local function append_job_output(view, data, pending)
   if not data or #data == 0 then
-    return
+    return pending
   end
 
   local lines = vim.deepcopy(data)
+  lines[1] = (pending or "") .. lines[1]
 
-  if lines[#lines] == "" then
-    table.remove(lines)
-  end
+  pending = table.remove(lines) or ""
 
   if #lines > 0 then
     view.append(lines)
   end
+
+  return pending
 end
 
 local function run_build(directory, view, on_exit)
@@ -94,6 +95,26 @@ local function run_build(directory, view, on_exit)
     command = { "bash", "./build.sh" }
   end
 
+  local pending = {
+    stdout = "",
+    stderr = "",
+  }
+
+  local function flush_output()
+    local lines = {}
+
+    for _, stream in ipairs({ "stdout", "stderr" }) do
+      if pending[stream] ~= "" then
+        table.insert(lines, pending[stream])
+        pending[stream] = ""
+      end
+    end
+
+    if #lines > 0 then
+      view.append(lines)
+    end
+  end
+
   local job_id = vim.fn.jobstart(command, {
     cwd = directory,
     stdout_buffered = false,
@@ -101,18 +122,19 @@ local function run_build(directory, view, on_exit)
 
     on_stdout = function(_, data)
       vim.schedule(function()
-        append_job_output(view, data)
+        pending.stdout = append_job_output(view, data, pending.stdout)
       end)
     end,
 
     on_stderr = function(_, data)
       vim.schedule(function()
-        append_job_output(view, data)
+        pending.stderr = append_job_output(view, data, pending.stderr)
       end)
     end,
 
     on_exit = function(_, exit_code)
       vim.schedule(function()
+        flush_output()
         on_exit(exit_code)
       end)
     end,

@@ -26,9 +26,14 @@ M.config = function()
 			return nil
 		end
 
-		return fn.fnamemodify(fn.resolve(path), ":p"):gsub("[/\\]+$", "")
-	end
+		local normalized = fn.fnamemodify(fn.resolve(path), ":p"):gsub("\\", "/")
 
+		if normalized == "/" or normalized:match("^%a:/$") then
+			return normalized
+		end
+
+		return (normalized:gsub("/+$", ""))
+	end
 	local function project_key(path)
 		local root = normalize(path)
 
@@ -226,11 +231,15 @@ M.config = function()
 
 	local root_markers = {
 		".git",
+		".clangd",
+		".clang-tidy",
+		".clang-format",
 		"CMakeLists.txt",
 		"Makefile",
 		"makefile",
 		"build.ninja",
 		"compile_commands.json",
+		"compile_flags.txt",
 		"meson.build",
 		"Cargo.toml",
 	}
