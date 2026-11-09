@@ -20,9 +20,10 @@ The entry point is `init.lua`. It loads core settings, registers plugin imports 
 
 Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`. The main groups are:
 
-- Dashboard and UI: Alpha, Lualine, Breadcrumbs, Everforest, icons
-- Navigation: Telescope, Mini Files
-- Editing: Treesitter, Render Markdown, Colorizer, TODO comments
+- Dashboard and UI: Alpha, minimal Lualine, Everforest, icons
+- Navigation: Telescope, Mini Files, Mini Sessions
+- Editing: Mini.ai, Mini.surround, Treesitter, Render Markdown, Colorizer, TODO comments
+- Notifications: Mini.notify
 - Terminal: ToggleTerm
 - Folding: nvim-ufo and statuscol
 - Git: Gitsigns

@@ -25,11 +25,17 @@ The leader key is Space. This is a compact reference for the most-used mappings;
 | Mapping | Action |
 |---|---|
 | `<leader>e` | Open Mini Files |
+| `g~` inside Mini Files | Set working directory to the selected file's directory or selected directory |
+| `g.` inside Mini Files | Toggle hidden files |
+| `gx` inside Mini Files | Open selected entry with the system application |
+| `<leader>ss` | Save a named project session |
+| `<leader>sr` | Restore a session |
+| `<leader>sd` | Delete a session |
 | `<leader>ff` | Find files |
 | `<leader>ft` | Live grep |
 | `<leader>fb` | Buffers |
 | `<leader>fo` | Recent files |
-| `<leader>fp` | Git-tracked project files |
+| `<leader>fp` | Search files from the detected project root |
 | `<leader>fC` | Colorscheme picker |
 | `<leader>fr` | Resume last Telescope picker |
 | `<leader>fgb` | Git branches |
@@ -57,6 +63,7 @@ The leader key is Space. This is a compact reference for the most-used mappings;
 | `<leader>gR` | Reset buffer |
 | `<leader>gl` | Blame line |
 | `<leader>gd` | Diff against HEAD |
+| `ih` in operator/visual mode | Select the current Git hunk |
 
 ## LSP
 
@@ -74,12 +81,24 @@ These mappings are buffer-local and appear when an LSP client attaches.
 | `<leader>la` | Code action |
 | `<leader>lR` | Rename |
 | `<leader>lf` | Format with clangd or Stylua |
+| On save | Automatically format C/C++ with clangd and Lua with Stylua |
 | `<leader>lj` / `<leader>lk` | Next / previous diagnostic |
 | `<leader>lo` | Show diagnostics |
 | `<leader>lq` | Diagnostic location list |
 | `<leader>lH` | Toggle inlay hints |
 | `<leader>lI` | LSP health |
 | `<leader>lC` | Restart LSP |
+
+## C and C++ (clangd)
+
+| Mapping | Action |
+|---|---|
+| `gS` | Switch between source and header |
+| `gI` | Show Clangd symbol information |
+
+## Editing
+
+Mini.ai provides additional built-in text objects for arguments, function calls, tags, quotes, and balanced brackets. Mini.surround provides `sa`, `sd`, and `sr` actions for adding, deleting, and replacing surrounding pairs.
 
 ## Debugging
 

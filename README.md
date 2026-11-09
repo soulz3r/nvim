@@ -14,10 +14,13 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - clangd support for C and C++
 - Project-aware LLDB DAP configuration and executable discovery
 - Per-user DAP project registry stored outside the repository
-- Telescope pickers and Mini Files
+- Telescope pickers with project-root search and Mini Files with preview and hidden-file controls
+- Mini sessions for project session save, restore, and automatic persistence
+- Mini.ai text objects, Mini.surround editing, and Mini.notify notifications
 - Treesitter highlighting and folding integration
-- ToggleTerm with horizontal, vertical, and floating terminals
-- Alpha dashboard with a small animated header
+- ToggleTerm with persistent horizontal, vertical, and floating terminals
+- Alpha dashboard with recent files, recent projects, quick actions, and an animated header
+- Minimal Lualine statusline with no winbar
 - Everforest-oriented highlights and rounded UI
 - Windows and Linux path, shell, clipboard, and debugger handling
 
@@ -39,7 +42,7 @@ Install the tools you intend to use and make sure they are available on `PATH`:
 - `clangd` for C and C++
 - `lua-language-server` for Lua
 - `bash-language-server` for shell scripts
-- `stylua` for Lua formatting
+- `stylua` for Lua formatting and format-on-save
 - `lldb-dap` for C/C++ debugging
 
 On Windows, PowerShell 7 (`pwsh`) is used as the configured shell and by the S3D build task. On Linux, the S3D build task uses Bash.
