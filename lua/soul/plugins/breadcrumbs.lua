@@ -7,13 +7,11 @@ function M.config()
 
   table.insert(breadcrumbs.winbar_filetype_exclude, "minifiles")
 
-  breadcrumbs.setup({
-    vim.api.nvim_set_hl(0, "WinBar",{
-      bg = "#272e33"
-    } )
-
+  vim.api.nvim_set_hl(0, "WinBar", {
+    bg = "#272e33",
   })
+
+  breadcrumbs.setup({})
 end
 
 return M
-

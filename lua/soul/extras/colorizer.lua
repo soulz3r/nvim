@@ -15,7 +15,7 @@ function M.config()
       "astro",
       "lua",
     },
-    soul_default_options = {
+    user_default_options = {
       names = false,
       rgb_fn = true,
       hsl_fn = true,

@@ -1,13 +1,27 @@
 local M = {
   "nvim-treesitter/nvim-treesitter",
-
   lazy = false,
-
   build = ":TSUpdate",
 }
 
 function M.config()
   local treesitter = require("nvim-treesitter")
+
+  local filetypes = {
+    "c",
+    "cpp",
+    "lua",
+    "vim",
+    "bash",
+    "json",
+    "yaml",
+    "markdown",
+    "python",
+    "rust",
+    "toml",
+    "javascript",
+    "typescript",
+  }
 
   treesitter.setup({
     install_dir = vim.fn.stdpath("data") .. "/site",
@@ -32,47 +46,15 @@ function M.config()
   })
 
   vim.api.nvim_create_autocmd("FileType", {
-    pattern = {
-      "c",
-      "cpp",
-      "lua",
-      "vim",
-      "bash",
-      "json",
-      "yaml",
-      "markdown",
-      "python",
-      "rust",
-      "toml",
-      "javascript",
-      "typescript",
-    },
+    pattern = filetypes,
+    callback = function(args)
+      local ok = pcall(vim.treesitter.start, args.buf)
 
-    callback = function()
-      vim.treesitter.start()
-    end,
-  })
-
-  vim.api.nvim_create_autocmd("FileType", {
-    pattern = {
-      "c",
-      "cpp",
-      "lua",
-      "vim",
-      "bash",
-      "json",
-      "yaml",
-      "markdown",
-      "python",
-      "rust",
-      "toml",
-      "javascript",
-      "typescript",
-    },
-
-    callback = function()
-      vim.wo.foldmethod = "expr"
-      vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+      if ok then
+        local win = vim.api.nvim_get_current_win()
+        vim.wo[win].foldmethod = "expr"
+        vim.wo[win].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+      end
     end,
   })
 end

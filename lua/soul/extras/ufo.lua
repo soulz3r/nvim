@@ -29,7 +29,13 @@ function M.config()
     local newVirtText = {}
     local suffix = (" 󰡏 %d "):format(endLnum - lnum)
     local sufWidth = vim.fn.strdisplaywidth(suffix)
-    local targetWidth = width - sufWidth
+
+    if sufWidth > width then
+      suffix = truncate(suffix, width)
+      sufWidth = vim.fn.strdisplaywidth(suffix)
+    end
+
+    local targetWidth = math.max(0, width - sufWidth)
     local curWidth = 0
 
     for _, chunk in ipairs(virtText) do
@@ -39,9 +45,14 @@ function M.config()
       if targetWidth > curWidth + chunkWidth then
         table.insert(newVirtText, chunk)
       else
-        chunkText = truncate(chunkText, targetWidth - curWidth)
+        local remaining = math.max(0, targetWidth - curWidth)
+        chunkText = remaining > 0 and truncate(chunkText, remaining) or ""
         local hlGroup = chunk[2]
-        table.insert(newVirtText, { chunkText, hlGroup })
+
+        if chunkText ~= "" then
+          table.insert(newVirtText, { chunkText, hlGroup })
+        end
+
         chunkWidth = vim.fn.strdisplaywidth(chunkText)
 
         if curWidth + chunkWidth < targetWidth then
@@ -78,17 +89,17 @@ function M.config()
     },
   })
 
-  vim.keymap.set("n", "zR", require("ufo").openAllFolds)
-  vim.keymap.set("n", "zM", require("ufo").closeAllFolds)
-  vim.keymap.set("n", "zr", require("ufo").openFoldsExceptKinds)
-  vim.keymap.set("n", "zm", require("ufo").closeFoldsWith)
+  vim.keymap.set("n", "zR", require("ufo").openAllFolds, { desc = "Open all folds" })
+  vim.keymap.set("n", "zM", require("ufo").closeAllFolds, { desc = "Close all folds" })
+  vim.keymap.set("n", "zr", require("ufo").openFoldsExceptKinds, { desc = "Open folds except kinds" })
+  vim.keymap.set("n", "zm", require("ufo").closeFoldsWith, { desc = "Close folds with" })
 
   vim.keymap.set("n", "K", function()
     local winid = require("ufo").peekFoldedLinesUnderCursor()
     if not winid then
       vim.lsp.buf.hover()
     end
-  end)
+  end, { desc = "Peek fold or show LSP hover" })
 end
 
 return M

@@ -401,9 +401,21 @@ function M.config()
 	-- Animation
 	---------------------------------------------------------------------------
 
-	local function animate()
+	local animation_running = false
+	local animation_generation = 0
+
+	local function stop_animation()
+		animation_running = false
+		animation_generation = animation_generation + 1
+	end
+
+	local function animate(generation)
+		if not animation_running or generation ~= animation_generation then
+			return
+		end
+
 		if vim.bo.filetype ~= "alpha" then
-			vim.defer_fn(animate, animation_speed)
+			stop_animation()
 			return
 		end
 
@@ -414,13 +426,27 @@ function M.config()
 		end
 
 		apply_animation_frame()
-
 		pcall(vim.cmd.AlphaRedraw)
 
-		vim.defer_fn(animate, animation_speed)
+		vim.defer_fn(function()
+			animate(generation)
+		end, animation_speed)
 	end
 
-	vim.defer_fn(animate, animation_speed)
+	local function start_animation()
+		if animation_running then
+			return
+		end
+
+		animation_running = true
+		animation_generation = animation_generation + 1
+
+		local generation = animation_generation
+
+		vim.defer_fn(function()
+			animate(generation)
+		end, animation_speed)
+	end
 
 	---------------------------------------------------------------------------
 	-- Autocmds
@@ -433,6 +459,23 @@ function M.config()
 			vim.opt_local.number = false
 			vim.opt_local.relativenumber = false
 			vim.opt_local.cursorline = false
+			start_animation()
+		end,
+	})
+
+	vim.api.nvim_create_autocmd("BufEnter", {
+		callback = function(args)
+			if vim.bo[args.buf].filetype == "alpha" then
+				start_animation()
+			end
+		end,
+	})
+
+	vim.api.nvim_create_autocmd("BufLeave", {
+		callback = function(args)
+			if vim.bo[args.buf].filetype == "alpha" then
+				stop_animation()
+			end
 		end,
 	})
 
@@ -452,6 +495,9 @@ function M.config()
 			end
 		end,
 	})
+	if vim.bo.filetype == "alpha" then
+		start_animation()
+	end
 end
 
 return M
