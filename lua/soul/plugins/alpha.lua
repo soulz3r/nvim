@@ -580,6 +580,11 @@ function M.config()
 		end,
 	})
 
+	vim.api.nvim_create_autocmd("User", {
+		pattern = "AlphaReady",
+		callback = start_animation,
+	})
+
 	vim.api.nvim_create_autocmd("BufEnter", {
 		callback = function(args)
 			if vim.bo[args.buf].filetype == "alpha" then
