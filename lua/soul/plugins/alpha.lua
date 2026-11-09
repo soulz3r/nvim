@@ -8,7 +8,6 @@ function M.config()
 	local icons = require("soul.icons")
 	local utils = require("alpha.utils")
 
-
 	local function button(sc, txt, keybind, keybind_opts)
 		local b = dashboard.button(sc, txt, keybind, keybind_opts)
 		b.opts.hl_shortcut = "Include"
@@ -106,7 +105,7 @@ function M.config()
 
 		button("n", button_icons.new_file .. " New file", "<cmd>ene | startinsert<CR>"),
 
-		button("p", button_icons.project .. " Projects", "<cmd>Telescope project<CR>"),
+		button("p", button_icons.project .. "Projects", "<cmd>Telescope project<CR>"),
 
 		button("r", button_icons.recent .. " Recent files", "<cmd>Telescope oldfiles<CR>"),
 
@@ -197,11 +196,7 @@ function M.config()
 				end
 
 				local command = action(path)
-				table.insert(values, button(
-					shortcut,
-					" " .. label,
-					command
-				))
+				table.insert(values, button(shortcut, " " .. label, command))
 			end
 		end
 

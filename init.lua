@@ -4,7 +4,7 @@ require("soul.core.options")
 require("soul.core.keymaps")
 require("soul.core.autocmds")
 require("soul.ui")
-require("soul.c").setup()
+require("soul.c")
 require("soul.core.neovide")
 
 GET("soul.plugins.alpha")
