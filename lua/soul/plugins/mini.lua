@@ -56,7 +56,7 @@ function M.config()
 		OFF = { duration = 60000 },
 	})
 
-	vim.keymap.set("n", "<leader>un", MiniNotify.clear, {
+	vim.keymap.set("n", "<leader>nc", MiniNotify.clear, {
 		desc = "Clear notifications",
 	})
 
@@ -200,7 +200,6 @@ function M.config()
 	end, {
 		desc = "Delete project session",
 	})
-
 end
 
 return M
