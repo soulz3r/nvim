@@ -19,7 +19,7 @@ if not vim.uv.fs_stat(lazypath) then
 	end
 
 	if result.code ~= 0 then
-		local output = result.stderr ~= "" and result.stderr or result.stdout
+		local output = (result.stderr and result.stderr ~= "" and result.stderr) or result.stdout
 		error("Failed to bootstrap lazy.nvim:\n" .. (output or "Unknown git error"))
 	end
 end
