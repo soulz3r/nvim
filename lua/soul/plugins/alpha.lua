@@ -210,7 +210,7 @@ function M.config()
 		if #entries == 0 then
 			table.insert(values, {
 				type = "text",
-				val = "  No recent " .. title:lower(),
+				val = "  " .. title:gsub("^Recent ", "No recent "),
 				opts = {
 					position = "center",
 					hl = "AlphaMuted",
@@ -253,7 +253,7 @@ function M.config()
 		recent_projects,
 		"",
 		function(path)
-			return "<cmd>lua vim.cmd.cd(" .. string.format("%q", path) .. ")<CR>"
+			return "<cmd>lua vim.cmd.cd(" .. string.format("%q", path) .. "); require('telescope.builtin').find_files()<CR>"
 		end
 	)
 

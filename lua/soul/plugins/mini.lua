@@ -95,7 +95,7 @@ function M.config()
         desc = "Set working directory",
       })
 
-      vim.keymap.set("n", "H", toggle_hidden, {
+      vim.keymap.set("n", "g.", toggle_hidden, {
         buffer = buf,
         desc = "Toggle hidden files",
       })
