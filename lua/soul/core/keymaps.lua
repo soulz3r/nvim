@@ -1,11 +1,11 @@
 keymap = vim.keymap.set
 
 function OPTS(description)
-	return {
-		noremap = true,
-		silent = true,
-		desc = description or nil,
-	}
+  return {
+    noremap = true,
+    silent = true,
+    desc = description or nil,
+  }
 end
 
 vim.g.mapleader = " "
@@ -22,8 +22,8 @@ keymap("n", "<m-tab>", "<c-6>", OPTS())
 
 keymap("n", "<ma>", "<mA>", OPTS())
 
-keymap("n", "n", "nzz", OPTS())
-keymap("n", "N", "Nzz", OPTS())
+keymap("n", "n", "nzzzv", OPTS("Next search result"))
+keymap("n", "N", "Nzzzv", OPTS("Previous search result"))
 keymap("n", "*", "*zz", OPTS())
 keymap("n", "#", "#zz", OPTS())
 keymap("n", "g*", "g*zz", OPTS())
@@ -33,15 +33,11 @@ keymap({ "n", "o", "x" }, "<s-h>", "^", OPTS())
 keymap({ "n", "o", "x" }, "<s-l>", "g_", OPTS())
 
 keymap("x", "p", [["_dP]])
-keymap("v", "p", [["_dP]], { desc = "Paste over selection without losing yanked text" })
+keymap("v", "p", [["_dP]], { desc = "Paste without losing yank" })
 
-keymap("n", "J", "mzJ`z", { desc = "Join lines without moving cursor" })
-
-keymap("n", "<C-d>", "<C-d>zz", { desc = "move down in buffer with cursor centered" })
-keymap("n", "<C-u>", "<C-u>zz", { desc = "move up in buffer with cursor centered" })
-
-keymap("n", "n", "nzzzv", { desc = "Next search result cursor centered" })
-keymap("n", "N", "Nzzzv", { desc = "Previous search result cursor centered" })
+keymap("n", "J", "mzJ`z", { desc = "Join lines" })
+keymap("n", "<C-d>", "<C-d>zz", { desc = "Half page down" })
+keymap("n", "<C-u>", "<C-u>zz", { desc = "Half page up" })
 
 keymap({ "n", "x" }, "j", "gj", OPTS())
 keymap({ "n", "x" }, "k", "gk", OPTS())
@@ -51,10 +47,14 @@ keymap("n", "<leader>wa", ":w!<CR>", OPTS("Save force"))
 keymap("n", "<leader>qq", ":q<CR>", OPTS("Quit"))
 keymap("n", "<leader>qa", ":q!<CR>", OPTS("Quit without saving"))
 
-keymap("n", "<leader>nm", ":messages<CR>", OPTS("Open Neovim debug messages"))
+keymap("n", "<A-j>", ":m .+1<CR>==", OPTS("Move line down"))
+keymap("n", "<A-k>", ":m .-2<CR>==", OPTS("Move line up"))
+
+keymap("v", "<A-j>", ":m '>+1<CR>gv=gv", OPTS("Move selection down"))
+keymap("v", "<A-k>", ":m '<-2<CR>gv=gv", OPTS("Move selection up"))
 
 keymap({ "i", "x" }, ",,", "<ESC>", OPTS())
-keymap("n", ",,", "<CMD>nohl<CR>", OPTS("Remove highlight"))
+keymap("n", ",,", "<CMD>nohl<CR>", OPTS("Clear highlight"))
 
 vim.api.nvim_set_keymap("t", "<C-;>", "<C-\\><C-n>", OPTS())
 
@@ -68,27 +68,26 @@ keymap("n", "<RightMouse>", "<cmd>:popup mousemenu<CR>")
 keymap("n", "<Tab>", "<cmd>:popup mousemenu<CR>")
 
 keymap(
-	"n",
-	"<leader>c",
-	[[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
-	{ desc = "Replace word cursor is on globally" }
+  "n",
+  "<leader>c",
+  [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
+  { desc = "Replace word under cursor" }
 )
 
-keymap("n", "<leader>X", "<cmd>!chmod +x %<CR>", { silent = true, desc = "makes file executable" })
+keymap("n", "<leader>X", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make executable" })
 
-keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart config :restart)" })
+keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart Neovim" })
 keymap(
-	"n",
-	"<leader>ni",
-	"<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>",
-	{ desc = "Open config file" }
+  "n",
+  "<leader>ni",
+  "<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>",
+  { desc = "Open config" }
 )
-keymap("n", "<leader>nm", "<cmd>messages<cr>", OPTS("Open logs messages"))
+keymap("n", "<leader>nm", "<cmd>messages<cr>", OPTS("Messages"))
 
 keymap("n", "<leader>u", function()
-	vim.cmd.packadd("nvim.undotree")
-	require("undotree").open()
-end, { desc = "Builtin Undotree" })
-keymap("n", "gd", vim.lsp.buf.definition, {
-	desc = "Go to definition",
-})
+  vim.cmd.packadd("nvim.undotree")
+  require("undotree").open()
+end, { desc = "Undotree" })
+
+keymap("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })

@@ -10,4 +10,4 @@ Personal Neovim config (Windows + Arch Linux / Caelestia).
 
 ## Install
 ```bash
-git clone https://github.com/soulz3r/nvim \~/.config/nvim
+git clone https://github.com/soulz3r/nvim ~/.config/nvim

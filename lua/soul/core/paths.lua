@@ -8,7 +8,7 @@ M.is_linux   = vim.fn.has("unix") == 1 and not M.is_termux
 
 -- Prefer an environment variable, then sensible defaults
 M.projects = vim.env.PROJECTS_DIR
-  or (M.is_windows and "D://config//projects")
+  or (M.is_windows and "D:/config/projects")
   or vim.fn.expand("~/projects")
 
 M.s3d = M.projects .. "/s3d"
@@ -20,7 +20,7 @@ M.pwsh = vim.env.PWSH
 
 -- LLDB DAP adapter
 M.lldb_dap = vim.env.LLDB_DAP
-  or (M.is_windows and "C://Program Files//LLVM/bin//lldb-dap.exe")
+  or (M.is_windows and "C:/Program Files/LLVM/bin/lldb-dap.exe")
   or "lldb-dap"
 
 return M
