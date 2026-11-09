@@ -82,10 +82,9 @@ function M.config()
 
 		windows = {
 			preview = true,
-			width_focus = 32,
-			width_nofocus = 18,
-			width_preview = 40,
-			max_number = 3,
+			width_focus = 25,
+			width_nofocus = 15,
+			width_preview = 20,
 		},
 		content = {
 			filter = filter_hide,
