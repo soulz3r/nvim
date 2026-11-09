@@ -51,6 +51,7 @@ function M.setup_keymaps(bufnr)
 	map("<leader>lf", function()
 		vim.lsp.buf.format({
 			bufnr = bufnr,
+			async = true,
 			filter = function(client)
 				return client:supports_method("textDocument/formatting")
 					and (client.name == "clangd" or client.name == "stylua")
