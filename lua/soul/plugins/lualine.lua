@@ -7,10 +7,14 @@ function M.config()
 	require("lualine").setup({
 		options = {
 			icons_enabled = true,
-			theme = "auto",
+			theme = "everforest",
 			component_separators = "",
 			section_separators = "",
 			globalstatus = true,
+      disabled_filetypes = {
+        statusline = { "alpha" },
+        winbar = { "alpha" },
+      },
 			always_show_tabline = false,
 			refresh = {
 				statusline = 1000,
