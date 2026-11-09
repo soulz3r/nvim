@@ -5,7 +5,11 @@ local M = {
 
   ---@module 'blink.cmp'
   opts = {
-    keymap = { preset = 'default' },
+    keymap = {
+      preset = 'default',
+      ['<C-b>'] = { 'scroll_documentation_up', 'fallback' },
+      ['<C-f>'] = { 'scroll_documentation_down', 'fallback' },
+    },
     completion = {
       ghost_text = { enabled = false },
       menu = { border = "rounded" },
@@ -32,6 +36,13 @@ local M = {
         menu = { auto_show = true },
       },
       sources = { 'cmdline', 'buffer' },
+    },
+    signature = {
+      enabled = true,
+      window = {
+        border = "rounded",
+        show_documentation = true,
+      },
     },
     fuzzy = { implementation = "prefer_rust_with_warning" },
   },
