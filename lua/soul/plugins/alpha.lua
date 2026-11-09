@@ -218,10 +218,15 @@ function M.config()
 			})
 		else
 			for index, path in ipairs(entries) do
+				local shortcut = shortcuts[index]
+				if not shortcut then
+					break
+				end
+
 				local label = vim.fn.fnamemodify(path, ":~:.")
 				local command = action(path)
 				table.insert(values, button(
-					shortcuts[index],
+					shortcut,
 					" " .. label,
 					command
 				))
