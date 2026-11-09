@@ -38,6 +38,6 @@ require("soul.core.colors")
 
 if vim.fn.has("win32") == 1 then
 	vim.cmd.cd("D:\\config\\projects")
-elseif vim.fn.has("unix") == 1 then
+elseif vim.fn.has("linuxx") == 1 then
 	vim.cmd.cd("~/projects")
 end
