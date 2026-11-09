@@ -167,13 +167,13 @@ function M.config()
 		local seen_projects = {}
 
 		for index, path in ipairs(vim.v.oldfiles) do
-			if index > 100 or (#files >= 5 and #projects >= 5) then
+			if index > 100 or (#files >= 3 and #projects >= 3) then
 				break
 			end
 
 			path = vim.fn.fnamemodify(path, ":p")
 
-			if #files < 5 and vim.fn.filereadable(path) == 1 and not seen_files[path] then
+			if #files < 3 and vim.fn.filereadable(path) == 1 and not seen_files[path] then
 				seen_files[path] = true
 				table.insert(files, path)
 			end
@@ -186,7 +186,7 @@ function M.config()
 				"compile_commands.json",
 			})
 
-			if #projects < 5 and root and not seen_projects[root] then
+			if #projects < 3 and root and not seen_projects[root] then
 				seen_projects[root] = true
 				table.insert(projects, root)
 			end
@@ -224,6 +224,12 @@ function M.config()
 				end
 
 				local label = vim.fn.fnamemodify(path, ":~:.")
+				local max_width = 42
+
+				if vim.fn.strchars(label) > max_width then
+					label = "…" .. vim.fn.strcharpart(label, -max_width + 1)
+				end
+
 				local command = action(path)
 				table.insert(values, button(
 					shortcut,
@@ -391,7 +397,7 @@ function M.config()
 	update_footer()
 
 	dashboard.opts.layout = {
-		{ type = "padding", val = 2 },
+		{ type = "padding", val = 1 },
 
 		dashboard.section.header,
 
@@ -407,11 +413,9 @@ function M.config()
 
 		dashboard.section.recent_projects,
 
-		{ type = "padding", val = 2 },
+		{ type = "padding", val = 1 },
 
 		dashboard.section.footer,
-
-		{ type = "padding", val = 0 },
 	}
 
 	dashboard.opts.opts = {
