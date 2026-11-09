@@ -412,7 +412,7 @@ function M.config()
   keymap(
     "n",
     "<leader>fp",
-    "<cmd>Telescope projects<CR>",
+    "<cmd>Telescope project<CR>",
     OPTS("Projects")
   )
 
