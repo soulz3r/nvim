@@ -25,8 +25,6 @@ function M.config()
 		window = {
 			config = {
 				border = "rounded",
-				max_width = 42,
-				max_height = 8,
 			},
 			max_width_share = 0.30,
 			max_height_share = 0.18,
