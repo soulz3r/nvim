@@ -6,6 +6,10 @@ local M = {
     "nvim-mini/mini.extra",
     "nvim-mini/mini.icons",
     "nvim-mini/mini.pairs",
+    "nvim-mini/mini.ai",
+    "nvim-mini/mini.surround",
+    "nvim-mini/mini.notify",
+    "nvim-mini/mini.sessions",
   },
 }
 
