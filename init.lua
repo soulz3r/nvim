@@ -7,7 +7,6 @@ require("soul.core.pRunner")
 require("soul.core.neovide")
 
 GET("soul.plugins.alpha")
-GET("soul.plugins.breadcrumbs")
 GET("soul.plugins.devicons")
 GET("soul.plugins.gitsigns")
 GET("soul.plugins.lualine")

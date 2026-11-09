@@ -6,6 +6,12 @@ local M = {
 M.config = function()
   local icons = require "soul.icons"
 
+  local gitsigns = require("gitsigns")
+
+  vim.keymap.set({ "o", "x" }, "ih", gitsigns.select_hunk, {
+    desc = "Select Git hunk",
+  })
+
   local wk = require "which-key"
   wk.add {
     { "<leader>gj", "<cmd>lua require 'gitsigns'.next_hunk({navigation_message = false})<cr>", desc = "Next Hunk" },
