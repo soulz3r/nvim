@@ -226,8 +226,9 @@ function M.config()
 				local label = vim.fn.fnamemodify(path, ":~:.")
 				local max_width = 42
 
-				if vim.fn.strchars(label) > max_width then
-					label = "…" .. vim.fn.strcharpart(label, -max_width + 1)
+				local label_length = vim.fn.strchars(label)
+				if label_length > max_width then
+					label = "…" .. vim.fn.strcharpart(label, label_length - max_width + 1)
 				end
 
 				local command = action(path)
