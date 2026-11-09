@@ -101,7 +101,10 @@ function M.config()
     pickers = {
       find_files = {
         theme = "dropdown",
-        previewer = false,
+        previewer = true,
+        hidden = true,
+        no_ignore = false,
+        follow = true,
       },
 
       live_grep = {
@@ -390,12 +393,23 @@ function M.config()
     OPTS("Marks")
   )
 
-  keymap(
-    "n",
-    "<leader>fp",
-    "<cmd>Telescope git_files<CR>",
-    OPTS("Project Files")
-  )
+  keymap("n", "<leader>fp", function()
+    local root = vim.fs.root(0, {
+      ".git",
+      "Makefile",
+      "CMakeLists.txt",
+      "compile_commands.json",
+      "Cargo.toml",
+      "package.json",
+      "pyproject.toml",
+    })
+
+    require("telescope.builtin").find_files({
+      cwd = root or vim.fn.getcwd(),
+      hidden = true,
+      no_ignore = false,
+    })
+  end, OPTS("Project Files"))
 
   local highlights = {
     "TelescopeNormal",

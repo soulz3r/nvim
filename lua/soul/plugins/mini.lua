@@ -15,6 +15,20 @@ function M.config()
   require("mini.icons").setup()
   require("mini.pairs").setup()
 
+  local MiniSessions = require("mini.sessions")
+
+  MiniSessions.setup({
+    autoread = true,
+    autowrite = true,
+    directory = vim.fn.stdpath("state") .. "/sessions",
+    file = "Session.vim",
+    verbose = {
+      read = false,
+      write = false,
+      delete = true,
+    },
+  })
+
   local show_hidden = false
 
   local function filter_show()
@@ -113,6 +127,26 @@ function M.config()
 
   vim.keymap.set("n", "<leader>e", M.open, {
     desc = "Open Mini.files",
+  })
+
+  vim.keymap.set("n", "<leader>ss", function()
+    local cwd = vim.fn.getcwd()
+    local name = vim.fn.fnamemodify(cwd, ":t") .. "-" .. vim.fn.sha256(cwd):sub(1, 8) .. ".vim"
+    MiniSessions.write(name)
+  end, {
+    desc = "Save project session",
+  })
+
+  vim.keymap.set("n", "<leader>sr", function()
+    MiniSessions.select("read")
+  end, {
+    desc = "Restore project session",
+  })
+
+  vim.keymap.set("n", "<leader>sd", function()
+    MiniSessions.select("delete")
+  end, {
+    desc = "Delete project session",
   })
 
   local highlights = {
