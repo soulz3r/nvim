@@ -2,11 +2,10 @@ local M = {}
 
 function M.capabilities()
 	local capabilities = vim.lsp.protocol.make_client_capabilities()
-
-	local ok, cmp = pcall(require, "cmp_nvim_lsp")
+	local ok, blink = pcall(require, "blink.cmp")
 
 	if ok then
-		capabilities = cmp.default_capabilities(capabilities)
+		capabilities = blink.get_lsp_capabilities(capabilities)
 	end
 
 	return capabilities
@@ -52,6 +51,7 @@ function M.setup_keymaps(bufnr)
 	map("<leader>lf", function()
 		vim.lsp.buf.format({
 			bufnr = bufnr,
+			async = true,
 			filter = function(client)
 				return client:supports_method("textDocument/formatting")
 					and (client.name == "clangd" or client.name == "stylua")

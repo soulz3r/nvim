@@ -1,6 +1,6 @@
 vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
   callback = function()
-    vim.cmd("set formatoptions-=cro")
+    vim.opt_local.formatoptions:remove({ "c", "r", "o" })
   end,
 })
 

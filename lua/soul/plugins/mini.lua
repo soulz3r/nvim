@@ -86,12 +86,12 @@ function M.config()
     end,
   })
 
-  local function open_mini_files()
-    MiniFiles.open(vim.fn.getcwd())
+  function M.open(path)
+    MiniFiles.open(path or vim.fn.getcwd())
   end
 
-  vim.keymap.set("n", "<leader>e", open_mini_files, {
-    desc = "",
+  vim.keymap.set("n", "<leader>e", M.open, {
+    desc = "Open file explorer",
   })
 end
 

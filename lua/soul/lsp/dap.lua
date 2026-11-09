@@ -11,12 +11,14 @@ M.config = function()
 	local dapui = require("dapui")
 	local dap_widgets = require("dap.ui.widgets")
 	local fn = vim.fn
+	local paths = require("soul.core.paths")
 
 	-- =========================================================
 	-- Project registry
 	-- =========================================================
 
-	local state_file = fn.stdpath("config") .. "/lsp/dap-projects.json"
+	local state_file = fn.stdpath("state") .. "/soul/dap-projects.json"
+	local legacy_state_file = fn.stdpath("config") .. "/lsp/dap-projects.json"
 	fn.mkdir(fn.fnamemodify(state_file, ":h"), "p")
 
 	local function normalize(path)
@@ -29,14 +31,19 @@ M.config = function()
 
 	local function project_key(path)
 		local root = normalize(path)
-		return root and root:lower() or nil
+
+		if not root then
+			return nil
+		end
+
+		return paths.is_windows and root:lower() or root
 	end
 
-	local function read_json()
-		local file = io.open(state_file, "r")
+	local function read_json(path)
+		local file = io.open(path, "r")
 
 		if not file then
-			return {}
+			return nil
 		end
 
 		local content = file:read("*a")
@@ -46,34 +53,71 @@ M.config = function()
 
 		if not ok or type(data) ~= "table" then
 			vim.notify(
-				"Could not parse DAP project registry:\n" .. state_file,
+				"Could not parse DAP project registry:\n" .. path,
 				vim.log.levels.ERROR
 			)
-			return {}
+			return nil
 		end
 
 		return data
 	end
 
 	local function write_json(data)
-		local file = io.open(state_file, "w")
+		local temp_file = state_file .. ".tmp"
+		local file = io.open(temp_file, "w")
 
 		if not file then
 			vim.notify(
-				"Could not save DAP project registry:\n" .. state_file,
+				"Could not write temporary DAP registry:\n" .. temp_file,
 				vim.log.levels.ERROR
 			)
 			return false
 		end
 
-		file:write(fn.json_encode(data))
+		local ok, err = file:write(fn.json_encode(data))
+
+		if not ok then
+			file:close()
+			os.remove(temp_file)
+			vim.notify("Could not write DAP registry: " .. tostring(err), vim.log.levels.ERROR)
+			return false
+		end
+
+		local flushed, flush_err = file:flush()
 		file:close()
+
+		if not flushed then
+			os.remove(temp_file)
+			vim.notify("Could not flush DAP registry: " .. tostring(flush_err), vim.log.levels.ERROR)
+			return false
+		end
+
+		local renamed, rename_err = vim.uv.fs_rename(temp_file, state_file)
+
+		if not renamed then
+			os.remove(temp_file)
+			vim.notify("Could not replace DAP registry: " .. tostring(rename_err), vim.log.levels.ERROR)
+			return false
+		end
+
 		return true
 	end
 
 	-- Preserve the original flat registry format while also reading
 	-- the wrapper format used by the earlier version.
-	local raw_data = read_json()
+	local migrated_legacy = false
+	local raw_data
+
+	if fn.filereadable(state_file) == 1 then
+		raw_data = read_json(state_file) or {}
+	elseif fn.filereadable(legacy_state_file) == 1 then
+		raw_data = read_json(legacy_state_file)
+		migrated_legacy = raw_data ~= nil
+		raw_data = raw_data or {}
+	else
+		raw_data = {}
+	end
+
 	local projects = {}
 	local active_root
 
@@ -110,13 +154,27 @@ M.config = function()
 	end
 
 	local function save_projects()
-		return write_json(projects)
+		return write_json({
+			version = 1,
+			active_root = active_root,
+			projects = projects,
+		})
 	end
 
-	local function file_exists(path)
-		return type(path) == "string"
-			and path ~= ""
-			and fn.filereadable(path) == 1
+	if migrated_legacy and save_projects() then
+		vim.notify("Migrated DAP project registry to:\n" .. state_file, vim.log.levels.INFO)
+	end
+
+	local function is_executable(path)
+		if type(path) ~= "string" or path == "" then
+			return false
+		end
+
+		if paths.is_windows then
+			return path:lower():match("%.exe$") ~= nil and fn.filereadable(path) == 1
+		end
+
+		return fn.executable(path) == 1
 	end
 
 	local function is_within(path, root)
@@ -127,8 +185,10 @@ M.config = function()
 			return false
 		end
 
-		path = path:lower()
-		root = root:lower()
+		if paths.is_windows then
+			path = path:lower()
+			root = root:lower()
+		end
 
 		return path == root
 			or path:sub(1, #root + 1) == root .. "/"
@@ -266,11 +326,11 @@ M.config = function()
 		local function add(path)
 			local executable = normalize(path)
 
-			if not executable or not file_exists(executable) then
+			if not executable or not is_executable(executable) then
 				return
 			end
 
-			local key = executable:lower()
+			local key = paths.is_windows and executable:lower() or executable
 
 			if seen[key] then
 				return
@@ -293,7 +353,7 @@ M.config = function()
 		for _, directory in ipairs(directories) do
 			if fn.isdirectory(directory) == 1 then
 				for name, kind in vim.fs.dir(directory) do
-					if kind == "file" and name:lower():match("%.exe$") then
+					if kind == "file" then
 						add(directory .. "/" .. name)
 					end
 				end
@@ -383,6 +443,7 @@ M.config = function()
 			end
 
 			active_root = entry.key
+			save_projects()
 			vim.cmd.cd(entry.root)
 
 			vim.notify(
@@ -419,7 +480,7 @@ M.config = function()
 
 			local executable = normalize(input)
 
-			if not file_exists(executable) then
+			if not is_executable(executable) then
 				vim.notify(
 					"Executable not found:\n" .. tostring(executable),
 					vim.log.levels.ERROR
@@ -442,11 +503,29 @@ M.config = function()
 
 	local launch_args = {}
 
+	local function format_args(args)
+		local formatted = {}
+
+		for _, arg in ipairs(args) do
+			if arg == "" then
+				table.insert(formatted, '""')
+			elseif arg:find('[%s"\\]') then
+				local escaped = arg:gsub("\\", "\\\\"):gsub('"', '\\"')
+				table.insert(formatted, '"' .. escaped .. '"')
+			else
+				table.insert(formatted, arg)
+			end
+		end
+
+		return table.concat(formatted, " ")
+	end
+
 	local function parse_args(input)
 		local args = {}
 		local current = {}
 		local quote = nil
 		local escaped = false
+		local token_started = false
 
 		for i = 1, #input do
 			local char = input:sub(i, i)
@@ -454,23 +533,40 @@ M.config = function()
 			if escaped then
 				table.insert(current, char)
 				escaped = false
+				token_started = true
 			elseif char == "\\" and quote ~= "'" then
-				escaped = true
+				local next_char = input:sub(i + 1, i + 1)
+
+				if not paths.is_windows
+					or next_char == '"'
+					or next_char == "\\"
+					or next_char:match("%s")
+				then
+					escaped = true
+				else
+					table.insert(current, char)
+				end
+
+				token_started = true
 			elseif quote then
 				if char == quote then
 					quote = nil
 				else
 					table.insert(current, char)
 				end
+				token_started = true
 			elseif char == '"' or char == "'" then
 				quote = char
+				token_started = true
 			elseif char:match("%s") then
-				if #current > 0 then
+				if token_started then
 					table.insert(args, table.concat(current))
 					current = {}
+					token_started = false
 				end
 			else
 				table.insert(current, char)
+				token_started = true
 			end
 		end
 
@@ -479,14 +575,11 @@ M.config = function()
 		end
 
 		if quote then
-			vim.notify(
-				"Unclosed quote in program arguments.",
-				vim.log.levels.ERROR
-			)
+			vim.notify("Unclosed quote in program arguments.", vim.log.levels.ERROR)
 			return nil
 		end
 
-		if #current > 0 then
+		if token_started then
 			table.insert(args, table.concat(current))
 		end
 
@@ -496,7 +589,7 @@ M.config = function()
 	local function prompt_arguments(callback)
 		vim.ui.input({
 			prompt = "Program arguments: ",
-			default = table.concat(launch_args, " "),
+			default = format_args(launch_args),
 		}, function(input)
 			if input == nil then
 				return
@@ -516,8 +609,6 @@ M.config = function()
 	-- =========================================================
 	-- LLDB adapter
 	-- =========================================================
-
-  local paths = require("soul.core.paths")
 
   dap.adapters.lldb = {
     type = "executable",
@@ -545,7 +636,7 @@ M.config = function()
 			return nil
 		end
 
-		if file_exists(entry.executable) then
+		if is_executable(entry.executable) then
 			return entry.executable
 		end
 
@@ -722,7 +813,7 @@ M.config = function()
 		end
 
 		local function launch(executable)
-			if not file_exists(executable) then
+			if not is_executable(executable) then
 				vim.notify(
 					"Executable not found:\n" .. tostring(executable),
 					vim.log.levels.ERROR
@@ -744,7 +835,7 @@ M.config = function()
 			end)
 		end
 
-		if file_exists(entry.executable) then
+		if is_executable(entry.executable) then
 			launch(entry.executable)
 			return
 		end
@@ -836,23 +927,6 @@ M.config = function()
 			return
 		end
 
-		local ok, telescope_builtin = pcall(require, "telescope.builtin")
-
-		if not ok then
-			-- Telescope isn't installed: simply focus the REPL.
-			for _, win in ipairs(vim.api.nvim_list_wins()) do
-				if vim.api.nvim_win_is_valid(win)
-					and vim.api.nvim_win_get_buf(win) == repl_buf
-				then
-					vim.api.nvim_set_current_win(win)
-					return
-				end
-			end
-
-			vim.cmd("buffer " .. repl_buf)
-			return
-		end
-
 		local lines = vim.api.nvim_buf_get_lines(repl_buf, 0, -1, false)
 
 		if #lines == 0 then
@@ -860,45 +934,79 @@ M.config = function()
 			return
 		end
 
-		telescope_builtin.grep_string({
-			search = "",
-			search_dirs = {},
-			grep_open_files = false,
-			attach_mappings = function(prompt_bufnr, map)
-				local actions = require("telescope.actions")
-				local action_state = require("telescope.actions.state")
+		local entries = {}
 
+		for line_number, line in ipairs(lines) do
+			table.insert(entries, { line = line, lnum = line_number })
+		end
+
+		local function jump_to_line(line_number)
+			if not vim.api.nvim_buf_is_valid(repl_buf) then
+				return
+			end
+
+			for _, win in ipairs(vim.api.nvim_list_wins()) do
+				if vim.api.nvim_win_is_valid(win)
+					and vim.api.nvim_win_get_buf(win) == repl_buf
+				then
+					vim.api.nvim_set_current_win(win)
+					vim.api.nvim_win_set_cursor(win, { line_number, 0 })
+					return
+				end
+			end
+
+			vim.cmd("sbuffer " .. repl_buf)
+			vim.api.nvim_win_set_cursor(0, { line_number, 0 })
+		end
+
+		local ok, pickers = pcall(require, "telescope.pickers")
+
+		if not ok then
+			vim.ui.select(entries, {
+				prompt = "Select DAP REPL line",
+				format_item = function(entry)
+					return string.format("%4d  %s", entry.lnum, entry.line)
+				end,
+			}, function(choice)
+				if choice then
+					jump_to_line(choice.lnum)
+				end
+			end)
+			return
+		end
+
+		local finders = require("telescope.finders")
+		local conf = require("telescope.config").values
+		local actions = require("telescope.actions")
+		local action_state = require("telescope.actions.state")
+
+		pickers.new({}, {
+			prompt_title = "DAP REPL",
+			finder = finders.new_table({
+				results = entries,
+				entry_maker = function(entry)
+					return {
+						value = entry,
+						display = string.format("%4d  %s", entry.lnum, entry.line),
+						ordinal = entry.line,
+						lnum = entry.lnum,
+					}
+				end,
+			}),
+			sorter = conf.generic_sorter({}),
+			attach_mappings = function(prompt_bufnr)
 				actions.select_default:replace(function()
 					local selection = action_state.get_selected_entry()
 					actions.close(prompt_bufnr)
 
-					if not selection then
-						return
+					if selection then
+						jump_to_line(selection.value.lnum)
 					end
-
-					for _, win in ipairs(vim.api.nvim_list_wins()) do
-						if vim.api.nvim_win_is_valid(win)
-							and vim.api.nvim_win_get_buf(win) == repl_buf
-						then
-							vim.api.nvim_set_current_win(win)
-							vim.api.nvim_win_set_cursor(win, {
-								selection.lnum or 1,
-								0,
-							})
-							return
-						end
-					end
-
-					vim.cmd("sbuffer " .. repl_buf)
-					pcall(vim.api.nvim_win_set_cursor, 0, {
-						selection.lnum or 1,
-						0,
-					})
 				end)
 
 				return true
 			end,
-		})
+		}):find()
 	end
 
 	local function open_or_focus_repl()

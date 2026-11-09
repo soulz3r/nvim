@@ -390,14 +390,12 @@ function M.config()
     OPTS("Marks")
   )
 
-  pcall(function()
-    keymap(
-      "n",
-      "<leader>fp",
-      "<cmd>lua require('telescope').extensions.projects.projects()<CR>",
-      OPTS("Projects")
-    )
-  end)
+  keymap(
+    "n",
+    "<leader>fp",
+    "<cmd>Telescope git_files<CR>",
+    OPTS("Project Files")
+  )
 
   local highlights = {
     "TelescopeNormal",

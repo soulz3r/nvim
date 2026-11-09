@@ -137,11 +137,11 @@ function M.config()
 	dashboard.section.buttons.val = {
 		button("f", button_icons.files .. " Find file", "<cmd>Telescope find_files<CR>"),
 
-		button("e", button_icons.explorer .. " Open Explorer", "<cmd>lua open_mini_files()<CR>"),
+		button("e", button_icons.explorer .. " Open Explorer", "<cmd>lua require('soul.plugins.mini').open()<CR>"),
 
 		button("n", button_icons.new_file .. " New file", "<cmd>ene | startinsert<CR>"),
 
-		button("p", button_icons.project .. "Find project", "<cmd>Telescope projects<CR>"),
+		button("p", button_icons.project .. " Project files", "<cmd>Telescope git_files<CR>"),
 
 		button("r", button_icons.recent .. " Recent files", "<cmd>Telescope oldfiles<CR>"),
 
