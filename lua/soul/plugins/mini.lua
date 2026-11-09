@@ -26,8 +26,8 @@ function M.config()
       config = {
         border = "rounded",
       },
-      max_width_share = 0.45,
-      winblend = 0,
+      max_width_share = 0.34,
+      winblend = 10,
     },
     lsp_progress = {
       enable = true,
@@ -85,9 +85,9 @@ function M.config()
 
     windows = {
       preview = true,
-      width_focus = 32,
-      width_nofocus = 18,
-      width_preview = 48,
+      width_focus = 40,
+      width_nofocus = 22,
+      width_preview = 50,
     },
 
     content = {
