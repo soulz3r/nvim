@@ -22,6 +22,11 @@ function M.config()
   require("mini.surround").setup()
 
   require("mini.notify").setup({
+    content = {
+      format = function(notif)
+        return notif.msg
+      end,
+    },
     window = {
       config = {
         border = "rounded",
