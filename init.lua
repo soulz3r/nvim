@@ -24,10 +24,9 @@ GET("soul.cmp.blink")
 GET("soul.extras.colorizer")
 GET("soul.extras.everforest")
 GET("soul.extras.eyeliner")
-GET("soul.extras.noice")
+GET("soul.extras.tiny_cmdline")
 GET("soul.extras.todo")
 GET("soul.extras.ufo")
 
 require("soul.lazy")
 require("soul.core.colors")
-

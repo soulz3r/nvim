@@ -1,11 +1,11 @@
 keymap = vim.keymap.set
 
 function OPTS(description)
-  return {
-    noremap = true,
-    silent = true,
-    desc = description or nil,
-  }
+	return {
+		noremap = true,
+		silent = true,
+		desc = description or nil,
+	}
 end
 
 vim.g.mapleader = " "
@@ -67,27 +67,17 @@ vim.cmd([[
 keymap("n", "<RightMouse>", "<cmd>:popup mousemenu<CR>")
 keymap("n", "<Tab>", "<cmd>:popup mousemenu<CR>")
 
-keymap(
-  "n",
-  "<leader>c",
-  [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
-  { desc = "Replace word under cursor" }
-)
+keymap("n", "<leader>c", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Replace word under cursor" })
 
 keymap("n", "<leader>X", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make executable" })
 
 keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart Neovim" })
-keymap(
-  "n",
-  "<leader>ni",
-  "<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>",
-  { desc = "Open config" }
-)
+keymap("n", "<leader>ni", "<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>", { desc = "Open config" })
 keymap("n", "<leader>nm", "<cmd>messages<cr>", OPTS("Messages"))
 
 keymap("n", "<leader>u", function()
-  vim.cmd.packadd("nvim.undotree")
-  require("undotree").open()
+	vim.cmd.packadd("nvim.undotree")
+	require("undotree").open()
 end, { desc = "Undotree" })
 
 keymap("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
