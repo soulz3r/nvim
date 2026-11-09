@@ -50,5 +50,6 @@ function M.config()
 
     vim.opt.guifont = "ComicShannsMono Nerd Font:h10"
 end
+M.config()
 
 return M
