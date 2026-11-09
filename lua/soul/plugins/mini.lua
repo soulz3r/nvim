@@ -71,8 +71,8 @@ function M.config()
 
   MiniFiles.setup({
     mappings = {
-      go_in = "<CR>",
-      go_in_plus = "L",
+      go_in = "L",
+      go_in_plus = "<CR>",
       go_out = ",",
       go_out_plus = "H",
       synchronize = "s",
