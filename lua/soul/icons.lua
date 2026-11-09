@@ -1,4 +1,4 @@
-return {
+local M = {
   kind = {
     Array = " ",
     Boolean = " ",
@@ -226,3 +226,4 @@ return {
   },
 }
 
+return M

@@ -1,4 +1,4 @@
-return {
+local M = {
   cmd = { 'lua-language-server' },
 
   filetypes = { 'lua' },
@@ -41,3 +41,4 @@ return {
   },
 }
 
+return M

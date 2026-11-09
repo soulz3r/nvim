@@ -64,7 +64,7 @@ end
 ---@field offsetEncoding? string
 
 ---@type vim.lsp.Config
-return {
+local M = {
 	cmd = {
 		"clangd",
 		"--background-index",
@@ -115,6 +115,7 @@ return {
 			client.offset_encoding = init_result.offsetEncoding
 		end
 	end,
+
 	on_attach = function(client, bufnr)
 		vim.api.nvim_buf_create_user_command(bufnr, "LspClangdSwitchSourceHeader", function()
 			switch_source_header(bufnr, client)
@@ -125,3 +126,5 @@ return {
 		end, { desc = "Show Clangd symbol info" })
 	end,
 }
+
+return M
