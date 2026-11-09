@@ -1,119 +1,198 @@
 -- lua/soul/core/pRunner.lua
 local paths = require("soul.core.paths")
 
-local function open_build_float(lines)
+local function open_build_float()
   local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 
-  local width  = math.max(1, math.floor(vim.o.columns * 0.8))
-  local height = math.max(1, math.floor(vim.o.lines * 0.7))
-  local row    = math.floor((vim.o.lines - height) / 2)
-  local col    = math.floor((vim.o.columns - width) / 2)
+  local width = math.max(1, math.min(vim.o.columns - 4, math.floor(vim.o.columns * 0.8)))
+  local height = math.max(1, math.min(vim.o.lines - 4, math.floor(vim.o.lines * 0.7)))
+  local row = math.floor((vim.o.lines - height) / 2)
+  local col = math.floor((vim.o.columns - width) / 2)
 
-  vim.api.nvim_open_win(buf, true, {
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "Preparing build..." })
+
+  local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor",
-    width = width, height = height,
-    row = row, col = col,
-    style = "minimal", border = "rounded",
+    width = width,
+    height = height,
+    row = row,
+    col = col,
+    style = "minimal",
+    border = "rounded",
   })
 
   vim.bo[buf].modifiable = false
-  vim.bo[buf].bufhidden  = "wipe"
-  vim.bo[buf].filetype   = "log"
+  vim.bo[buf].bufhidden = "wipe"
+  vim.bo[buf].filetype = "log"
 
-  vim.keymap.set("n", "q",     "<cmd>close<CR>", { buffer = buf, silent = true })
-  vim.keymap.set("n", "<Esc>", "<cmd>close<CR>", { buffer = buf, silent = true })
+  local function append(lines)
+    if not vim.api.nvim_buf_is_valid(buf) then
+      return
+    end
+
+    vim.bo[buf].modifiable = true
+    local line_count = vim.api.nvim_buf_line_count(buf)
+    vim.api.nvim_buf_set_lines(buf, line_count, line_count, false, lines)
+    vim.bo[buf].modifiable = false
+
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_set_cursor(win, {
+        vim.api.nvim_buf_line_count(buf),
+        0,
+      })
+    end
+  end
+
+  vim.keymap.set("n", "q", "<cmd>close<CR>", {
+    buffer = buf,
+    silent = true,
+    desc = "Close build output",
+  })
+
+  vim.keymap.set("n", "<Esc>", "<cmd>close<CR>", {
+    buffer = buf,
+    silent = true,
+    desc = "Close build output",
+  })
+
+  return {
+    buf = buf,
+    win = win,
+    append = append,
+  }
 end
 
-local function run_build(directory, output)
-  local is_win = paths.is_windows
-  local cmd
+local function append_job_output(view, data)
+  if not data or #data == 0 then
+    return
+  end
 
-  if is_win then
-    cmd = {
-      paths.pwsh, "-NoLogo", "-NoProfile", "-NonInteractive", "-Command",
-      string.format(
-        "$ErrorActionPreference = 'Stop'; Set-Location -LiteralPath '%s'; & '.\\build.bat'; exit $LASTEXITCODE",
-        directory
-      ),
+  local lines = vim.deepcopy(data)
+
+  if lines[#lines] == "" then
+    table.remove(lines)
+  end
+
+  if #lines > 0 then
+    view.append(lines)
+  end
+end
+
+local function run_build(directory, view, on_exit)
+  local command
+
+  if paths.is_windows then
+    command = {
+      paths.pwsh,
+      "-NoLogo",
+      "-NoProfile",
+      "-NonInteractive",
+      "-Command",
+      "& '.\\build.bat'; exit $LASTEXITCODE",
     }
   else
-    cmd = { "bash", "-lc", string.format("cd %q && ./build.sh", directory) }
+    command = { "bash", "./build.sh" }
   end
 
-  local result = vim.fn.system(cmd)
-  local exit_code = vim.v.shell_error
+  local job_id = vim.fn.jobstart(command, {
+    cwd = directory,
+    stdout_buffered = false,
+    stderr_buffered = false,
 
-  if type(result) ~= "string" then
-    result = "Failed to execute build command"
+    on_stdout = function(_, data)
+      vim.schedule(function()
+        append_job_output(view, data)
+      end)
+    end,
+
+    on_stderr = function(_, data)
+      vim.schedule(function()
+        append_job_output(view, data)
+      end)
+    end,
+
+    on_exit = function(_, exit_code)
+      vim.schedule(function()
+        on_exit(exit_code)
+      end)
+    end,
+  })
+
+  if job_id <= 0 then
+    vim.schedule(function()
+      on_exit(job_id)
+    end)
   end
 
-  vim.list_extend(output, vim.split(result, "\n", { plain = true, trimempty = true }))
-  return exit_code
+  return job_id
 end
 
-vim.keymap.set("n", "<leader>nn", function()
-  local output = {}
+local function build_s3d()
+  local view = open_build_float()
   local s3d = paths.s3d
 
   if vim.fn.isdirectory(s3d) ~= 1 then
-    table.insert(output, "S3D directory not found: " .. s3d)
-    open_build_float(output)
+    view.append({
+      "",
+      "S3D directory not found:",
+      s3d,
+    })
     return
   end
 
-  table.insert(output, "Building S3D engine...")
-  local engine_exit = run_build(s3d .. "/engine", output)
-
-  if engine_exit ~= 0 then
-    table.insert(output, "")
-    table.insert(output, "Engine build failed")
-    table.insert(output, "Exit code: " .. engine_exit)
-    open_build_float(output)
-    return
+  local function finish(message)
+    view.append({ "", message })
   end
 
-  table.insert(output, "")
-  table.insert(output, "Engine build succeeded")
-  table.insert(output, "")
-  table.insert(output, "Building S3D testbed...")
-
-  local testbed_exit = run_build(s3d .. "/testbed", output)
-
-  if testbed_exit ~= 0 then
-    table.insert(output, "")
-    table.insert(output, "Testbed build failed")
-    table.insert(output, "Exit code: " .. testbed_exit)
-    open_build_float(output)
-    return
-  end
-
-  table.insert(output, "")
-  table.insert(output, "Testbed build succeeded")
-
-  local exe = paths.is_windows
-    and (s3d .. "/bin/testbed.exe")
-    or  (s3d .. "/bin/testbed")
-
-  if vim.fn.filereadable(exe) ~= 1 then
-    table.insert(output, "")
-    table.insert(output, "Could not find testbed executable:")
-    table.insert(output, exe)
-    open_build_float(output)
-    return
-  end
-
-  local job_id = vim.fn.jobstart({ exe }, {
-    cwd = s3d,
-    detach = true,
+  view.append({
+    "",
+    "Building S3D engine...",
   })
 
-  table.insert(output, "")
-  if job_id <= 0 then
-    table.insert(output, "Failed to launch testbed")
-  else
-    table.insert(output, "S3D rebuilt + launched")
-  end
+  run_build(s3d .. "/engine", view, function(engine_exit)
+    if engine_exit ~= 0 then
+      finish("Engine build failed. Exit code: " .. engine_exit)
+      return
+    end
 
-  open_build_float(output)
-end, { desc = "Build and run S3D" })
+    finish("Engine build succeeded.")
+    view.append({ "", "Building S3D testbed..." })
+
+    run_build(s3d .. "/testbed", view, function(testbed_exit)
+      if testbed_exit ~= 0 then
+        finish("Testbed build failed. Exit code: " .. testbed_exit)
+        return
+      end
+
+      finish("Testbed build succeeded.")
+
+      local executable = paths.is_windows
+          and (s3d .. "/bin/testbed.exe")
+        or (s3d .. "/bin/testbed")
+
+      if vim.fn.filereadable(executable) ~= 1 then
+        view.append({
+          "",
+          "Could not find testbed executable:",
+          executable,
+        })
+        return
+      end
+
+      local job_id = vim.fn.jobstart({ executable }, {
+        cwd = s3d,
+        detach = true,
+      })
+
+      if job_id <= 0 then
+        finish("Failed to launch testbed. Job error: " .. job_id)
+      else
+        finish("S3D rebuilt and testbed launched.")
+      end
+    end)
+  end)
+end
+
+vim.keymap.set("n", "<leader>nn", build_s3d, {
+  desc = "Build and run S3D",
+})

@@ -535,7 +535,18 @@ M.config = function()
 				escaped = false
 				token_started = true
 			elseif char == "\\" and quote ~= "'" then
-				escaped = true
+				local next_char = input:sub(i + 1, i + 1)
+
+				if not paths.is_windows
+					or next_char == '"'
+					or next_char == "\\"
+					or next_char:match("%s")
+				then
+					escaped = true
+				else
+					table.insert(current, char)
+				end
+
 				token_started = true
 			elseif quote then
 				if char == quote then
