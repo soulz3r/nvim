@@ -173,7 +173,7 @@ function M.config()
 
 			path = vim.fn.fnamemodify(path, ":p")
 
-			if vim.fn.filereadable(path) == 1 and not seen_files[path] then
+			if #files < 5 and vim.fn.filereadable(path) == 1 and not seen_files[path] then
 				seen_files[path] = true
 				table.insert(files, path)
 			end
@@ -186,7 +186,7 @@ function M.config()
 				"compile_commands.json",
 			})
 
-			if root and not seen_projects[root] then
+			if #projects < 5 and root and not seen_projects[root] then
 				seen_projects[root] = true
 				table.insert(projects, root)
 			end
