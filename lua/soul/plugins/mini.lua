@@ -74,7 +74,7 @@ function M.config()
 		local win = vim.api.nvim_open_win(buf, true, {
 			relative = "editor",
 			style = "minimal",
-			border = "rounded",
+			border = floats.border,
 			width = width,
 			height = height,
 			row = row,

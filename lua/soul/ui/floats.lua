@@ -1,5 +1,15 @@
 local M = {
-  border = "rounded",
+  style = "rounded",
+  border = {
+    { "╭", "SoulFloatBorder" },
+    { "─", "SoulFloatBorder" },
+    { "╮", "SoulFloatBorder" },
+    { "│", "SoulFloatBorder" },
+    { "╯", "SoulFloatBorder" },
+    { "─", "SoulFloatBorder" },
+    { "╰", "SoulFloatBorder" },
+    { "│", "SoulFloatBorder" },
+  },
   winhighlight = table.concat({
     "Normal:NormalFloat",
     "FloatBorder:SoulFloatBorder",
