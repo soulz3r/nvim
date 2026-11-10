@@ -192,7 +192,7 @@ Run the repository's static checks with:
 bash scripts/check.sh
 ```
 
-The script validates JSON configuration, checks that local DAP state is not tracked, and catches known stale APIs and plugin references. The separate `.github/workflows/lua-syntax.yml` workflow parses every Lua file with Lua 5.1. These checks do not replace a real Neovim startup test or testing on both Windows and Linux.
+The script validates JSON configuration and repository hygiene, and runs optional Lua syntax and Neovim module smoke tests when those tools are installed. The separate `.github/workflows/lua-syntax.yml` workflow parses every Lua file with Lua 5.1. These checks do not replace a real Neovim startup test or testing on both Windows and Linux.
 
 ## Troubleshooting
 

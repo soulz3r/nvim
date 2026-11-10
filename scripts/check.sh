@@ -33,4 +33,4 @@ if command -v nvim >/dev/null 2>&1; then
   echo "Neovim module smoke tests passed."
 fi
 
-echo "JSON, local-state, stale-reference, and available runtime checks passed."
+echo "JSON, repository hygiene, and available runtime checks passed."
