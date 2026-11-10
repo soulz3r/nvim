@@ -66,7 +66,6 @@ local function open_output(root, title)
 		col = math.floor((vim.o.columns - width) / 2),
 		style = "minimal",
 		border = "rounded",
-		winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,FloatTitle:FloatTitle",
 		title = " " .. title .. " ",
 		title_pos = "center",
 	})
@@ -76,6 +75,7 @@ local function open_output(root, title)
 	vim.bo[buf].filetype = "log"
 	vim.wo[win].wrap = true
 	vim.wo[win].cursorline = true
+	vim.wo[win].winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,FloatTitle:FloatTitle"
 
 	local function append(lines)
 		if not vim.api.nvim_buf_is_valid(buf) then
