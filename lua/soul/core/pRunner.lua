@@ -93,7 +93,8 @@ local function find_executables(root)
     local full = root .. "/" .. directory
     if vim.fn.isdirectory(full) == 1 then
       local files = vim.fs.find(function(name, path)
-        if path:match("[/\\\\]CMakeFiles[/\\\\]") or path:match("[/\\\\]Testing[/\\\\]") then
+        local normalized = path:gsub("\\\\", "/")
+        if normalized:find("/CMakeFiles/", 1, true) or normalized:find("/Testing/", 1, true) then
           return false
         end
         for _, pattern in ipairs(names) do
