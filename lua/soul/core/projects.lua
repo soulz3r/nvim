@@ -15,9 +15,9 @@ local root_markers = {
 }
 
 local active_job
-local last_run
+local last_runs = {}
 
-local function last_run_path()
+local function run_records_path()
 	local directory = vim.fn.stdpath("data") .. "/soul/project-runs"
 	vim.fn.mkdir(directory, "p")
 
@@ -25,41 +25,43 @@ local function last_run_path()
 	return directory .. "/" .. platform .. ".json"
 end
 
-local function load_last_run()
-	local path = last_run_path()
+local function load_run_records()
+	local path = run_records_path()
 
 	if vim.fn.filereadable(path) ~= 1 then
-		return nil
+		return {}
 	end
 
 	local lines = vim.fn.readfile(path)
 	if #lines == 0 then
-		return nil
+		return {}
 	end
 
 	local ok, saved = pcall(vim.json.decode, table.concat(lines, "\n"))
-	if not ok or type(saved) ~= "table"
-		or type(saved.file) ~= "string"
-		or type(saved.root) ~= "string"
-		or type(saved.args) ~= "table"
-	then
-		return nil
+	if not ok or type(saved) ~= "table" then
+		return {}
+	end
+
+	-- Migrate the previous single-project record format.
+	if type(saved.file) == "string" and type(saved.root) == "string" then
+		return {
+			[vim.fs.normalize(saved.root)] = saved,
+		}
 	end
 
 	return saved
 end
 
-local function save_last_run(state)
-	local ok, encoded = pcall(vim.json.encode, state)
+local function save_run_records()
+	local ok, encoded = pcall(vim.json.encode, last_runs)
 	if not ok then
 		return false
 	end
 
-	local path = last_run_path()
-	return vim.fn.writefile({ encoded }, path) == 0
+	return vim.fn.writefile({ encoded }, run_records_path()) == 0
 end
 
-last_run = load_last_run()
+last_runs = load_run_records()
 
 local function project_root(path)
 	path = vim.fn.fnamemodify(path or vim.fn.getcwd(), ":p")
@@ -393,8 +395,13 @@ local function launch(file, root, append, args)
 	end)
 
 	if started then
-		last_run = state
-		save_last_run(state)
+		last_runs[vim.fs.normalize(root)] = state
+		save_run_records()
+
+		local ok, telescope_utils = pcall(require, "telescope._extensions.project.utils")
+		if ok then
+			pcall(telescope_utils.update_last_accessed_project_time, root)
+		end
 	end
 end
 
@@ -620,11 +627,29 @@ function M.run_binary(file, root, args)
 end
 
 function M.rerun()
-	if not last_run then
+	local ok, telescope_utils = pcall(require, "telescope._extensions.project.utils")
+	if not ok then
+		vim.notify("Telescope Projects is not available.", vim.log.levels.WARN)
 		return
 	end
 
-	local previous = vim.deepcopy(last_run)
+	local projects_ok, saved_projects = pcall(telescope_utils.get_projects, "recent")
+	if not projects_ok or #saved_projects == 0 then
+		return
+	end
+
+	local previous
+	for _, project in ipairs(saved_projects) do
+		local root = vim.fs.normalize(project.path)
+		if last_runs[root] then
+			previous = vim.deepcopy(last_runs[root])
+			break
+		end
+	end
+
+	if not previous then
+		return
+	end
 
 	if vim.fn.isdirectory(previous.root) ~= 1 then
 		vim.notify("The last-run project directory no longer exists.", vim.log.levels.WARN)
