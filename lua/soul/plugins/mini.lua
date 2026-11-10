@@ -24,6 +24,24 @@ function M.config()
 	local MiniNotify = require("mini.notify")
 
 	MiniNotify.setup({
+		content = {
+			format = function(notif)
+				local levels = {
+					ERROR = "✖ ERROR",
+					WARN = "▲ WARN",
+					INFO = "● INFO",
+					DEBUG = "◌ DEBUG",
+					TRACE = "⋯ TRACE",
+					OFF = "· OFF",
+				}
+
+				local level = levels[notif.level] or notif.level
+				local source = notif.data and notif.data.source
+				local source_label = source and source ~= "vim.notify" and (" [" .. source .. "]") or ""
+
+				return level .. source_label .. "  " .. MiniNotify.default_format(notif)
+			end,
+		},
 		lsp_progress = {
 			enable = true,
 			level = "INFO",
@@ -39,6 +57,8 @@ function M.config()
 					col = vim.o.columns,
 					row = vim.o.lines - padding,
 					border = "rounded",
+					title = " Notifications ",
+					title_pos = "right",
 				}
 			end,
 			max_width_share = 0.30,
