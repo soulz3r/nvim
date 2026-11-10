@@ -45,7 +45,7 @@ function M.config()
 		vim.fn.writefile(history, path)
 	end
 
-	local function prompt_arguments(root, executable)
+	local function prompt_arguments(root, executable, build_first)
 		local history_path, history = argument_history(root, executable)
 		local suggestions = {}
 
@@ -63,7 +63,12 @@ function M.config()
 			attach_mappings = function(prompt_bufnr)
 				actions.select_default:replace(function()
 					local entry = action_state.get_selected_entry()
-					local input = entry and entry.value or action_state.get_current_line()
+					local input = action_state.get_current_line()
+
+					if input == "" and entry then
+						input = entry.value
+					end
+
 					local args, err = projects.parse_args(input)
 
 					if not args then
@@ -78,7 +83,11 @@ function M.config()
 					actions.close(prompt_bufnr)
 
 					vim.schedule(function()
-						projects.run_binary(executable, root, args)
+						if build_first then
+							projects.run(root, args)
+						else
+							projects.run_binary(executable, root, args)
+						end
 					end)
 				end)
 
@@ -133,6 +142,13 @@ function M.config()
 		}):find()
 	end
 
+	local function open_project_run_picker(path)
+		local root = projects.get_root(path)
+		local executable = projects.project_executable(root)
+
+		prompt_arguments(root, executable, true)
+	end
+
 	local function with_project(prompt_bufnr, callback)
 		local entry = action_state.get_selected_entry()
 
@@ -150,7 +166,7 @@ function M.config()
 	end
 
 	local function run_project(prompt_bufnr)
-		with_project(prompt_bufnr, projects.run)
+		with_project(prompt_bufnr, open_project_run_picker)
 	end
 
 	local function build_project(prompt_bufnr)
@@ -198,7 +214,7 @@ function M.config()
 		telescope.extensions.project.project()
 	end, OPTS("Projects"))
 
-	vim.keymap.set("n", "<leader>pr", projects.run, OPTS("Build and run C project"))
+	vim.keymap.set("n", "<leader>pr", open_project_run_picker, OPTS("Build and run C project"))
 	vim.keymap.set("n", "<leader>pb", projects.build, OPTS("Build C project"))
 	vim.keymap.set("n", "<leader>pc", projects.clean, OPTS("Clean C project"))
 	vim.keymap.set("n", "<leader>pB", projects.rebuild, OPTS("Clean and rebuild C project"))
