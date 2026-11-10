@@ -4,13 +4,8 @@ local M = {
 }
 
 function M.config()
-	local paths = require("soul.core.paths")
-
-	require("yap").setup({
-		telescope = false,
-		keymaps = false,
-		projects_dir = paths.projects,
-	})
+	require("yap.ui").setup({})
+	require("yap.c").setup()
 end
 
 return M
