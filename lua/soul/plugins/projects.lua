@@ -74,13 +74,13 @@ function M.config()
 
 	telescope.load_extension("project")
 
-	vim.keymap.set("n", "<leader>fp", function()
+	vim.keymap.set("n", "<leader>pp", function()
 		telescope.extensions.project.project()
 	end, OPTS("Projects"))
 
-	vim.keymap.set("n", "<leader>rr", projects.run, OPTS("Build and run C project"))
-	vim.keymap.set("n", "<leader>rb", projects.build, OPTS("Build C project"))
-	vim.keymap.set("n", "<leader>re", projects.run_executable, OPTS("Run selected binary"))
+	vim.keymap.set("n", "<leader>pr", projects.run, OPTS("Build and run C project"))
+	vim.keymap.set("n", "<leader>pb", projects.build, OPTS("Build C project"))
+	vim.keymap.set("n", "<leader>pe", projects.run_executable, OPTS("Run selected binary"))
 end
 
 return M
