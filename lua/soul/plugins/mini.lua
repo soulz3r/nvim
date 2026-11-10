@@ -105,6 +105,10 @@ function M.config()
 
 		local buf = vim.api.nvim_create_buf(false, true)
 		vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+		for i, notif in ipairs(notifications) do
+			vim.api.nvim_buf_add_highlight(buf, -1, notif.hl_group or "MiniNotifyNormal", i - 1, 0, -1)
+		end
 		vim.bo[buf].buftype = "nofile"
 		vim.bo[buf].bufhidden = "wipe"
 		vim.bo[buf].swapfile = false
