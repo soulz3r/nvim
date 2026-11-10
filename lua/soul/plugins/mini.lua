@@ -173,22 +173,6 @@ function M.config()
 		desc = "Delete project session",
 	})
 
-	local highlights = {
-		MiniFilesBorder = { fg = "#859289", bg = "NONE" },
-		MiniFilesTitle = { fg = "#A7C080", bg = "NONE", bold = true },
-		MiniFilesDirectory = { fg = "#7FBBB3", bg = "NONE" },
-		MiniFilesFile = { fg = "#D3C6AA", bg = "NONE" },
-		MiniFilesNormal = { bg = "NONE" },
-		MiniFilesCursorLine = { bg = "#343F44" },
-		MiniNotifyBorder = { fg = "#859289", bg = "#272e33" },
-		MiniNotifyNormal = { fg = "#D3C6AA", bg = "#272e33" },
-		MiniNotifyTitle = { fg = "#A7C080", bg = "#272e33", bold = true },
-		MiniNotifyLspProgress = { fg = "#7FBBB3", bg = "#272e33" },
-	}
-
-	for group, opts in pairs(highlights) do
-		vim.api.nvim_set_hl(0, group, opts)
-	end
 end
 
 return M
