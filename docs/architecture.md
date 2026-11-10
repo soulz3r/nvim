@@ -13,7 +13,7 @@ The entry point is `init.lua`. It loads core settings, registers plugin imports 
 | `lua/soul/core/keymaps.lua` | Global keymaps and helper options |
 | `lua/soul/core/autocmds.lua` | Core autocmds |
 | `lua/soul/core/paths.lua` | Platform detection and external tool paths |
-| `lua/soul/core/pRunner.lua` | Project and individual-file execution |\n| `lua/soul/core/pRunner/connectors.lua` | Project build/run-system detection and connectors |
+| `lua/soul/core/projects.lua` | Project detection, build/run commands, and individual-file execution |
 | `lua/soul/core/colors.lua` | Colorscheme and highlight setup |
 
 ## Plugins
@@ -21,7 +21,7 @@ The entry point is `init.lua`. It loads core settings, registers plugin imports 
 Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`. The main groups are:
 
 - Dashboard and UI: Alpha, minimal Lualine, Everforest, icons
-- Navigation: Telescope, Mini Files, Mini Sessions
+- Navigation: Telescope, Telescope Projects, Mini Files, Mini Sessions
 - Editing: Mini.ai, Mini.surround, Treesitter, Render Markdown, Colorizer, TODO comments
 - Notifications: Mini.notify
 - Terminal: ToggleTerm
@@ -39,4 +39,4 @@ The DAP registry is stored in Neovim's state directory, not in the repository. M
 
 ## Platform handling
 
-`lua/soul/core/paths.lua` centralizes Windows/Linux detection and the paths for PowerShell, LLDB, projects, and S3D. Keep OS-specific decisions there rather than scattering hard-coded paths throughout plugin files.
+`lua/soul/core/paths.lua` centralizes Windows/Linux detection and the paths for PowerShell, LLDB, and the projects directory. Keep OS-specific decisions there rather than scattering hard-coded paths throughout plugin files.
