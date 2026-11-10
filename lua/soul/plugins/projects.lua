@@ -33,7 +33,7 @@ function M.config()
 			return
 		end
 
-		vim.tbl_filter(function(value)
+		history = vim.tbl_filter(function(value)
 			return value ~= input
 		end, history)
 		table.insert(history, input)
