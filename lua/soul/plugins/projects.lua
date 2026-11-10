@@ -178,6 +178,14 @@ function M.config()
 		with_project(prompt_bufnr, open_executable_picker)
 	end
 
+	local function clean_project(prompt_bufnr)
+		with_project(prompt_bufnr, projects.clean)
+	end
+
+	local function rebuild_project(prompt_bufnr)
+		with_project(prompt_bufnr, projects.rebuild)
+	end
+
 	telescope.setup({
 		extensions = {
 			project = {
@@ -198,11 +206,15 @@ function M.config()
 						["<C-g>"] = run_project,
 						["<C-y>"] = build_project,
 						["<C-e>"] = select_project_executable,
+						["<C-c>"] = clean_project,
+						["<C-b>"] = rebuild_project,
 					},
 					n = {
 						["gR"] = run_project,
 						["gB"] = build_project,
 						["gE"] = select_project_executable,
+						["gC"] = clean_project,
+						["gX"] = rebuild_project,
 					},
 				},
 			},
@@ -221,6 +233,7 @@ function M.config()
 	vim.keymap.set("n", "<leader>pB", projects.rebuild, OPTS("Clean and rebuild C project"))
 	vim.keymap.set("n", "<leader>pe", open_executable_picker, OPTS("Run project executable"))
 	vim.keymap.set("n", "<leader>ps", projects.stop, OPTS("Stop project process"))
+	vim.keymap.set("n", "<leader>pR", projects.rerun, OPTS("Rerun last executable"))
 end
 
 return M
