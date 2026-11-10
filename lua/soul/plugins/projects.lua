@@ -150,6 +150,46 @@ function M.config()
 		prompt_arguments(root, executable, true)
 	end
 
+	local function open_build_script_picker(path)
+		local root, scripts = projects.list_build_scripts(path)
+
+		if #scripts == 0 then
+			vim.notify("No build scripts found in " .. root, vim.log.levels.WARN)
+			return
+		end
+
+		if #scripts == 1 then
+			projects.build(root, scripts[1])
+			return
+		end
+
+		pickers.new(themes.get_dropdown({}), {
+			prompt_title = "Build Script",
+			finder = finders.new_table({
+				results = scripts,
+			}),
+			sorter = conf.generic_sorter({}),
+			previewer = false,
+			attach_mappings = function(prompt_bufnr)
+				actions.select_default:replace(function()
+					local entry = action_state.get_selected_entry()
+
+					if not entry then
+						return
+					end
+
+					actions.close(prompt_bufnr)
+
+					vim.schedule(function()
+						projects.build(root, entry.value)
+					end)
+				end)
+
+				return true
+			end,
+		}):find()
+	end
+
 	local function with_project(prompt_bufnr, callback)
 		local entry = action_state.get_selected_entry()
 
@@ -186,6 +226,10 @@ function M.config()
 		with_project(prompt_bufnr, projects.rebuild)
 	end
 
+	local function select_build_script(prompt_bufnr)
+		with_project(prompt_bufnr, open_build_script_picker)
+	end
+
 	telescope.setup({
 		extensions = {
 			project = {
@@ -213,6 +257,7 @@ function M.config()
 						["gE"] = select_project_executable,
 						["gC"] = clean_project,
 						["gX"] = rebuild_project,
+						["gS"] = select_build_script,
 					},
 				},
 			},
@@ -229,6 +274,7 @@ function M.config()
 	vim.keymap.set("n", "<leader>pb", projects.build, OPTS("Build C project"))
 	vim.keymap.set("n", "<leader>pc", projects.clean, OPTS("Clean C project"))
 	vim.keymap.set("n", "<leader>pB", projects.rebuild, OPTS("Clean and rebuild C project"))
+	vim.keymap.set("n", "<leader>pS", open_build_script_picker, OPTS("Select project build script"))
 	vim.keymap.set("n", "<leader>pe", open_executable_picker, OPTS("Run project executable"))
 	vim.keymap.set("n", "<leader>ps", projects.stop, OPTS("Stop project process"))
 	vim.keymap.set("n", "<leader>pR", projects.rerun, OPTS("Rerun last executable"))
