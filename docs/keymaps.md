@@ -95,8 +95,9 @@ These mappings are buffer-local and appear when an LSP client attaches.
 
 | Mapping | Action |
 |---|---|
-| `gS` | Switch between source and header |
-| `gI` | Show Clangd symbol information |
+| `<leader>ch` | Switch between source and header |
+| `<leader>ci` | Insert an include directive |
+| `<leader>cp` | Show C/C++ project and compile metadata |
 
 ## Editing
 
@@ -157,6 +158,7 @@ Mini.ai provides additional built-in text objects for arguments, function calls,
 | `<leader>pe` | Select an executable, enter arguments, and run without building |
 | `<leader>ps` | Stop the active project process |
 | `<leader>pR` | Rerun the most recently used saved project's executable and arguments |
+| `<leader>pq` | Extract compiler diagnostics from the runner output into quickfix |
 
 Inside the Telescope Projects picker:
 
