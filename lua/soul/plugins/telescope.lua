@@ -10,7 +10,6 @@ local M = {
     },
 
     "nvim-telescope/telescope-ui-select.nvim",
-    "nvim-telescope/telescope-project.nvim",
   },
 }
 
@@ -210,20 +209,6 @@ function M.config()
     },
 
     extensions = {
-      project = {
-        base_dirs = {
-          require("soul.core.paths").projects,
-        },
-        ignore_missing_dirs = true,
-        hidden_files = true,
-        order_by = "recent",
-        search_by = { "title", "path" },
-        theme = "dropdown",
-        on_project_selected = function(prompt_bufnr)
-          require("telescope._extensions.project.actions").change_working_directory(prompt_bufnr, false)
-        end,
-      },
-
       fzf = {
         fuzzy = true,
         override_generic_sorter = true,
@@ -237,7 +222,6 @@ function M.config()
 
   pcall(telescope.load_extension, "fzf")
   pcall(telescope.load_extension, "ui-select")
-  pcall(telescope.load_extension, "project")
 
   local keymap = vim.keymap.set
 
@@ -409,12 +393,6 @@ function M.config()
     OPTS("Marks")
   )
 
-  keymap(
-    "n",
-    "<leader>fp",
-    "<cmd>Telescope project<CR>",
-    OPTS("Projects")
-  )
 
 end
 
