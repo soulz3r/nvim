@@ -161,6 +161,6 @@
   },
   "yap.nvim": {
     "branch": "feat/nui-components-ui",
-    "commit": "c5c4c47a5df2d312cb6f7d6b1d0029bdaa1b8a89"
+    "commit": "e055efb4ea31d9aee75725bc3b799004443495bd"
   }
 }
