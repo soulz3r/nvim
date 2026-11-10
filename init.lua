@@ -32,4 +32,3 @@ GET("soul.extras.todo")
 GET("soul.extras.ufo")
 
 require("soul.lazy")
-require("soul.core.colors")

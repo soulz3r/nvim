@@ -3,29 +3,11 @@ local M = {}
 local hidden_statusline_windows = {}
 local previous_laststatus
 
-local groups = {
-  SoulFloatTitle = { link = "FloatTitle" },
-  SoulFloatBorder = { link = "FloatBorder" },
-  SoulFloatNormal = { link = "NormalFloat" },
-  SoulSectionTitle = { link = "Title" },
-  SoulMuted = { link = "Comment" },
-  SoulSuccess = { link = "DiagnosticOk" },
-  SoulWarning = { link = "DiagnosticWarn" },
-  SoulError = { link = "DiagnosticError" },
-}
+local floats = require("soul.ui.floats")
 
 function M.setup()
-  local function apply()
-    for name, value in pairs(groups) do
-      vim.api.nvim_set_hl(0, name, value)
-    end
-  end
-
-  apply()
-  vim.api.nvim_create_autocmd("ColorScheme", {
-    group = vim.api.nvim_create_augroup("SoulUIHighlights", { clear = true }),
-    callback = apply,
-  })
+  require("soul.ui.highlights").setup()
+  require("soul.ui.colors").setup()
 end
 
 function M.hide_statusline(win)
@@ -62,7 +44,7 @@ function M.centered(width, height, title, opts)
   return {
     relative = "editor",
     style = "minimal",
-    border = opts.border or "rounded",
+    border = opts.border or floats.border,
     title = title and (" " .. title .. " ") or nil,
     title_pos = opts.title_pos or "center",
     width = width,
@@ -87,7 +69,7 @@ function M.open_text(lines, title, opts)
   local win = vim.api.nvim_open_win(buf, true, M.centered(width, height, title, opts))
   vim.wo[win].wrap = opts.wrap == true
   vim.wo[win].cursorline = true
-  vim.wo[win].winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,FloatTitle:FloatTitle"
+  floats.apply(win)
 
   local function close()
     if vim.api.nvim_win_is_valid(win) then
