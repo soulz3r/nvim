@@ -30,41 +30,40 @@ function M.config()
         group = "Git",
       },
       {
-        "<leader>s",
-        group = "Sessions",
-        icon = icons.ui.History,
-      },
-
-      {
         "<leader>h",
         group = "Mark Harpoon",
         icon = icons.which_key.Mark,
       },
-
       {
         "<leader>l",
         group = "Code",
         icon = icons.which_key.Code,
       },
-
       {
         "<leader>L",
         group = "Plugins",
         icon = icons.which_key.Plugins,
       },
-
       {
         "<leader>n",
         group = "Neovim",
         icon = icons.which_key.Neovim,
       },
-
+      {
+        "<leader>p",
+        group = "Projects",
+        icon = icons.ui.Folder,
+      },
       {
         "<leader>q",
         group = "Exit",
         icon = icons.which_key.Exit,
       },
-
+      {
+        "<leader>s",
+        group = "Sessions",
+        icon = icons.ui.History,
+      },
       {
         "<leader>w",
         group = "Save",
@@ -76,97 +75,81 @@ function M.config()
         desc = "Find Files",
         icon = icons.ui.Telescope,
       },
-
       {
         "<leader>ft",
         desc = "Live Grep",
         icon = icons.ui.FindText,
       },
-
       {
         "<leader>fb",
         desc = "Buffers",
         icon = icons.ui.Files,
       },
-
       {
         "<leader>fC",
         desc = "Colorscheme",
         icon = icons.ui.Pencil,
       },
-
       {
         "<leader>fh",
         desc = "Help Tags",
         icon = icons.ui.Note,
       },
-
       {
         "<leader>fr",
         desc = "Resume",
         icon = icons.ui.Forward,
       },
-
       {
         "<leader>fo",
         desc = "Old Files",
         icon = icons.ui.History,
       },
-
       {
         "<leader>fm",
         desc = "Marks",
         icon = icons.ui.BookMark,
       },
-
       {
         "<leader>fy",
         desc = "Registers",
         icon = icons.ui.Files,
       },
-
       {
         "<leader>flr",
         desc = "References",
         icon = icons.kind.Reference,
       },
-
       {
         "<leader>fld",
         desc = "Definition",
         icon = icons.kind.Function,
       },
-
       {
         "<leader>flD",
         desc = "Declaration",
         icon = icons.kind.Function,
       },
-
       {
         "<leader>fli",
         desc = "Implementation",
         icon = icons.kind.Interface,
       },
-
       {
         "<leader>flt",
         desc = "Type Definition",
         icon = icons.kind.TypeParameter,
       },
-
       {
         "<leader>wa",
         desc = "Save All",
         icon = icons.ui.Files,
       },
-
       {
         "<leader>qq",
         desc = "Quit",
         icon = icons.ui.Close,
       },
-
       {
         "<leader>qa",
         desc = "Quit All",
@@ -182,18 +165,15 @@ function M.config()
         Down = icons.ui.BoldArrowDown,
         Left = icons.ui.BoldArrowLeft,
         Right = icons.ui.BoldArrowRight,
-
         C = "󰘴 ",
         M = "󰘵 ",
         D = "󰘳 ",
         S = "󰘶 ",
-
         CR = "󰌑 ",
         Esc = "󱊷 ",
         BS = "󰁮 ",
         Space = "󱁐 ",
         Tab = icons.ui.Tab,
-
         F1 = "󱊫 ",
         F2 = "󱊬 ",
         F3 = "󱊭 ",
@@ -212,7 +192,6 @@ function M.config()
       separator = icons.ui.ChevronRight,
       group = icons.ui.Plus,
       ellipsis = icons.ui.Ellipsis,
-
       colors = false,
     },
 
@@ -227,12 +206,10 @@ function M.config()
     plugins = {
       marks = true,
       registers = true,
-
       spelling = {
         enabled = true,
         suggestions = 20,
       },
-
       presets = {
         operators = true,
         motions = true,
@@ -254,4 +231,3 @@ function M.config()
 end
 
 return M
-
