@@ -13,6 +13,9 @@ local root_markers = {
   "package.json",
   "build.bat",
   "build.sh",
+  "compile_commands.json",
+  "compile_flags.txt",
+  "meson.build",
 }
 
 local function project_root(path)
@@ -260,10 +263,8 @@ local function find_executables(root)
 
     if vim.fn.isdirectory(full_path) == 1 then
       local files = vim.fs.find(function(name, path)
-        local normalized = path:gsub("\\\\", "/")
-
-        if normalized:find("/CMakeFiles/", 1, true)
-          or normalized:find("/Testing/", 1, true)
+        if path:find("CMakeFiles", 1, true)
+          or path:find("Testing", 1, true)
         then
           return false
         end
@@ -272,7 +273,7 @@ local function find_executables(root)
           return name:match("%.exe$") ~= nil
         end
 
-        return name:match("^[^.]+$") ~= nil
+        return true
       end, {
         path = full_path,
         type = "file",
