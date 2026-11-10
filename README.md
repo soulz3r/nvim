@@ -131,7 +131,7 @@ See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry det
 
 | Variable | Purpose | Default |
 |---|---|---|
-| `PROJECTS_DIR` | Base directory for personal projects and the S3D task | Windows: `D:/config/projects`; Linux: `~/projects` |
+| `PROJECTS_DIR` | Base directory for Telescope Projects and project discovery | Windows: `D:/config/projects`; Linux: `~/projects` |
 | `LLDB_DAP` | Full path or command name for `lldb-dap` | Windows LLVM path; Linux `lldb-dap` |
 | `PWSH` | PowerShell executable on Windows | `pwsh` or `pwsh.exe` |
 
