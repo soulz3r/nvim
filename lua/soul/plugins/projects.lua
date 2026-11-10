@@ -200,6 +200,8 @@ function M.config()
 
 	vim.keymap.set("n", "<leader>pr", projects.run, OPTS("Build and run C project"))
 	vim.keymap.set("n", "<leader>pb", projects.build, OPTS("Build C project"))
+	vim.keymap.set("n", "<leader>pc", projects.clean, OPTS("Clean C project"))
+	vim.keymap.set("n", "<leader>pB", projects.rebuild, OPTS("Clean and rebuild C project"))
 	vim.keymap.set("n", "<leader>pe", open_executable_picker, OPTS("Run project executable"))
 	vim.keymap.set("n", "<leader>ps", projects.stop, OPTS("Stop project process"))
 end
