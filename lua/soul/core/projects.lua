@@ -177,6 +177,18 @@ local function open_output(root, title)
 	vim.bo[buf].swapfile = false
 	vim.bo[buf].readonly = true
 	vim.bo[buf].modifiable = false
+
+	local previous_laststatus = vim.o.laststatus
+	vim.o.laststatus = 0
+
+	vim.api.nvim_create_autocmd("WinClosed", {
+		pattern = tostring(win),
+		once = true,
+		callback = function()
+			vim.o.laststatus = previous_laststatus
+		end,
+	})
+
 	vim.wo[win].wrap = true
 	vim.wo[win].cursorline = true
 	vim.wo[win].winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,FloatTitle:FloatTitle"
@@ -373,6 +385,7 @@ local function open_output(root, title)
 			and vim.api.nvim_buf_get_lines(buf, 0, -1, false)[1] == ""
 		local start_line = replacing_placeholder and 0 or vim.api.nvim_buf_line_count(buf)
 
+		vim.bo[buf].readonly = false
 		vim.bo[buf].modifiable = true
 
 		if replacing_placeholder then
@@ -395,6 +408,7 @@ local function open_output(root, title)
 		end
 
 		vim.bo[buf].modifiable = false
+		vim.bo[buf].readonly = true
 
 		if vim.api.nvim_win_is_valid(win) then
 			local line_count = vim.api.nvim_buf_line_count(buf)
