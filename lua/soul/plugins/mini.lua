@@ -52,12 +52,26 @@ function M.config()
 			config = function()
 				local has_statusline = vim.o.laststatus > 0
 				local padding = vim.o.cmdheight + (has_statusline and 1 or 0)
+				local active = vim.tbl_filter(function(notif)
+					return notif.ts_remove == nil
+				end, MiniNotify.get_all())
+				local latest = MiniNotify.default_sort(active)[1]
+				local titles = {
+					ERROR = "ERROR",
+					WARN = "WARNING",
+					INFO = "INFO",
+					DEBUG = "DEBUG",
+					TRACE = "TRACE",
+					OFF = "OFF",
+				}
+				local title = latest and (titles[latest.level] or latest.level) or "INFO"
 
 				return {
 					anchor = "SE",
 					col = vim.o.columns,
 					row = vim.o.lines - padding,
 					border = floats.border,
+					title = " " .. title .. " ",
 				}
 			end,
 			max_width_share = 0.30,
