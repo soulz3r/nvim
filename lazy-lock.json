@@ -36,5 +36,6 @@
   "tiny-cmdline.nvim": { "branch": "main", "commit": "ac9c6557c66da6308eb523643df8778f3cbe652f" },
   "todo-comments.nvim": { "branch": "main", "commit": "31e3c38ce9b29781e4422fc0322eb0a21f4e8668" },
   "toggleterm.nvim": { "branch": "main", "commit": "9a88eae817ef395952e08650b3283726786fb5fb" },
-  "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" }
+  "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" },
+  "yap.nvim": { "branch": "main", "commit": "8842c635f2f26e261e3f9f7abc8ed97c2e049838" }
 }
