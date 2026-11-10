@@ -24,8 +24,17 @@ function M.config()
 
 	local MiniNotify = require("mini.notify")
 
+	local function format_notification(notif)
+		local message = vim.trim(tostring(notif.msg or "")):gsub("%s+", " ")
+		local timestamp = notif.ts_update or notif.ts_add
+		local time = timestamp and vim.fn.strftime("%H:%M:%S", math.floor(timestamp)) or nil
+
+		return time and (message .. " │ " .. time) or message
+	end
+
 	MiniNotify.setup({
 		content = {
+			format = format_notification,
 			sort = MiniNotify.default_sort,
 		},
 		lsp_progress = {
@@ -83,15 +92,11 @@ function M.config()
 		local height = math.floor(vim.o.lines * 0.60)
 		local row = math.floor((vim.o.lines - height) / 2 - 1)
 		local col = math.floor((vim.o.columns - width) / 2)
-		local notifications = MiniNotify.default_sort(MiniNotify.get_all())
+		local notifications = MiniNotify.default_sort(vim.tbl_values(MiniNotify.get_all()))
 		local lines = {}
 
 		for _, notif in ipairs(notifications) do
-			local message = tostring(notif.msg or ""):gsub("[\\r\\n]+", " ")
-			local timestamp = notif.ts_update or notif.ts_add
-			local time = timestamp and vim.fn.strftime("%H:%M:%S", math.floor(timestamp)) or ""
-
-			table.insert(lines, time ~= "" and (message .. " │ " .. time) or message)
+			table.insert(lines, format_notification(notif))
 		end
 
 		if #lines == 0 then
