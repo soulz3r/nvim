@@ -4,6 +4,7 @@ local M = {
 }
 
 function M.config()
+	local floats = require("soul.ui.floats")
 	local execs = {
 		{ nil, "<M-1>", "Horizontal Terminal", "horizontal", 0.3 },
 		{ nil, "<M-2>", "Vertical Terminal", "vertical", 0.4 },
@@ -96,13 +97,13 @@ function M.config()
 		shell = vim.o.shell,
 
 		float_opts = {
-			border = "rounded",
+			border = floats.border,
 			width = 50,
 			height = 30,
 			winblend = 1,
 			highlights = {
-				border = "Normal",
-				background = "Normal",
+				border = "FloatBorder",
+				background = "NormalFloat",
 			},
 		},
 		winbar = {

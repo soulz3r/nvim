@@ -157,6 +157,7 @@ local function script_command(script)
 end
 
 local function open_output(root, title)
+	local floats = require("soul.ui.floats")
 	local output_lines = {}
 	local buf = vim.api.nvim_create_buf(false, true)
 	local width = math.max(1, math.min(vim.o.columns - 4, math.floor(vim.o.columns * 0.82)))
@@ -168,7 +169,7 @@ local function open_output(root, title)
 		row = math.floor((vim.o.lines - height) / 2),
 		col = math.floor((vim.o.columns - width) / 2),
 		style = "minimal",
-		border = "rounded",
+		border = floats.border,
 		title = " " .. title .. " ",
 		title_pos = "center",
 	})
@@ -183,7 +184,7 @@ local function open_output(root, title)
 
 	vim.wo[win].wrap = true
 	vim.wo[win].cursorline = true
-	vim.wo[win].winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,FloatTitle:FloatTitle"
+	floats.apply(win)
 
 	local ansi_palette = {
 		"#000000", "#cc6666", "#b5bd68", "#f0c674",

@@ -15,6 +15,7 @@ local M = {
 
 function M.config()
 	local MiniFiles = require("mini.files")
+	local floats = require("soul.ui.floats")
 
 	require("mini.icons").setup()
 	require("mini.pairs").setup()
@@ -41,7 +42,7 @@ function M.config()
 					anchor = "SE",
 					col = vim.o.columns,
 					row = vim.o.lines - padding,
-					border = "rounded",
+					border = floats.border,
 				}
 			end,
 			max_width_share = 0.30,
