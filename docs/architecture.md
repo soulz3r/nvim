@@ -24,8 +24,8 @@ Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 
 - `lua/soul/plugins/telescope.lua` owns general Telescope setup and pickers.
 - `lua/soul/plugins/yap.lua` configures YAP, its project directory, plugin-owned highlight groups, and direct dependencies.
-- `soulz3r/yap.nvim` owns project detection, build/clean/run execution, executable selection, argument history, persistent project metadata, compiler diagnostics, C/C++ helpers, and YAP project picker integration.
-- YAP's project runner uses `nui-components.nvim` on top of `nui.nvim`. The component UI keeps the live operation summary separate from the read-only ANSI-colored process output.
+- `soulz3r/yap.nvim` owns C project detection, build/clean/run execution, executable selection, argument history, persistent project metadata, compiler diagnostics, C helpers, and the NuiComponents project switcher.
+- YAP's project switcher and runner use `nui-components.nvim` on top of `nui.nvim`. The switcher provides project search, selection, an optional README preview, and contextual keymap hints. The runner keeps its live operation summary separate from the read-only ANSI-colored process output.
 - `lua/soul/plugins/lualine.lua` reads the current project label from `yap.project_registry`; the registry itself is owned by YAP.
 - `lua/soul/ui/` owns the editor's palette, highlight groups, shared float borders, and custom floating-window helpers. YAP uses its own `Yap*` highlight namespace and receives the palette through its plugin setup.
 

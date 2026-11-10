@@ -35,7 +35,7 @@ The leader key is Space. This is a compact reference for the most-used mappings;
 | `<leader>ft` | Live grep |
 | `<leader>fb` | Buffers |
 | `<leader>fo` | Recent files |
-| `<leader>pp` | Open Telescope Projects |
+| `<leader>pp` | Open the YAP C project switcher |
 | `<leader>fC` | Colorscheme picker |
 | `<leader>fr` | Resume last Telescope picker |
 | `<leader>fgb` | Git branches |
@@ -149,7 +149,7 @@ Mini.ai provides additional built-in text objects for arguments, function calls,
 
 | Mapping | Action |
 |---|---|
-| `<leader>pp` | Open Telescope Projects |
+| `<leader>pp` | Open the YAP C project switcher |
 | `<leader>pr` | Build and run the current C project |
 | `<leader>pb` | Build the current C project only |
 | `<leader>pc` | Clean the current C project |
@@ -160,19 +160,13 @@ Mini.ai provides additional built-in text objects for arguments, function calls,
 | `<leader>pR` | Rerun the most recently used saved project's executable and arguments |
 | `<leader>pq` | Extract compiler diagnostics from the runner output into quickfix |
 
-Inside the Telescope Projects picker:
+Inside the YAP C project switcher:
 
 | Mapping | Action |
 |---|---|
-| `Enter` | Change working directory to the selected project |
-| `Ctrl-g` / `gR` | Build and run the selected C project |
-| `Ctrl-y` / `gB` | Build the selected C project only |
-| `Ctrl-e` / `gE` | Select and run an executable from the project's `bin/` directory |
-| `gC` | Clean the selected project |
-| `gX` | Clean and rebuild the selected project |
-| `gS` | Select the build script for the selected project |
-| `gA` / `Ctrl-a` | Open the selected project's action menu |
-| `Ctrl-f` | Find files in the selected project (native action) |
-| `Ctrl-s` | Search inside the selected project (native action) |
-| `Ctrl-b` | Browse files in the selected project (native action) |
-| `Ctrl-r` | Find recently opened files in the selected project (native action) |
+| `i` | Enter Insert mode and filter projects |
+| `Esc` | Return to Normal mode |
+| `j` / `k` | Select the next / previous project in Normal mode |
+| `Ctrl-n` / `Ctrl-p` | Select the next / previous project in either mode |
+| `Enter` | Set the working directory to the selected project and close the picker |
+| `q` | Close the picker in Normal mode |
