@@ -2,11 +2,13 @@
 
 ## Project metadata
 
-Project metadata is stored outside the repository at `stdpath("state")/soul/projects.json`. It records the last executable, arguments, run time, and last-opened time per normalized project root. It is safe to delete; the registry is rebuilt as projects are used.
+YAP stores project metadata outside the repository at `stdpath("state")/yap/projects.json`. It records the last executable, arguments, run time, and last-opened time per normalized project root. It can read the previous `stdpath("state")/soul/projects.json` location as a migration fallback.
+
+Project run records and argument history are stored under `stdpath("data")/yap`. These are runtime state and should not be committed.
 
 ## C tools
 
-In C and C++ buffers:
+YAP provides the C/C++ helpers:
 
 | Mapping | Action |
 |---|---|
@@ -18,9 +20,15 @@ Commands: `:CProjectInfo` and `:CSwitchHeader`.
 
 clangd still owns semantic navigation, references, rename, and diagnostics. These helpers intentionally avoid duplicating those features.
 
+## Project runner UI
+
+The runner is implemented in YAP and rendered with `nui-components.nvim` over `nui.nvim`. It presents a live operation summary above a separate process-output pane. The output buffer remains read-only while retaining ANSI colors and compiler diagnostic extraction.
+
+The plugin configuration in `lua/soul/plugins/yap.lua` declares both UI libraries directly. Keep the dependency list and `lazy-lock.json` in sync when changing the runner UI dependencies.
+
 ## UI helpers
 
-`lua/soul/ui/init.lua` provides shared floating-window geometry, text-buffer windows, and highlight links. New custom windows should use these helpers rather than reimplementing sizing and close mappings.
+`lua/soul/ui/init.lua` provides shared floating-window geometry, text-buffer windows, and highlight links. New custom windows should use these helpers rather than reimplementing sizing and close mappings. YAP owns its runner presentation and its `Yap*` highlight namespace.
 
 ## Checks
 
