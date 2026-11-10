@@ -180,10 +180,180 @@ local function open_output(root, title)
 	vim.wo[win].cursorline = true
 	vim.wo[win].winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,FloatTitle:FloatTitle"
 
-	local function clean_output_line(line)
-		return line
-			:gsub("\27%[[0-?]*[ -/]*[@-~]", "")
-			:gsub("\r", "")
+	local ansi_palette = {
+		"#000000", "#cc6666", "#b5bd68", "#f0c674",
+		"#81a2be", "#b294bb", "#8abeb7", "#c5c8c6",
+		"#666666", "#d54e53", "#b9ca4a", "#e7c547",
+		"#7aa6da", "#c397d8", "#70c0b1", "#eaeaea",
+	}
+	local ansi_groups = {}
+	local ansi_state = {
+		bold = false,
+		italic = false,
+		underline = false,
+	}
+
+	local function ansi_color(index)
+		if index < 16 then
+			return ansi_palette[index + 1]
+		end
+
+		if index < 232 then
+			local value = index - 16
+			local red = math.floor(value / 36)
+			local green = math.floor(value % 36 / 6)
+			local blue = value % 6
+			local function channel(component)
+				return component == 0 and 0 or 55 + component * 40
+			end
+
+			return string.format("#%02x%02x%02x", channel(red), channel(green), channel(blue))
+		end
+
+		local gray = 8 + (index - 232) * 10
+		return string.format("#%02x%02x%02x", gray, gray, gray)
+	end
+
+	local function ansi_group()
+		if not ansi_state.fg and not ansi_state.bg
+			and not ansi_state.bold and not ansi_state.italic and not ansi_state.underline
+		then
+			return
+		end
+
+		local key = table.concat({
+			ansi_state.fg or "",
+			ansi_state.bg or "",
+			ansi_state.bold and "b" or "",
+			ansi_state.italic and "i" or "",
+			ansi_state.underline and "u" or "",
+		}, ":")
+		if not ansi_groups[key] then
+			local group = "SoulProjectAnsi" .. (#vim.tbl_keys(ansi_groups) + 1)
+			local highlight = {
+				bold = ansi_state.bold,
+				italic = ansi_state.italic,
+				underline = ansi_state.underline,
+			}
+
+			if ansi_state.fg then
+				highlight.fg = ansi_state.fg
+			end
+			if ansi_state.bg then
+				highlight.bg = ansi_state.bg
+			end
+
+			vim.api.nvim_set_hl(0, group, highlight)
+			ansi_groups[key] = group
+		end
+
+		return ansi_groups[key]
+	end
+
+	local function apply_sgr(parameters)
+		local codes = {}
+		for value in (parameters .. ";"):gmatch("(.-);") do
+			codes[#codes + 1] = tonumber(value) or 0
+		end
+
+		local index = 1
+		while index <= #codes do
+			local code = codes[index]
+
+			if code == 0 then
+				ansi_state = { bold = false, italic = false, underline = false }
+			elseif code == 1 then
+				ansi_state.bold = true
+			elseif code == 2 then
+				ansi_state.bold = false
+			elseif code == 3 then
+				ansi_state.italic = true
+			elseif code == 4 then
+				ansi_state.underline = true
+			elseif code == 22 then
+				ansi_state.bold = false
+			elseif code == 23 then
+				ansi_state.italic = false
+			elseif code == 24 then
+				ansi_state.underline = false
+			elseif code == 39 then
+				ansi_state.fg = nil
+			elseif code == 49 then
+				ansi_state.bg = nil
+			elseif code >= 30 and code <= 37 then
+				ansi_state.fg = ansi_palette[code - 29]
+			elseif code >= 90 and code <= 97 then
+				ansi_state.fg = ansi_palette[code - 81]
+			elseif code >= 40 and code <= 47 then
+				ansi_state.bg = ansi_palette[code - 39]
+			elseif code >= 100 and code <= 107 then
+				ansi_state.bg = ansi_palette[code - 91]
+			elseif code == 38 or code == 48 then
+				local target = code == 38 and "fg" or "bg"
+				local mode = codes[index + 1]
+
+				if mode == 5 and codes[index + 2] then
+					ansi_state[target] = ansi_color(math.max(0, math.min(255, codes[index + 2])))
+					index = index + 2
+				elseif mode == 2 and codes[index + 4] then
+					ansi_state[target] = string.format(
+						"#%02x%02x%02x",
+						math.max(0, math.min(255, codes[index + 2])),
+						math.max(0, math.min(255, codes[index + 3])),
+						math.max(0, math.min(255, codes[index + 4]))
+					)
+					index = index + 4
+				end
+			end
+
+			index = index + 1
+		end
+	end
+
+	local function parse_output_line(line)
+		local clean = {}
+		local highlights = {}
+		local position = 1
+		local column = 0
+		local segment_start = 1
+		local segment_group = ansi_group()
+
+		while position <= #line do
+			local first, last, parameters, final =
+				line:find("\27%[([%d;?]*)([ -/]*)([@-~])", position)
+
+			if not first then
+				local text = line:sub(position):gsub("\r", "")
+				if #text > 0 then
+					clean[#clean + 1] = text
+					local finish = column + #text
+					if segment_group then
+						highlights[#highlights + 1] = { column, finish, segment_group }
+					end
+					column = finish
+				end
+				break
+			end
+
+			local text = line:sub(position, first - 1):gsub("\r", "")
+			if #text > 0 then
+				clean[#clean + 1] = text
+				local finish = column + #text
+				if segment_group then
+					highlights[#highlights + 1] = { column, finish, segment_group }
+				end
+				column = finish
+			end
+
+			if final == "m" then
+				apply_sgr(parameters)
+			end
+			position = last + 1
+			segment_start = position
+			segment_group = ansi_group()
+		end
+
+		return table.concat(clean), highlights
 	end
 
 	local function append(lines)
@@ -192,20 +362,37 @@ local function open_output(root, title)
 		end
 
 		local clean_lines = {}
+		local line_highlights = {}
 		for _, line in ipairs(lines) do
-			line = clean_output_line(line)
-			clean_lines[#clean_lines + 1] = line
-			output_lines[#output_lines + 1] = line
+			local clean, highlights = parse_output_line(line)
+			clean_lines[#clean_lines + 1] = clean
+			line_highlights[#line_highlights + 1] = highlights
+			output_lines[#output_lines + 1] = clean
 		end
+
+		local replacing_placeholder = vim.api.nvim_buf_line_count(buf) == 1
+			and vim.api.nvim_buf_get_lines(buf, 0, -1, false)[1] == ""
+		local start_line = replacing_placeholder and 0 or vim.api.nvim_buf_line_count(buf)
 
 		vim.bo[buf].modifiable = true
 
-		if vim.api.nvim_buf_line_count(buf) == 1
-			and vim.api.nvim_buf_get_lines(buf, 0, -1, false)[1] == ""
-		then
+		if replacing_placeholder then
 			vim.api.nvim_buf_set_lines(buf, 0, -1, false, clean_lines)
 		else
 			vim.api.nvim_buf_set_lines(buf, -1, -1, false, clean_lines)
+		end
+
+		for line_index, highlights in ipairs(line_highlights) do
+			for _, highlight in ipairs(highlights) do
+				vim.api.nvim_buf_add_highlight(
+					buf,
+					-1,
+					highlight[3],
+					start_line + line_index - 1,
+					highlight[1],
+					highlight[2]
+				)
+			end
 		end
 
 		vim.bo[buf].modifiable = false
