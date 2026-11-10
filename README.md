@@ -136,13 +136,13 @@ See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry det
 
 | Variable | Purpose | Default |
 |---|---|---|
-| `PROJECTS_DIR` | Base directory for Telescope Projects and project discovery | Windows: `D:/config/projects`; Linux: `~/projects` |
+| `PROJECTS_DIR` | Base directory for YAP project picker and project discovery | Windows: `D:/config/projects`; Linux: `~/projects` |
 | `LLDB_DAP` | Full path or command name for `lldb-dap` | Windows LLVM path; Linux `lldb-dap` |
 | `PWSH` | PowerShell executable used by the configured shell | `pwsh` or `pwsh.exe` |
 
 ## Projects
 
-YAP is the project hub. Use `<leader>pp` to open Telescope Projects:
+YAP is the project hub. Use `<leader>pp` to open YAP project picker:
 
 | Key | Action |
 |---|---|
@@ -175,7 +175,7 @@ The runner recognizes `build_all.bat` / `build.bat` on Windows and `build_all.sh
 
 The runner opens a component-based floating window with a live operation summary, per-step status and duration, and a separate ANSI-colored process-output pane. The output is read-only; press `q` or `Esc` to close it, `Ctrl-c` to stop a running process, and `<leader>pq` to open parsed diagnostics.
 
-YAP owns project execution, C/C++ helpers, project metadata, and the Telescope Projects integration. Its component UI uses `nui-components.nvim` and `nui.nvim`; both are declared as direct dependencies in `lua/soul/plugins/yap.lua`.
+YAP owns project execution, C/C++ helpers, project metadata, and the YAP project picker integration. Its component UI uses `nui-components.nvim` and `nui.nvim`; both are declared as direct dependencies in `lua/soul/plugins/yap.lua`.
 
 ## Local DAP state
 
