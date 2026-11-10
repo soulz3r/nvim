@@ -18,6 +18,7 @@ vim.api.nvim_create_autocmd("FileType", {
     "lir",
     "DressingSelect",
     "tsplayground",
+    "mininotify-history",
   },
   callback = function(args)
     vim.bo[args.buf].buflisted = false
