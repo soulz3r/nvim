@@ -35,7 +35,7 @@ The leader key is Space. This is a compact reference for the most-used mappings;
 | `<leader>ft` | Live grep |
 | `<leader>fb` | Buffers |
 | `<leader>fo` | Recent files |
-| `<leader>fp` | Open Telescope Projects |
+| `<leader>pp` | Open Telescope Projects |
 | `<leader>fC` | Colorscheme picker |
 | `<leader>fr` | Resume last Telescope picker |
 | `<leader>fgb` | Git branches |
@@ -85,6 +85,8 @@ These mappings are buffer-local and appear when an LSP client attaches.
 | `<leader>lj` / `<leader>lk` | Next / previous diagnostic |
 | `<leader>lo` | Show diagnostics |
 | `<leader>lq` | Diagnostic location list |
+| `<leader>lw` | Workspace symbols |
+| `<leader>lS` | Document symbols |
 | `<leader>lH` | Toggle inlay hints |
 | `<leader>lI` | LSP health |
 | `<leader>lC` | Restart LSP |
@@ -114,41 +116,60 @@ Mini.ai provides additional built-in text objects for arguments, function calls,
 | `<leader>dB` | Conditional breakpoint |
 | `<leader>dL` | Logpoint |
 | `<leader>dX` | Clear all breakpoints |
+| `<leader>dK` | List breakpoints |
 | `<F10>` or `<leader>ds` | Step over |
 | `<F11>` or `<leader>di` | Step into |
 | `<F12>` or `<leader>do` | Step out |
+| `<leader>dS` | Step back |
+| `<leader>dP` | Pause |
+| `<leader>dG` | Run to cursor |
+| `<leader>dJ` | Go to current line |
+| `<leader>dU` / `<leader>dD` | Older / newer stack frame |
+| `<leader>dF` | Focus frame |
 | `<leader>dh` | Evaluate expression |
 | `<leader>dR` | Open / focus REPL |
 | `<leader>d/` | Search REPL lines |
 | `<leader>du` | Toggle DAP UI |
 | `<leader>dw` | Add watch |
 | `<leader>dt` | Float a DAP UI element |
+| `<leader>d?` | Show DAP log |
 
 ## Terminal and build
 
-Inside the Telescope Projects picker (`<leader>fp`):
-
 | Mapping | Action |
 |---|---|
-| `Enter` | Change working directory to the selected project |
-| `Ctrl-g` | Build and run the selected C project |
-| `Ctrl-y` | Build the selected C project only |
-| `Ctrl-e` | Select and run a binary from the selected project's `bin/` directory |
-| `Ctrl-f` | Find files in the selected project (native action) |
-| `Ctrl-s` | Search inside the selected project (native action) |
-| `Ctrl-b` | Browse files in the selected project (native action) |
-| `Ctrl-r` | Find recently opened files in the selected project (native action) |
-| `gR` | Build and run the selected C project in normal mode |
-| `gB` | Build the selected C project in normal mode |
-| `gE` | Select and run a binary from the selected project in normal mode |
-
-| Mapping | Action |
-|---|---|
-| `Ctrl-\` | Toggle the default terminal |
+| `Ctrl-\\` | Toggle the default terminal |
 | `Alt-1` | Horizontal terminal |
 | `Alt-2` | Vertical terminal |
 | `Alt-3` | Floating terminal |
 | `Ctrl-;` | Leave terminal mode |
-| `<leader>rr` | Build and run the current C project |
-| `<leader>rb` | Build the current C project only |
-| `<leader>re` | Select a binary from `bin/`, enter arguments, and run it without building |
+
+### Project runner
+
+| Mapping | Action |
+|---|---|
+| `<leader>pp` | Open Telescope Projects |
+| `<leader>pr` | Build and run the current C project |
+| `<leader>pb` | Build the current C project only |
+| `<leader>pc` | Clean the current C project |
+| `<leader>pB` | Clean and rebuild the current C project |
+| `<leader>pS` | Select a build script, then build |
+| `<leader>pe` | Select an executable, enter arguments, and run without building |
+| `<leader>ps` | Stop the active project process |
+| `<leader>pR` | Rerun the most recently used saved project's executable and arguments |
+
+Inside the Telescope Projects picker:
+
+| Mapping | Action |
+|---|---|
+| `Enter` | Change working directory to the selected project |
+| `Ctrl-g` / `gR` | Build and run the selected C project |
+| `Ctrl-y` / `gB` | Build the selected C project only |
+| `Ctrl-e` / `gE` | Select and run an executable from the project's `bin/` directory |
+| `gC` | Clean the selected project |
+| `gX` | Clean and rebuild the selected project |
+| `gS` | Select the build script for the selected project |
+| `Ctrl-f` | Find files in the selected project (native action) |
+| `Ctrl-s` | Search inside the selected project (native action) |
+| `Ctrl-b` | Browse files in the selected project (native action) |
+| `Ctrl-r` | Find recently opened files in the selected project (native action) |
