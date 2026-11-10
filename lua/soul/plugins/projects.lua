@@ -4,6 +4,7 @@ local M = {
 
 	dependencies = {
 		"nvim-telescope/telescope.nvim",
+		"soulz3r/yap.nvim",
 	},
 }
 
@@ -15,7 +16,8 @@ function M.config()
 	local pickers = require("telescope.pickers")
 	local conf = require("telescope.config").values
 	local themes = require("telescope.themes")
-	local projects = require("soul.core.projects")
+	local projects = require("yap.projects")
+	local registry = require("yap.project_registry")
 
 	local function normalize_path(path)
 		local normalized = vim.fs.normalize(vim.fn.fnamemodify(path, ":p"))
@@ -259,6 +261,7 @@ function M.config()
 
 		vim.schedule(function()
 			vim.cmd.cd(vim.fn.fnameescape(path))
+			registry.touch(path)
 			callback(path)
 		end)
 	end
