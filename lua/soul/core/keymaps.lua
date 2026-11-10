@@ -43,6 +43,18 @@ keymap({ "n", "x" }, "k", "gk", OPTS())
 
 keymap("n", "<leader>ww", ":w<CR>", OPTS("Save"))
 keymap("n", "<leader>wa", ":w!<CR>", OPTS("Save force"))
+
+keymap("n", "<leader>cd", function()
+	local file = vim.api.nvim_buf_get_name(0)
+
+	if file == "" then
+		return vim.notify("Current buffer has no file", vim.log.levels.WARN)
+	end
+
+	local directory = vim.fn.fnamemodify(file, ":h")
+	vim.cmd.cd(vim.fn.fnameescape(directory))
+	vim.notify("Working directory: " .. vim.fn.fnamemodify(directory, ":~"))
+end, OPTS("Set cwd to current file directory"))
 keymap("n", "<leader>qq", ":q<CR>", OPTS("Quit"))
 keymap("n", "<leader>qa", ":q!<CR>", OPTS("Quit without saving"))
 
