@@ -50,25 +50,29 @@ local M = {
   opts_extend = { "sources.default" },
 }
 
+local function set_bg(group, bg)
+  local highlight = vim.api.nvim_get_hl(0, { name = group, link = false })
+  highlight.bg = bg
+  vim.api.nvim_set_hl(0, group, highlight)
+end
+
 function M.config(_, opts)
   require("blink.cmp").setup(opts)
 
-  vim.api.nvim_set_hl(0, "Pmenu", { bg = "none" })
-  vim.api.nvim_set_hl(0, "PmenuSel", { bg = "none" })
-  vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
-  vim.api.nvim_set_hl(0, "PmenuSbar", { bg = "none" })
-  vim.api.nvim_set_hl(0, "PmenuThumb", { bg = "none" })
+  set_bg("Pmenu", "none")
+  set_bg("PmenuSel", "none")
+  set_bg("NormalFloat", "none")
+  set_bg("PmenuSbar", "none")
+  set_bg("PmenuThumb", "none")
 
-  vim.api.nvim_set_hl(0, "BlinkCmpMenu", { bg = "none" })
-  vim.api.nvim_set_hl(0, "BlinkCmpMenuBorder", { bg = "none" })
-  vim.api.nvim_set_hl(0, "BlinkCmpMenuSelection", {
-    bg = "#4F5B58",
-  })
+  set_bg("BlinkCmpMenu", "none")
+  set_bg("BlinkCmpMenuBorder", "none")
+  set_bg("BlinkCmpMenuSelection", "#4F5B58")
 
-  vim.api.nvim_set_hl(0, "BlinkCmpDoc", { bg = "none" })
-  vim.api.nvim_set_hl(0, "BlinkCmpDocBorder", { bg = "none" })
-  vim.api.nvim_set_hl(0, "BlinkCmpSignatureHelp", { bg = "none" })
-  vim.api.nvim_set_hl(0, "BlinkCmpSignatureHelpBorder", { bg = "none" })
+  set_bg("BlinkCmpDoc", "none")
+  set_bg("BlinkCmpDocBorder", "none")
+  set_bg("BlinkCmpSignatureHelp", "none")
+  set_bg("BlinkCmpSignatureHelpBorder", "none")
 end
 
 return M
