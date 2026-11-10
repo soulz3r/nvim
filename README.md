@@ -135,15 +135,27 @@ See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry det
 | `LLDB_DAP` | Full path or command name for `lldb-dap` | Windows LLVM path; Linux `lldb-dap` |
 | `PWSH` | PowerShell executable on Windows | `pwsh` or `pwsh.exe` |
 
-## Project runner
+## Projects
 
-Use `<leader>fp` to select a project with Telescope Projects. The picker changes Neovim's working directory to the selected project, which becomes the root used by pRunner.
+Telescope Projects is the project hub. Use `<leader>fp` to open the picker:
 
-- `<leader>rr` builds and runs the current project.
+| Key | Action |
+|---|---|
+| Enter | Change Neovim's working directory to the selected project |
+| `Ctrl-r` | Run the selected project |
+| `Ctrl-b` | Build the selected project |
+| `Ctrl-f` | Find files in the selected project |
+| `Ctrl-g` | Live grep in the selected project |
+
+The same project actions are available outside the picker:
+
+- `<leader>rr` runs the current project.
+- `<leader>rb` builds the current project.
 - `<leader>rf` runs the current file independently. C files are compiled with C23 and debug symbols, then executed; Lua, Python, and JavaScript files use their respective runtimes.
 
-Project connectors recognize custom `build.bat` / `build.sh` scripts, CMake, Make, Cargo, Go modules, and npm projects with a `start` or `dev` script. Build-based connectors search `bin/` and common `build/` output directories for executables. If multiple executables are found, pRunner asks which one to launch. Cargo, Go, and npm connectors use their native run commands.
+Project detection supports custom `build.bat` / `build.sh` scripts, CMake, Make, Cargo, Go modules, and npm scripts. Build-based projects search common output directories for executables. If multiple executables are found, you can select which one to launch.
 
+`lua/soul/core/projects.lua` contains the project detection and execution logic. It does not depend on Telescope, so project operations can also be called directly from Lua.
 ## Local DAP state
 
 The DAP registry is runtime state and is not committed to Git. It is stored under:
