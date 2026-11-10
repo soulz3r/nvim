@@ -82,9 +82,6 @@ function M.config()
 
 		windows = {
 			preview = true,
-			width_focus = 40,
-			width_nofocus = 22,
-			width_preview = 50,
 		},
 
 		content = {
