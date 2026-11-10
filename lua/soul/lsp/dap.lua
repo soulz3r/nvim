@@ -12,7 +12,7 @@ M.config = function()
 	local dap_widgets = require("dap.ui.widgets")
 	local fn = vim.fn
 	local paths = require("soul.core.paths")
-	local project_registry = require("soul.core.project_registry")
+	local project_registry = require("yap.project_registry")
 
 	-- =========================================================
 	-- Project registry
