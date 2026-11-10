@@ -25,8 +25,8 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - ToggleTerm with persistent horizontal, vertical, and floating terminals
 - Alpha dashboard with recent files, recent projects, quick actions, and an animated header
 - Minimal context-aware Lualine statusline with project and LSP indicators
-- Shared floating-window helpers and Everforest highlight links
-- Everforest-oriented highlights and rounded UI
+- Shared floating-window helpers and centralized Everforest palette/highlights
+- Consistent rounded borders and transparent float backgrounds across editor and plugin UI
 - Windows and Linux path, shell, clipboard, and debugger handling
 
 ## Requirements
