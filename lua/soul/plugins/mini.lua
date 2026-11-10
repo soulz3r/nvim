@@ -60,6 +60,10 @@ function M.config()
 		desc = "Clear notifications",
 	})
 
+	vim.keymap.set("n", "<leader>nh", MiniNotify.show_history, {
+		desc = "Show notification history",
+	})
+
 	local MiniSessions = require("mini.sessions")
 
 	MiniSessions.setup({
