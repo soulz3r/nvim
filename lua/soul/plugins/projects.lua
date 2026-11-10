@@ -73,7 +73,7 @@ function M.config()
 				entry_maker = function(file)
 					local saved = project_runs.get(root, file)
 					local name = vim.fn.fnamemodify(file, ":t")
-					local relative = vim.fs.relpath(root, file) or file
+					local relative = "bin/" .. name
 
 					return {
 						value = file,
