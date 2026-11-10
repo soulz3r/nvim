@@ -71,6 +71,14 @@
     "branch": "main",
     "commit": "5357f00aca51a3b43e7775901b1ad9699f8c2678"
   },
+  "nui-components.nvim": {
+    "branch": "main",
+    "commit": "1654dd709f13874089eefc80d82e0eb667f7fdfb"
+  },
+  "nui.nvim": {
+    "branch": "main",
+    "commit": "10fc361835c856ba4233ef5ea135b919bf3dce97"
+  },
   "nvim-colorizer.lua": {
     "branch": "master",
     "commit": "72a05f62c52241bc7441c820eb53946f92b2e6a4"
@@ -152,15 +160,7 @@
     "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a"
   },
   "yap.nvim": {
-    "branch": "main",
-    "commit": "e4d2e2b5798792d2e5e2eaaf4a24f0c9ebc0a7a9"
-  },
-  "nui-components.nvim": {
-    "branch": "main",
-    "commit": "1654dd709f13874089eefc80d82e0eb667f7fdfb"
-  },
-  "nui.nvim": {
-    "branch": "main",
-    "commit": "10fc361835c856ba4233ef5ea135b919bf3dce97"
+    "branch": "feat/nui-components-ui",
+    "commit": "c5c4c47a5df2d312cb6f7d6b1d0029bdaa1b8a89"
   }
 }
