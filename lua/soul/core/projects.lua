@@ -231,6 +231,24 @@ local function open_output(root, title)
 		})
 	end
 
+	local function notify_readonly()
+		vim.notify("Project output is read-only.", vim.log.levels.INFO, {
+			title = "Project Runner",
+		})
+	end
+
+	for _, key in ipairs({
+		"i", "I", "a", "A", "o", "O", "s", "S", "R",
+		"r", "x", "X", "d", "D", "c", "C", "p", "P",
+		"J", "u", "<C-r>", ">", "<",
+	}) do
+		vim.keymap.set("n", key, notify_readonly, {
+			buffer = buf,
+			silent = true,
+			desc = "Project output is read-only",
+		})
+	end
+
 	vim.keymap.set("n", "<C-c>", function()
 		if not stop_active_job() then
 			vim.notify("No project process is running.", vim.log.levels.INFO)
