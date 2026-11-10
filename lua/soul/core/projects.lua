@@ -70,9 +70,8 @@ local function open_output(root, title)
 		title_pos = "center",
 	})
 
-	vim.bo[buf].buftype = "nofile"
 	vim.bo[buf].bufhidden = "wipe"
-	vim.bo[buf].filetype = "log"
+	local terminal = vim.api.nvim_open_term(buf, {})
 	vim.wo[win].wrap = true
 	vim.wo[win].cursorline = true
 	vim.wo[win].winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,FloatTitle:FloatTitle"
@@ -82,12 +81,11 @@ local function open_output(root, title)
 			return
 		end
 
-		vim.bo[buf].modifiable = true
-		vim.api.nvim_buf_set_lines(buf, -1, -1, false, lines)
-		vim.bo[buf].modifiable = false
+		vim.api.nvim_chan_send(terminal, table.concat(lines, "\r\n") .. "\r\n")
 
 		if vim.api.nvim_win_is_valid(win) then
-			vim.api.nvim_win_set_cursor(win, { vim.api.nvim_buf_line_count(buf), 0 })
+			local line_count = vim.api.nvim_buf_line_count(buf)
+			vim.api.nvim_win_set_cursor(win, { line_count, 0 })
 		end
 	end
 
