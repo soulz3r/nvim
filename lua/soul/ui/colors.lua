@@ -25,6 +25,9 @@ local highlights = {
   FloatBorder = { fg = P.border, bg = "NONE" },
   FloatTitle = { fg = P.green, bg = "NONE", bold = true },
   FloatFooter = { fg = P.muted, bg = "NONE" },
+  SoulFloatBorder = { fg = P.border, bg = "NONE" },
+  SoulFloatTitle = { fg = P.green, bg = "NONE", bold = true },
+  SoulFloatNormal = { fg = P.foreground, bg = "NONE" },
 
   WinSeparator = { fg = P.border },
   WinBar = { fg = P.muted, bg = "NONE" },
