@@ -26,6 +26,21 @@ function M.config()
 
 	MiniNotify.setup({
 		content = {
+			format = function(notif)
+				local labels = {
+					ERROR = "ERROR",
+					WARN = "WARNING",
+					INFO = "INFO",
+					DEBUG = "DEBUG",
+					TRACE = "TRACE",
+					OFF = "OFF",
+				}
+
+				local label = labels[notif.level] or notif.level
+				local time = vim.fn.strftime("%H:%M:%S", math.floor(notif.ts_update))
+
+				return string.format("%s │ %s │ %s", label, notif.msg, time)
+			end,
 			sort = MiniNotify.default_sort,
 		},
 		lsp_progress = {
