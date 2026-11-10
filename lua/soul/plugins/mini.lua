@@ -68,8 +68,8 @@ function M.config()
 
 	MiniFiles.setup({
 		mappings = {
-			go_in = "L",
-			go_in_plus = "<CR>",
+			go_in = "<CR>",
+			go_in_plus = "L",
 			go_out = ",",
 			go_out_plus = "H",
 			synchronize = "s",
@@ -131,6 +131,13 @@ function M.config()
 			vim.keymap.set("n", "gx", open_entry, {
 				buffer = buf,
 				desc = "Open with system application",
+			})
+
+			vim.keymap.set("n", "<CR>", function()
+				MiniFiles.go_in({ close_on_file = true })
+			end, {
+				buffer = buf,
+				desc = "Enter directory or open file and close explorer",
 			})
 		end,
 	})
