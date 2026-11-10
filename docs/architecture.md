@@ -14,6 +14,9 @@ The entry point is `init.lua`. It loads core settings, registers plugin imports 
 | `lua/soul/core/autocmds.lua` | Core autocmds |
 | `lua/soul/core/paths.lua` | Platform detection and external tool paths |
 | `lua/soul/core/projects.lua` | C project build-script detection, build, and binary execution |
+| `lua/soul/core/project_registry.lua` | Shared per-project metadata for run history and dashboard/statusline context |
+| `lua/soul/ui/init.lua` | Shared floating-window geometry, text windows, and highlight links |
+| `lua/soul/c.lua` | C/C++ source-header switching, include helper, and compile metadata viewer |
 | `lua/soul/core/colors.lua` | Colorscheme and highlight setup |
 
 ## Plugins
@@ -23,6 +26,9 @@ Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 - `lua/soul/plugins/telescope.lua` owns general Telescope setup and pickers.
 - `lua/soul/plugins/projects.lua` owns the Telescope Projects picker and project-specific actions/keymaps.
 - `lua/soul/core/projects.lua` owns C build-script detection and execution. It does not depend on Telescope.
+- `lua/soul/core/project_registry.lua` stores project metadata under Neovim's state directory. It is shared by the runner, project picker, and statusline.
+- `lua/soul/ui/init.lua` provides shared helpers for custom floating windows. New custom UI should use it instead of duplicating geometry and close mappings.
+- `lua/soul/c.lua` provides small C/C++ workflow helpers while leaving semantic navigation and diagnostics to clangd.
 
 The project runner is intentionally narrow:
 

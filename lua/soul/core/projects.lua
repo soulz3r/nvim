@@ -2,6 +2,7 @@
 local M = {}
 
 local paths = require("soul.core.paths")
+local registry = require("soul.core.project_registry")
 
 local root_markers = {
 	".git",
@@ -675,7 +676,11 @@ local function launch(file, root, append, args)
 	if started then
 		last_runs[vim.fs.normalize(root)] = state
 		save_run_records()
-
+		registry.update(root, {
+			last_executable = file,
+			last_args = vim.deepcopy(args or {}),
+			last_run = os.time(),
+		})
 		mark_telescope_project_recent(root)
 	end
 end

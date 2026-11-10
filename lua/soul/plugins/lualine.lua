@@ -73,7 +73,27 @@ function M.config()
 					padding = { left = 1, right = 1 },
 				},
 			},
-			lualine_y = {},
+			lualine_y = {
+				{
+					function()
+						return require("soul.core.project_registry").status()
+					end,
+					cond = function()
+						return require("soul.core.project_registry").status() ~= ""
+					end,
+					color = { fg = "#A7C080" },
+				},
+				{
+					function()
+						local clients = vim.lsp.get_clients({ bufnr = 0 })
+						return #clients > 0 and ("󰒋 " .. #clients) or ""
+					end,
+					cond = function()
+						return #vim.lsp.get_clients({ bufnr = 0 }) > 0
+					end,
+					color = { fg = "#7FBBB3" },
+				},
+			},
 			lualine_z = {
 				{
 					"location",

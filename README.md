@@ -13,6 +13,9 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Blink.cmp completion
 - clangd support for C and C++
 - Project-aware LLDB DAP configuration and executable discovery
+- Shared project metadata for last executable, arguments, and project activity
+- Project actions hub for build, run, clean, and executable selection
+- C/C++ helpers for source-header switching, include insertion, and compile metadata
 - Per-user DAP project registry stored outside the repository
 - Telescope pickers with project-root search and Mini Files with preview and hidden-file controls
 - Mini sessions for project session save, restore, and automatic persistence
@@ -21,7 +24,8 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Telescope Projects integration with a C build-script runner and direct binary selection
 - ToggleTerm with persistent horizontal, vertical, and floating terminals
 - Alpha dashboard with recent files, recent projects, quick actions, and an animated header
-- Minimal Lualine statusline with no winbar
+- Minimal context-aware Lualine statusline with project and LSP indicators
+- Shared floating-window helpers and Everforest highlight links
 - Everforest-oriented highlights and rounded UI
 - Windows and Linux path, shell, clipboard, and debugger handling
 
@@ -178,7 +182,7 @@ The configuration can migrate the previous file at `stdpath("config")/lsp/dap-pr
 
 ## Repository layout
 
-See [docs/architecture.md](docs/architecture.md) for the module map.
+See [docs/architecture.md](docs/architecture.md) for the module map and [docs/development.md](docs/development.md) for project metadata, C helpers, and UI conventions.
 
 ## Checks
 

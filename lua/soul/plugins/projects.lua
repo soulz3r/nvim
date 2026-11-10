@@ -16,6 +16,7 @@ function M.config()
 	local conf = require("telescope.config").values
 	local themes = require("telescope.themes")
 	local projects = require("soul.core.projects")
+	local registry = require("soul.core.project_registry")
 
 	local function normalize_path(path)
 		local normalized = vim.fs.normalize(vim.fn.fnamemodify(path, ":p"))
@@ -259,6 +260,7 @@ function M.config()
 
 		vim.schedule(function()
 			vim.cmd.cd(vim.fn.fnameescape(path))
+			registry.touch(path)
 			callback(path)
 		end)
 	end
@@ -287,6 +289,30 @@ function M.config()
 		with_project(prompt_bufnr, open_build_script_picker)
 	end
 
+	local function open_project_actions(prompt_bufnr)
+		with_project(prompt_bufnr, function(path)
+			local actions_list = {
+				{ label = "Build and run", run = open_project_run_picker },
+				{ label = "Build only", run = projects.build },
+				{ label = "Run executable", run = open_executable_picker },
+				{ label = "Clean", run = projects.clean },
+				{ label = "Clean and rebuild", run = projects.rebuild },
+				{ label = "Choose build script", run = open_build_script_picker },
+			}
+			local metadata = registry.get(path) or {}
+			local summary = metadata.last_executable
+				and ("Last executable: " .. vim.fn.fnamemodify(metadata.last_executable, ":t"))
+				or "No executable recorded yet"
+
+			vim.ui.select(actions_list, {
+				prompt = "Project actions · " .. vim.fn.fnamemodify(path, ":t") .. " · " .. summary,
+				format_item = function(item) return item.label end,
+			}, function(choice)
+				if choice then choice.run(path) end
+			end)
+		end)
+	end
+
 	telescope.setup({
 		extensions = {
 			project = {
@@ -307,6 +333,7 @@ function M.config()
 						["<C-g>"] = run_project,
 						["<C-y>"] = build_project,
 						["<C-e>"] = select_project_executable,
+						["<C-a>"] = open_project_actions,
 					},
 					n = {
 						["gR"] = run_project,
@@ -315,6 +342,7 @@ function M.config()
 						["gC"] = clean_project,
 						["gX"] = rebuild_project,
 						["gS"] = select_build_script,
+						["gA"] = open_project_actions,
 					},
 				},
 			},

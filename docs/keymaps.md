@@ -169,6 +169,7 @@ Inside the Telescope Projects picker:
 | `gC` | Clean the selected project |
 | `gX` | Clean and rebuild the selected project |
 | `gS` | Select the build script for the selected project |
+| `gA` / `Ctrl-a` | Open the selected project's action menu |
 | `Ctrl-f` | Find files in the selected project (native action) |
 | `Ctrl-s` | Search inside the selected project (native action) |
 | `Ctrl-b` | Browse files in the selected project (native action) |
