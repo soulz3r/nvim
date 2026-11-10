@@ -124,110 +124,6 @@ function M.config()
 
 	dashboard.section.buttons.opts.hl = "Include"
 
-	local function recent_entries()
-		local files = {}
-		local projects = {}
-		local seen_files = {}
-		local seen_projects = {}
-
-		for index, path in ipairs(vim.v.oldfiles) do
-			if index > 100 or (#files >= 3 and #projects >= 3) then
-				break
-			end
-
-			path = vim.fn.fnamemodify(path, ":p")
-
-			if #files < 3 and vim.fn.filereadable(path) == 1 and not seen_files[path] then
-				seen_files[path] = true
-				table.insert(files, path)
-			end
-
-			local directory = vim.fs.dirname(path)
-			local root = vim.fs.root(directory, {
-				".git",
-				"Makefile",
-				"CMakeLists.txt",
-				"compile_commands.json",
-			})
-
-			if #projects < 3 and root and not seen_projects[root] then
-				seen_projects[root] = true
-				table.insert(projects, root)
-			end
-		end
-
-		return files, projects
-	end
-
-	local function recent_section(title, entries, shortcuts, action)
-		local values = {
-			{
-				type = "text",
-				val = title,
-				opts = {
-					position = "center",
-					hl = "AlphaMuted",
-				},
-			},
-		}
-
-		if #entries == 0 then
-			table.insert(values, {
-				type = "text",
-				val = "  " .. title:gsub("^Recent ", "No recent "),
-				opts = {
-					position = "center",
-					hl = "AlphaMuted",
-				},
-			})
-		else
-			for index, path in ipairs(entries) do
-				local shortcut = shortcuts[index]
-				if not shortcut then
-					break
-				end
-
-				local label = vim.fn.fnamemodify(path, ":~:.")
-				local max_width = 42
-
-				local label_length = vim.fn.strchars(label)
-				if label_length > max_width then
-					label = "…" .. vim.fn.strcharpart(label, label_length - max_width + 1)
-				end
-
-				local command = action(path)
-				table.insert(values, button(shortcut, " " .. label, command))
-			end
-		end
-
-		return {
-			type = "group",
-			val = values,
-			opts = {
-				spacing = 0,
-			},
-		}
-	end
-
-	local recent_files, recent_projects = recent_entries()
-
-	dashboard.section.recent_files = recent_section(
-		"Recent files",
-		recent_files,
-		{ "1", "2", "3", "4", "5" },
-		function(path)
-			return "<cmd>edit " .. vim.fn.fnameescape(path) .. "<CR>"
-		end
-	)
-
-	dashboard.section.recent_projects = recent_section(
-		"Recent projects",
-		recent_projects,
-		{ "6", "7", "8", "9", "0" },
-		function(path)
-			return "<cmd>lua vim.cmd.cd(" .. string.format("%q", path) .. "); vim.cmd.enew()<CR>"
-		end
-	)
 
 	local button_icon_highlights = {
 		{ button_icons.files, "AlphaBlue" },
@@ -365,14 +261,6 @@ function M.config()
 		{ type = "padding", val = 1 },
 
 		dashboard.section.buttons,
-
-		{ type = "padding", val = 1 },
-
-		dashboard.section.recent_files,
-
-		{ type = "padding", val = 1 },
-
-		dashboard.section.recent_projects,
 
 		{ type = "padding", val = 1 },
 
