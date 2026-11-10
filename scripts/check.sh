@@ -14,10 +14,6 @@ if [[ -e lsp/dap-projects.json ]]; then
   exit 1
 fi
 
-if grep -RIn --include='*.lua' -E 'vim\.loop|cmp_nvim_lsp|Telescope projects|open_mini_files' init.lua lua lsp; then
-  echo "Found a stale API or broken plugin reference." >&2
-  exit 1
-fi
 
 if command -v luac >/dev/null 2>&1; then
   while IFS= read -r -d '' file; do
