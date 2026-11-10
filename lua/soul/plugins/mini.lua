@@ -83,6 +83,31 @@ function M.config()
 		OFF = { duration = 0, hl_group = "MiniNotifyNormal" },
 	})
 
+	local readonly_warning_ns = vim.api.nvim_create_namespace("soul.readonly_warning")
+	pcall(vim.ui_detach, readonly_warning_ns)
+
+	vim.ui_attach(readonly_warning_ns, { ext_messages = true }, function(event, kind, chunks)
+		if event ~= "msg_show" or kind ~= "wmsg" then
+			return false
+		end
+
+		local message = table.concat(vim.tbl_map(function(chunk)
+			return chunk[2]
+		end, chunks))
+
+		if not message:find("W10", 1, true) and not message:find("Changing a readonly file", 1, true) then
+			return false
+		end
+
+		vim.schedule(function()
+			vim.notify("This buffer is read-only. Changes are disabled.", vim.log.levels.WARN, {
+				title = "READ-ONLY",
+			})
+		end)
+
+		return true
+	end)
+
 	vim.keymap.set("n", "<leader>nc", MiniNotify.clear, {
 		desc = "Clear notifications",
 	})
