@@ -21,7 +21,14 @@ function M.config()
 	require("mini.ai").setup()
 	require("mini.surround").setup()
 
-	require("mini.notify").setup({
+	local MiniNotify = require("mini.notify")
+
+	MiniNotify.setup({
+		lsp_progress = {
+			enable = true,
+			level = "INFO",
+			duration_last = 60000,
+		},
 		window = {
 			config = function()
 				local has_statusline = vim.o.laststatus > 0
@@ -38,6 +45,19 @@ function M.config()
 			max_height_share = 0.18,
 			winblend = 10,
 		},
+	})
+
+	vim.notify = MiniNotify.make_notify({
+		ERROR = { duration = 60000 },
+		WARN = { duration = 60000 },
+		INFO = { duration = 60000 },
+		DEBUG = { duration = 60000 },
+		TRACE = { duration = 60000 },
+		OFF = { duration = 60000 },
+	})
+
+	vim.keymap.set("n", "<leader>un", MiniNotify.clear, {
+		desc = "Clear notifications",
 	})
 
 	local MiniSessions = require("mini.sessions")
