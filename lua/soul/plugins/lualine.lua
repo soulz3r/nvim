@@ -12,8 +12,8 @@ function M.config()
 			section_separators = "",
 			globalstatus = true,
       disabled_filetypes = {
-        statusline = { "alpha" },
-        winbar = { "alpha" },
+        statusline = { "alpha", "project-output" },
+        winbar = { "alpha", "project-output" },
       },
 			always_show_tabline = false,
 			refresh = {
