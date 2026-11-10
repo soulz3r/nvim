@@ -13,30 +13,27 @@ The entry point is `init.lua`. It loads core settings, registers plugin imports 
 | `lua/soul/core/keymaps.lua` | Global keymaps and helper options |
 | `lua/soul/core/autocmds.lua` | Core autocmds |
 | `lua/soul/core/paths.lua` | Platform detection and external tool paths |
-| `lua/soul/core/projects.lua` | C project build-script detection, build, and binary execution |
-| `lua/soul/core/project_registry.lua` | Shared per-project metadata for run history and dashboard/statusline context |
 | `lua/soul/ui/init.lua` | UI initialization, shared floating-window geometry, and text windows |
 | `lua/soul/ui/colors.lua` | Everforest palette and centralized editor/plugin highlight definitions |
 | `lua/soul/ui/highlights.lua` | Shared semantic highlight links |
 | `lua/soul/ui/floats.lua` | Shared border style, Telescope border glyphs, and float window highlights |
-| `lua/soul/c.lua` | C/C++ source-header switching, include helper, and compile metadata viewer |
 
 ## Plugins
 
 Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 
 - `lua/soul/plugins/telescope.lua` owns general Telescope setup and pickers.
-- `lua/soul/plugins/projects.lua` owns the Telescope Projects picker and project-specific actions/keymaps.
-- `lua/soul/core/projects.lua` owns C build-script detection and execution. It does not depend on Telescope.
-- `lua/soul/core/project_registry.lua` stores project metadata under Neovim's state directory. It is shared by the runner, project picker, and statusline.
-- `lua/soul/ui/` owns presentation: the palette, highlight groups, shared float borders, and custom floating-window helpers. New custom UI should use these modules instead of defining local colors or border styles.
-- `lua/soul/c.lua` provides small C/C++ workflow helpers while leaving semantic navigation and diagnostics to clangd.
+- `lua/soul/plugins/yap.lua` configures YAP, its project directory, plugin-owned highlight groups, and direct dependencies.
+- `soulz3r/yap.nvim` owns project detection, build/clean/run execution, executable selection, argument history, persistent project metadata, compiler diagnostics, C/C++ helpers, and Telescope Projects integration.
+- YAP's project runner uses `nui-components.nvim` on top of `nui.nvim`. The component UI keeps the live operation summary separate from the read-only ANSI-colored process output.
+- `lua/soul/plugins/lualine.lua` reads the current project label from `yap.project_registry`; the registry itself is owned by YAP.
+- `lua/soul/ui/` owns the editor's palette, highlight groups, shared float borders, and custom floating-window helpers. YAP uses its own `Yap*` highlight namespace and receives the palette through its plugin setup.
 
-The project runner is intentionally narrow:
+YAP's build workflow is intentionally script-based:
 
-- On Windows it checks for `build_all.bat` and then `build.bat`; it can also use the shell scripts when present.
-- On Unix-like systems it checks for `build_all.sh` and then `build.sh`.
-- Build-and-run executes the script, then launches `bin/<project-directory-name>` (with `.exe` on Windows).
+- On Windows it checks `build_all.bat` and then `build.bat`.
+- On Unix-like systems it checks `build_all.sh` and then `build.sh`.
+- Build-and-run launches `bin/<project-directory-name>` (with `.exe` on Windows).
 - Direct binary execution lists executable files in `bin/`, prompts for arguments, and skips the build step.
 
 The main plugin groups are:
