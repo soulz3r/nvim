@@ -13,7 +13,7 @@ The entry point is `init.lua`. It loads core settings, registers plugin imports 
 | `lua/soul/core/keymaps.lua` | Global keymaps and helper options |
 | `lua/soul/core/autocmds.lua` | Core autocmds |
 | `lua/soul/core/paths.lua` | Platform detection and external tool paths |
-| `lua/soul/core/projects.lua` | Project detection, build/run commands, and individual-file execution |
+| `lua/soul/core/projects.lua` | C project build-script detection, build, and binary execution |
 | `lua/soul/core/colors.lua` | Colorscheme and highlight setup |
 
 ## Plugins
@@ -21,8 +21,15 @@ The entry point is `init.lua`. It loads core settings, registers plugin imports 
 Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 
 - `lua/soul/plugins/telescope.lua` owns general Telescope setup and pickers.
-- `lua/soul/plugins/telescope-projects.lua` owns the project picker and its project-specific actions.
-- `lua/soul/core/projects.lua` owns project detection, build/run commands, and individual-file execution without depending on Telescope.
+- `lua/soul/plugins/projects.lua` owns the Telescope Projects picker and project-specific actions/keymaps.
+- `lua/soul/core/projects.lua` owns C build-script detection and execution. It does not depend on Telescope.
+
+The project runner is intentionally narrow:
+
+- On Windows it checks for `build_all.bat` and then `build.bat`; it can also use the shell scripts when present.
+- On Unix-like systems it checks for `build_all.sh` and then `build.sh`.
+- Build-and-run executes the script, then launches `bin/<project-directory-name>` (with `.exe` on Windows).
+- Direct binary execution lists executable files in `bin/`, prompts for arguments, and skips the build step.
 
 The main plugin groups are:
 
