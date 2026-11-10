@@ -179,11 +179,11 @@ local function open_output(root, title)
 
 		for _, line in ipairs(output_lines) do
 			local filename, row, column, severity, message =
-				line:match("^(.-):(%d+):(%d+):%s*(%w+):%s*(.*)$")
+				line:match("^(.-):(%d+):(%d+):%s*([^:]+):%s*(.*)$")
 
 			if not filename then
 				filename, row, column, severity, message =
-					line:match("^(.-)%((%d+),(%d+)%)%s*:%s*(%w+):%s*(.*)$")
+					line:match("^(.-)%((%d+),(%d+)%)%s*:%s*([^:]+):%s*(.*)$")
 			end
 
 			if filename and row and column then
