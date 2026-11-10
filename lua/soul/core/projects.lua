@@ -167,7 +167,7 @@ local function open_output(root, title)
 			end
 
 			if filename and row and column then
-				local absolute = filename:match("^%a:[/\\\\]") or filename:match("^[/\\\\]")
+				local absolute = (filename:match("^%a:[/\\\\]") or filename:match("^[/\\\\]"))
 					and filename
 					or (root .. "/" .. filename)
 
