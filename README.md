@@ -18,7 +18,8 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Mini sessions for project session save, restore, and automatic persistence
 - Mini.ai text objects, Mini.surround editing, and Mini.notify notifications
 - Treesitter highlighting and folding integration
-- Project-aware runner with modular build-system connectors\n- ToggleTerm with persistent horizontal, vertical, and floating terminals
+- Project manager powered by Telescope Projects, with project build/run actions and individual-file execution
+- ToggleTerm with persistent horizontal, vertical, and floating terminals
 - Alpha dashboard with recent files, recent projects, quick actions, and an animated header
 - Minimal Lualine statusline with no winbar
 - Everforest-oriented highlights and rounded UI
