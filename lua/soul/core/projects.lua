@@ -293,6 +293,34 @@ local function build(root, append, callback)
 	end)
 end
 
+local function clean(root, append, callback)
+	local script = clean_script(root)
+
+	if not script then
+		append({ "", "No clean script found. Expected clean.sh or clean.bat." })
+		callback(false, false)
+		return
+	end
+
+	local command = script_command(script)
+	if not command then
+		append({ "", "No sh or bash executable was found to run " .. script })
+		callback(false, true)
+		return
+	end
+
+	append({ "Clean script: " .. script })
+	run_command(command, root, append, function(code)
+		if code == 0 then
+			append({ "", "Clean succeeded." })
+		else
+			append({ "", "Clean failed. Exit code: " .. code })
+		end
+
+		callback(code == 0, true)
+	end)
+end
+
 function M.stop()
 	if not stop_active_job() then
 		vim.notify("No project process is running.", vim.log.levels.INFO)
