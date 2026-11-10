@@ -13,33 +13,47 @@ function M.config()
     clear = true,
   })
 
-  local function center_winbar()
-    local win = vim.api.nvim_get_current_win()
+  local centered = {}
 
+  local function center_winbar(win)
     if not vim.api.nvim_win_is_valid(win) then
       return
     end
 
-    local winbar = vim.api.nvim_get_option_value("winbar", {
+    local current = vim.api.nvim_get_option_value("winbar", {
       win = win,
     })
 
-    if winbar == "" then
+    if current == "" then
+      centered[win] = nil
       return
     end
 
-    local visible = winbar
+    local state = centered[win]
+    local base = state and current == state.value and state.base or current
+
+    local visible = base
       :gsub("%%#.-#", "")
-      :gsub("%%\\*", "")
+      :gsub("%%%*", "")
       :gsub("%%%%", "%%")
 
     local width = vim.api.nvim_win_get_width(win)
     local content_width = vim.fn.strdisplaywidth(visible)
     local padding = math.max(0, math.floor((width - content_width) / 2))
+    local value = string.rep(" ", padding) .. base
 
-    vim.api.nvim_set_option_value("winbar", string.rep(" ", padding) .. winbar, {
+    centered[win] = {
+      base = base,
+      value = value,
+    }
+
+    vim.api.nvim_set_option_value("winbar", value, {
       win = win,
     })
+  end
+
+  local function center_current_win()
+    center_winbar(vim.api.nvim_get_current_win())
   end
 
   vim.api.nvim_create_autocmd({
@@ -51,12 +65,20 @@ function M.config()
     "BufWritePost",
     "TabClosed",
     "TabEnter",
-    "VimResized",
+    "WinEnter",
     "WinResized",
+    "VimResized",
   }, {
     group = group,
     callback = function()
-      vim.schedule(center_winbar)
+      vim.schedule(center_current_win)
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("WinClosed", {
+    group = group,
+    callback = function(args)
+      centered[tonumber(args.match)] = nil
     end,
   })
 end
