@@ -441,13 +441,27 @@ function M.run(path, args, selected_script)
 		end
 
 		local executable = find_project_executable(root)
+		local available = find_bin_executables(root)
+
+		if not executable and #available == 1 then
+			executable = available[1]
+		end
+
 		if not executable then
 			append({
 				"",
-				"Build completed, but the expected executable was not found:",
-				"bin/" .. vim.fn.fnamemodify(root, ":t")
+				"Could not determine which executable to run.",
+				"Expected: bin/" .. vim.fn.fnamemodify(root, ":t")
 					.. (paths.is_windows and ".exe" or ""),
 			})
+
+			if #available > 1 then
+				append({ "Multiple executables found. Use <leader>pe to select one:" })
+				for _, file in ipairs(available) do
+					append({ "  " .. vim.fn.fnamemodify(file, ":t") })
+				end
+			end
+
 			return
 		end
 
@@ -532,8 +546,18 @@ end
 
 function M.project_executable(path)
 	local root = project_root(path)
-	return find_project_executable(root)
-		or (root .. "/bin/" .. vim.fn.fnamemodify(root, ":t") .. (paths.is_windows and ".exe" or ""))
+	local executable = find_project_executable(root)
+
+	if executable then
+		return executable
+	end
+
+	local available = find_bin_executables(root)
+	if #available == 1 then
+		return available[1]
+	end
+
+	return root .. "/bin/" .. vim.fn.fnamemodify(root, ":t") .. (paths.is_windows and ".exe" or "")
 end
 
 function M.parse_args(input)
