@@ -25,6 +25,11 @@ local highlights = {
 	FloatBorder = { fg = P.border, bg = "NONE" },
 	FloatTitle = { fg = P.green, bg = "NONE", bold = true },
 	FloatFooter = { fg = P.muted, bg = "NONE" },
+
+	-- tiny-cmdline.nvim
+	TinyCmdlineNormal = { fg = P.foreground, bg = P.background_dim },
+	TinyCmdlineBorder = { fg = P.border, bg = P.background_dim },
+	TinyCmdlineTitle = { fg = P.green, bg = P.background_dim, bold = true },
 	SoulFloatBorder = { fg = P.border, bg = "NONE" },
 	SoulFloatTitle = { fg = P.green, bg = "NONE", bold = true },
 	SoulFloatNormal = { fg = P.foreground, bg = "NONE" },
