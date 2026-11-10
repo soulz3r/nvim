@@ -143,10 +143,14 @@ Telescope Projects is the project hub. Use `<leader>fp` to open the picker:
 | Key | Action |
 |---|---|
 | Enter | Change Neovim's working directory to the selected project |
-| `Ctrl-r` | Run the selected project |
-| `Ctrl-b` | Build the selected project |
-| `Ctrl-f` | Find files in the selected project |
-| `Ctrl-g` | Live grep in the selected project |
+| `Ctrl-g` | Run the selected project |
+| `Ctrl-y` | Build the selected project |
+| `Ctrl-f` | Find files in the selected project (native action) |
+| `Ctrl-s` | Search inside the selected project (native action) |
+| `Ctrl-b` | Browse files in the selected project (native action) |
+| `Ctrl-r` | Find recently opened files in the selected project (native action) |
+| `gR` | Run the selected project in normal mode |
+| `gB` | Build the selected project in normal mode |
 
 The same project actions are available outside the picker:
 
