@@ -275,6 +275,7 @@ local function parse_args(input)
 	local current = {}
 	local quote = nil
 	local escaped = false
+	local token_started = false
 
 	for i = 1, #input do
 		local char = input:sub(i, i)
@@ -283,22 +284,34 @@ local function parse_args(input)
 			current[#current + 1] = char
 			escaped = false
 		elseif char == "\\" and quote ~= "'" then
-			escaped = true
+			local next_char = input:sub(i + 1, i + 1)
+
+			if next_char == '"' or next_char == "'" or next_char == "\\" or next_char:match("%s") then
+				escaped = true
+				token_started = true
+			else
+				current[#current + 1] = char
+				token_started = true
+			end
 		elseif quote then
 			if char == quote then
 				quote = nil
 			else
 				current[#current + 1] = char
 			end
+			token_started = true
 		elseif char == "'" or char == '"' then
 			quote = char
+			token_started = true
 		elseif char:match("%s") then
-			if #current > 0 then
+			if token_started then
 				args[#args + 1] = table.concat(current)
 				current = {}
+				token_started = false
 			end
 		else
 			current[#current + 1] = char
+			token_started = true
 		end
 	end
 
@@ -310,7 +323,7 @@ local function parse_args(input)
 		return nil, "Unclosed quote in arguments."
 	end
 
-	if #current > 0 then
+	if token_started then
 		args[#args + 1] = table.concat(current)
 	end
 
