@@ -19,6 +19,10 @@ function M.config()
 
         -- Separators and current-line emphasis
         WinSeparator = { fg = "#859289" },
+        WinBar = { fg = "#859289", bg = "NONE" },
+        WinBarNC = { fg = "#7A8478", bg = "NONE" },
+        NavicText = { fg = "#D3C6AA", bg = "NONE" },
+        NavicSeparator = { fg = "#859289", bg = "NONE" },
         CursorLine = { bg = "#343F44" },
         Visual = { bg = "#3D484D" },
 
