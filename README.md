@@ -18,7 +18,7 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Mini sessions for project session save, restore, and automatic persistence
 - Mini.ai text objects, Mini.surround editing, and Mini.notify notifications
 - Treesitter highlighting and folding integration
-- ToggleTerm with persistent horizontal, vertical, and floating terminals
+- Project-aware runner with modular build-system connectors\n- ToggleTerm with persistent horizontal, vertical, and floating terminals
 - Alpha dashboard with recent files, recent projects, quick actions, and an animated header
 - Minimal Lualine statusline with no winbar
 - Everforest-oriented highlights and rounded UI
@@ -45,7 +45,7 @@ Install the tools you intend to use and make sure they are available on `PATH`:
 - `stylua` for Lua formatting and format-on-save
 - `lldb-dap` for C/C++ debugging
 
-On Windows, PowerShell 7 (`pwsh`) is used as the configured shell and by the S3D build task. On Linux, the S3D build task uses Bash.
+On Windows, PowerShell 7 (`pwsh`) is used as the configured shell and to run custom `build.bat` project scripts. Linux uses Bash for custom `build.sh` scripts.
 
 The LSP servers and debugger are intentionally installed outside Neovim. **Mason is not used.**
 
