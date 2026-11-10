@@ -142,40 +142,26 @@ See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry det
 
 ## Projects
 
-YAP is the project hub. Use `<leader>pp` to open YAP project picker:
+YAP owns the project workflow and its NuiComponents interface. Use `<leader>pp` to open the project picker. Choose a project to open its action menu.
+
+The picker discovers projects from the YAP registry and immediate subdirectories of `PROJECTS_DIR`. It does not use Telescope. Telescope remains installed for the other pickers in this Neovim configuration.
 
 | Key | Action |
 |---|---|
-| Enter | Change Neovim's working directory to the selected project |
-| `Ctrl-g` / `gR` | Build and run the selected project |
-| `Ctrl-y` / `gB` | Build the selected project only |
-| `Ctrl-e` / `gE` | Select and run a binary from the selected project's `bin/` directory |
-| `gC` | Clean the selected project |
-| `gX` | Clean and rebuild the selected project |
-| `gS` | Choose the build script |
-| `gA` / `Ctrl-a` | Open project actions |
-| `Ctrl-f` | Find files in the selected project (native action) |
-| `Ctrl-s` | Search inside the selected project (native action) |
-| `Ctrl-b` | Browse files in the selected project (native action) |
-| `Ctrl-r` | Find recently opened files in the selected project (native action) |
-
-The same actions are available outside the picker:
-
-- `<leader>pr` builds and runs the current project.
-- `<leader>pb` builds the current project without running it.
-- `<leader>pc` cleans the current project.
-- `<leader>pB` cleans and rebuilds the current project.
-- `<leader>pS` selects a build script.
-- `<leader>pe` selects an executable from `bin/`, prompts for arguments, and runs it without building.
-- `<leader>ps` stops the active project process.
-- `<leader>pR` reruns the most recently used executable and its saved arguments.
-- `<leader>pq` extracts compiler diagnostics from the runner output into the quickfix list.
-
-The runner recognizes `build_all.bat` / `build.bat` on Windows and `build_all.sh` / `build.sh` on Unix-like systems. It runs scripts from the project root and expects the default executable at `bin/<project-name>` (with `.exe` on Windows). When that binary is not uniquely identifiable, use the executable picker.
+| `<leader>pp` | Open YAP project picker and action menu |
+| `<leader>pr` | Build and run the current project, then enter arguments |
+| `<leader>pb` | Build the current project |
+| `<leader>pc` | Clean the current project |
+| `<leader>pB` | Clean and rebuild the current project |
+| `<leader>pS` | Choose a build script |
+| `<leader>pe` | Select an executable from `bin/` and run it with arguments |
+| `<leader>ps` | Stop the active project process |
+| `<leader>pR` | Rerun the most recently used executable and saved arguments |
+| `<leader>pq` | Extract compiler diagnostics into the quickfix list |
 
 The runner opens a component-based floating window with a live operation summary, per-step status and duration, and a separate ANSI-colored process-output pane. The output is read-only; press `q` or `Esc` to close it, `Ctrl-c` to stop a running process, and `<leader>pq` to open parsed diagnostics.
 
-YAP owns project execution, C/C++ helpers, project metadata, and the YAP project picker integration. Its component UI uses `nui-components.nvim` and `nui.nvim`; both are declared as direct dependencies in `lua/soul/plugins/yap.lua`.
+YAP's direct UI dependencies are `nui.nvim` and `nui-components.nvim`, declared in `lua/soul/plugins/yap.lua`.
 
 ## Local DAP state
 
