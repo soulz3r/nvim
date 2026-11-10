@@ -156,6 +156,7 @@ The same project actions are available outside the picker:
 Project detection supports custom `build.bat` / `build.sh` scripts, CMake, Make, Cargo, Go modules, and npm scripts. Build-based projects search common output directories for executables. If multiple executables are found, you can select which one to launch.
 
 `lua/soul/core/projects.lua` contains the project detection and execution logic. It does not depend on Telescope, so project operations can also be called directly from Lua.
+
 ## Local DAP state
 
 The DAP registry is runtime state and is not committed to Git. It is stored under:
