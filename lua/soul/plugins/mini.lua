@@ -83,22 +83,42 @@ function M.config()
 		local height = math.floor(vim.o.lines * 0.60)
 		local row = math.floor((vim.o.lines - height) / 2 - 1)
 		local col = math.floor((vim.o.columns - width) / 2)
+		local notifications = MiniNotify.default_sort(MiniNotify.get_all())
+		local lines = {}
+
+		for _, notif in ipairs(notifications) do
+			local message = tostring(notif.msg or ""):gsub("[\\r\\n]+", " ")
+			local timestamp = notif.ts_update or notif.ts_add
+			local time = timestamp and vim.fn.strftime("%H:%M:%S", math.floor(timestamp)) or ""
+
+			table.insert(lines, time ~= "" and (message .. " │ " .. time) or message)
+		end
+
+		if #lines == 0 then
+			lines[1] = "No notification history"
+		end
 
 		local buf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+		vim.bo[buf].buftype = "nofile"
+		vim.bo[buf].bufhidden = "wipe"
+		vim.bo[buf].swapfile = false
+		vim.bo[buf].modifiable = false
+		vim.bo[buf].filetype = "mininotify-history"
+
 		local win = vim.api.nvim_open_win(buf, true, {
 			relative = "editor",
 			style = "minimal",
 			border = floats.border,
+			title = " History ",
+			title_pos = "center",
 			width = width,
 			height = height,
 			row = row,
 			col = col,
 		})
-
-		vim.api.nvim_win_call(win, MiniNotify.show_history)
-
-		local history_buf = vim.api.nvim_win_get_buf(win)
-		vim.b[history_buf].mininotify_history = true
+		vim.wo[win].wrap = true
+		vim.wo[win].cursorline = true
 	end
 
 	vim.keymap.set("n", "<leader>nh", show_notification_history, {
