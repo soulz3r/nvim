@@ -416,20 +416,6 @@ function M.config()
     OPTS("Projects")
   )
 
-  local highlights = {
-    "TelescopeNormal",
-    "TelescopeBorder",
-    "TelescopePromptNormal",
-    "TelescopePromptBorder",
-    "TelescopePreviewNormal",
-    "TelescopePreviewBorder",
-    "TelescopeResultsNormal",
-    "TelescopeResultsBorder",
-  }
-
-  for _, hl in ipairs(highlights) do
-    vim.api.nvim_set_hl(0, hl, { bg = "none" })
-  end
 end
 
 return M
