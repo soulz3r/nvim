@@ -3,7 +3,7 @@ require("soul.core.paths")
 require("soul.core.options")
 require("soul.core.keymaps")
 require("soul.core.autocmds")
-require("soul.ui").setup()
+require("soul.ui")
 require("soul.c").setup()
 require("soul.core.neovide")
 
