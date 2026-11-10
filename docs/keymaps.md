@@ -133,4 +133,5 @@ Mini.ai provides additional built-in text objects for arguments, function calls,
 | `Alt-2` | Vertical terminal |
 | `Alt-3` | Floating terminal |
 | `Ctrl-;` | Leave terminal mode |
-| `<leader>rr` | Build and run the selected project |\n| `<leader>rf` | Run the current file independently |
+| `<leader>rr` | Build and run the selected project |
+| `<leader>rf` | Run the current file independently |
