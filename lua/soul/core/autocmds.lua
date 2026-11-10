@@ -4,6 +4,28 @@ vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
   end,
 })
 
+vim.api.nvim_create_autocmd("BufWinEnter", {
+  callback = function(args)
+    local buf = args.buf
+
+    if vim.bo[buf].buftype ~= "nofile"
+      or not vim.bo[buf].readonly
+      or vim.bo[buf].modifiable
+    then
+      return
+    end
+
+    for _, win in ipairs(vim.fn.win_findbuf(buf)) do
+      local config = vim.api.nvim_win_get_config(win)
+
+      if config.relative ~= "" then
+        vim.bo[buf].filetype = "project-output"
+        return
+      end
+    end
+  end,
+})
+
 vim.api.nvim_create_autocmd("FileType", {
   pattern = {
     "netrw",
