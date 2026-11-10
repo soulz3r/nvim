@@ -411,6 +411,9 @@ local function mark_telescope_project_recent(root)
 end
 
 local function launch(file, root, append, args)
+	file = vim.fs.normalize(vim.fn.fnamemodify(file, ":p"))
+	root = vim.fs.normalize(vim.fn.fnamemodify(root, ":p"))
+
 	local state = {
 		file = file,
 		root = root,
