@@ -18,7 +18,7 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Mini sessions for project session save, restore, and automatic persistence
 - Mini.ai text objects, Mini.surround editing, and Mini.notify notifications
 - Treesitter highlighting and folding integration
-- Project manager powered by Telescope Projects, with project build/run actions and individual-file execution
+- Telescope Projects integration with a C build-script runner and direct binary selection
 - ToggleTerm with persistent horizontal, vertical, and floating terminals
 - Alpha dashboard with recent files, recent projects, quick actions, and an animated header
 - Minimal Lualine statusline with no winbar
@@ -46,7 +46,7 @@ Install the tools you intend to use and make sure they are available on `PATH`:
 - `stylua` for Lua formatting and format-on-save
 - `lldb-dap` for C/C++ debugging
 
-On Windows, PowerShell 7 (`pwsh`) is used as the configured shell and to run custom `build.bat` project scripts. Linux uses Bash for custom `build.sh` scripts.
+C project build scripts are launched with `cmd.exe` on Windows and `bash` (falling back to `sh`) on Unix-like systems.
 
 The LSP servers and debugger are intentionally installed outside Neovim. **Mason is not used.**
 
@@ -134,7 +134,7 @@ See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry det
 |---|---|---|
 | `PROJECTS_DIR` | Base directory for Telescope Projects and project discovery | Windows: `D:/config/projects`; Linux: `~/projects` |
 | `LLDB_DAP` | Full path or command name for `lldb-dap` | Windows LLVM path; Linux `lldb-dap` |
-| `PWSH` | PowerShell executable on Windows | `pwsh` or `pwsh.exe` |
+| `PWSH` | PowerShell executable used by the configured shell | `pwsh` or `pwsh.exe` |
 
 ## Projects
 
@@ -143,24 +143,26 @@ Telescope Projects is the project hub. Use `<leader>fp` to open the picker:
 | Key | Action |
 |---|---|
 | Enter | Change Neovim's working directory to the selected project |
-| `Ctrl-g` | Run the selected project |
-| `Ctrl-y` | Build the selected project |
+| `Ctrl-g` | Build and run the selected C project |
+| `Ctrl-y` | Build the selected C project only |
+| `Ctrl-e` | Select and run a binary from the selected project's `bin/` directory |
 | `Ctrl-f` | Find files in the selected project (native action) |
 | `Ctrl-s` | Search inside the selected project (native action) |
 | `Ctrl-b` | Browse files in the selected project (native action) |
 | `Ctrl-r` | Find recently opened files in the selected project (native action) |
-| `gR` | Run the selected project in normal mode |
-| `gB` | Build the selected project in normal mode |
+| `gR` | Build and run the selected C project in normal mode |
+| `gB` | Build the selected C project in normal mode |
+| `gE` | Select and run a binary from the selected project in normal mode |
 
 The same project actions are available outside the picker:
 
-- `<leader>rr` runs the current project.
-- `<leader>rb` builds the current project.
-- `<leader>rf` runs the current file independently. C files are compiled with C23 and debug symbols, then executed; Lua, Python, and JavaScript files use their respective runtimes.
+- `<leader>rr` runs the current C project: it finds a build script, builds, then runs `bin/<project-name>` (with `.exe` on Windows).
+- `<leader>rb` builds the current C project without running it.
+- `<leader>re` selects an executable directly from the current project's `bin/` directory, prompts for arguments, and runs it without building.
 
-Project detection supports custom `build.bat` / `build.sh` scripts, CMake, Make, Cargo, Go modules, and npm scripts. Build-based projects search common output directories for executables. If multiple executables are found, you can select which one to launch.
+The runner recognizes `build_all.bat` and `build.bat` on Windows, and `build_all.sh` and `build.sh` on Unix-like systems. It does not invoke CMake, Make, Cargo, Go, npm, or individual source-file runners. Custom build scripts are responsible for placing the default executable in `bin/` with the same name as the project directory.
 
-`lua/soul/core/projects.lua` contains the project detection and execution logic. It does not depend on Telescope, so project operations can also be called directly from Lua.
+`lua/soul/core/projects.lua` contains the build and execution logic without depending on Telescope. `lua/soul/plugins/projects.lua` connects it to Telescope Projects and the project keymaps.
 
 ## Local DAP state
 
