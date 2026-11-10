@@ -330,7 +330,7 @@ function M.rebuild(path)
 	end)
 end
 
-function M.run(path)
+function M.run(path, args)
 	local root = project_root(path)
 	local append = open_output(root, "Run Project")
 
@@ -351,7 +351,7 @@ function M.run(path)
 		end
 
 		append({ "", "Launching: " .. vim.fn.fnamemodify(executable, ":.") })
-		launch(executable, root, append)
+		launch(executable, root, append, args)
 	end)
 end
 
@@ -422,6 +422,12 @@ end
 function M.list_executables(path)
 	local root = project_root(path)
 	return root, find_bin_executables(root)
+end
+
+function M.project_executable(path)
+	local root = project_root(path)
+	return find_project_executable(root)
+		or (root .. "/bin/" .. vim.fn.fnamemodify(root, ":t") .. (paths.is_windows and ".exe" or ""))
 end
 
 function M.parse_args(input)
