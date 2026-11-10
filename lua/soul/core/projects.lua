@@ -55,6 +55,18 @@ local function build_script(root)
 	end
 end
 
+local function clean_script(root)
+	local scripts = paths.is_windows
+		and { "clean_all.bat", "clean.bat", "clean_all.sh", "clean.sh" }
+		or { "clean_all.sh", "clean.sh" }
+
+	for _, name in ipairs(scripts) do
+		if vim.fn.filereadable(root .. "/" .. name) == 1 then
+			return name
+		end
+	end
+end
+
 local function script_command(script)
 	if script:match("%.bat$") then
 		local cmd = vim.fn.exepath("cmd.exe")
@@ -292,6 +304,30 @@ function M.build(path)
 	local append = open_output(root, "Build Project")
 
 	build(root, append, function() end)
+end
+
+function M.clean(path)
+	local root = project_root(path)
+	local append = open_output(root, "Clean Project")
+
+	clean(root, append, function(ok, found)
+		if not found then
+			vim.notify("No clean script found for this project.", vim.log.levels.WARN)
+		end
+	end)
+end
+
+function M.rebuild(path)
+	local root = project_root(path)
+	local append = open_output(root, "Rebuild Project")
+
+	clean(root, append, function(ok, found)
+		if found and not ok then
+			return
+		end
+
+		build(root, append, function() end)
+	end)
 end
 
 function M.run(path)
