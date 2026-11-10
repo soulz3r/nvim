@@ -338,7 +338,7 @@ function M.config()
 
 				local projects_ok, saved_projects = pcall(utils.get_projects, "recent")
 				if not projects_ok then
-					vim.notify("Could not read saved Telescope projects.", vim.log.levels.WARN)
+					vim.notify("Could not read saved project entries.", vim.log.levels.WARN)
 					return
 				end
 
