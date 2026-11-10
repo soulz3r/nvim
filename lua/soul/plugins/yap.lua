@@ -3,7 +3,7 @@ local M = {
 	lazy = true,
 }
 
-function M.config()
+M.config = function()
 	local paths = require("soul.core.paths")
 
 	require("yap").setup({
