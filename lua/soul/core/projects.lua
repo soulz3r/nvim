@@ -283,6 +283,10 @@ local function run_command(command, root, append, callback)
 		on_stdout = function(_, data)
 			if data then
 				vim.schedule(function()
+					while #data > 0 and data[#data] == "" do
+						table.remove(data)
+					end
+
 					if #data > 0 then
 						append(data)
 					end
@@ -292,6 +296,10 @@ local function run_command(command, root, append, callback)
 		on_stderr = function(_, data)
 			if data then
 				vim.schedule(function()
+					while #data > 0 and data[#data] == "" do
+						table.remove(data)
+					end
+
 					if #data > 0 then
 						append(data)
 					end
@@ -409,6 +417,8 @@ local function launch(file, root, append, args)
 		args = vim.deepcopy(args or {}),
 	}
 
+	append({ "", "Executable: " .. vim.fn.fnamemodify(file, ":t") })
+
 	local command = { file }
 	vim.list_extend(command, args or {})
 
@@ -512,7 +522,7 @@ end
 
 function M.run(path, args, selected_script)
 	local root = project_root(path)
-	local append = open_output(root, "Run Project")
+	local append = open_output(root, "Run Executable")
 
 	build(root, append, function(ok)
 		if not ok then
@@ -544,7 +554,6 @@ function M.run(path, args, selected_script)
 			return
 		end
 
-		append({ "", "Launching: " .. vim.fn.fnamemodify(executable, ":.") })
 		launch(executable, root, append, args)
 	end, selected_script)
 end
@@ -645,7 +654,6 @@ end
 
 function M.run_binary(file, root, args)
 	local append = open_output(root, "Run Executable")
-	append({ "Executable: " .. vim.fn.fnamemodify(file, ":t") })
 	launch(file, root, append, args)
 end
 
