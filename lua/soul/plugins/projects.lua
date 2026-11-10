@@ -17,11 +17,21 @@ function M.config()
 	local themes = require("telescope.themes")
 	local projects = require("soul.core.projects")
 
+	local function normalize_path(path)
+		local normalized = vim.fs.normalize(vim.fn.fnamemodify(path, ":p"))
+
+		if vim.fn.has("win32") == 1 then
+			normalized = normalized:lower()
+		end
+
+		return normalized
+	end
+
 	local function argument_history(root, executable)
 		local directory = vim.fn.stdpath("data") .. "/soul/argument-history"
 		vim.fn.mkdir(directory, "p")
 
-		local key = vim.fn.sha256(root .. "\\0" .. executable)
+		local key = vim.fn.sha256(normalize_path(root) .. "\\0" .. normalize_path(executable))
 		local path = directory .. "/" .. key .. ".txt"
 		local history = vim.fn.filereadable(path) == 1 and vim.fn.readfile(path) or {}
 
