@@ -17,6 +17,56 @@ local root_markers = {
 local active_job
 local last_run
 
+local function last_run_path()
+	local directory = vim.fn.stdpath("data") .. "/soul/project-runs"
+	vim.fn.mkdir(directory, "p")
+
+	local platform = paths.is_windows and "windows" or "unix"
+	return directory .. "/" .. platform .. ".json"
+end
+
+local function load_last_run()
+	local path = last_run_path()
+
+	if vim.fn.filereadable(path) ~= 1 then
+		return nil
+	end
+
+	local lines = vim.fn.readfile(path)
+	if #lines == 0 then
+		return nil
+	end
+
+	local ok, saved = pcall(vim.json.decode, table.concat(lines, "\n"))
+	if not ok or type(saved) ~= "table"
+		or type(saved.file) ~= "string"
+		or type(saved.root) ~= "string"
+		or type(saved.args) ~= "table"
+	then
+		return nil
+	end
+
+	return saved
+end
+
+local function save_last_run(state)
+	local ok, encoded = pcall(vim.json.encode, state)
+	if not ok then
+		return false
+	end
+
+	local path = last_run_path()
+	local temporary = path .. ".tmp"
+
+	if vim.fn.writefile({ encoded }, temporary) ~= 0 then
+		return false
+	end
+
+	return vim.fn.rename(temporary, path) == 0
+end
+
+last_run = load_last_run()
+
 local function project_root(path)
 	path = vim.fn.fnamemodify(path or vim.fn.getcwd(), ":p")
 
@@ -331,7 +381,7 @@ local function find_bin_executables(root)
 end
 
 local function launch(file, root, append, args)
-	last_run = {
+	local state = {
 		file = file,
 		root = root,
 		args = vim.deepcopy(args or {}),
@@ -340,13 +390,18 @@ local function launch(file, root, append, args)
 	local command = { file }
 	vim.list_extend(command, args or {})
 
-	run_command(command, root, append, function(code)
+	local started = run_command(command, root, append, function(code)
 		append({
 			"",
 			code == 0 and "Process finished successfully."
 				or ("Process exited with code " .. code),
 		})
 	end)
+
+	if started then
+		last_run = state
+		save_last_run(state)
+	end
 end
 
 local function build(root, append, callback, selected_script)
@@ -572,11 +627,26 @@ end
 
 function M.rerun()
 	if not last_run then
-		vim.notify("No previous project executable to rerun.", vim.log.levels.INFO)
 		return
 	end
 
 	local previous = vim.deepcopy(last_run)
+
+	if vim.fn.isdirectory(previous.root) ~= 1 then
+		vim.notify("The last-run project directory no longer exists.", vim.log.levels.WARN)
+		return
+	end
+
+	if vim.fn.filereadable(previous.file) ~= 1
+		or vim.fn.executable(previous.file) ~= 1
+	then
+		vim.notify(
+			"The last-run executable is missing or is not executable. Build the project again.",
+			vim.log.levels.WARN
+		)
+		return
+	end
+
 	M.run_binary(previous.file, previous.root, previous.args)
 end
 
