@@ -11,7 +11,6 @@ function M.config()
   local telescope = require("telescope")
   local actions = require("telescope.actions")
   local action_state = require("telescope.actions.state")
-  local builtin = require("telescope.builtin")
   local projects = require("soul.core.projects")
 
   local function with_project(prompt_bufnr, callback)
@@ -38,18 +37,6 @@ function M.config()
     with_project(prompt_bufnr, projects.build)
   end
 
-  local function find_project_files(prompt_bufnr)
-    with_project(prompt_bufnr, function(root)
-      builtin.find_files({ cwd = root })
-    end)
-  end
-
-  local function grep_project(prompt_bufnr)
-    with_project(prompt_bufnr, function(root)
-      builtin.live_grep({ cwd = root })
-    end)
-  end
-
   telescope.setup({
     extensions = {
       project = {
@@ -67,16 +54,12 @@ function M.config()
         end,
         mappings = {
           i = {
-            ["<C-r>"] = run_project,
-            ["<C-b>"] = build_project,
-            ["<C-f>"] = find_project_files,
-            ["<C-g>"] = grep_project,
+            ["<C-g>"] = run_project,
+            ["<C-y>"] = build_project,
           },
           n = {
-            ["R"] = run_project,
-            ["B"] = build_project,
-            ["F"] = find_project_files,
-            ["G"] = grep_project,
+            ["gR"] = run_project,
+            ["gB"] = build_project,
           },
         },
       },
