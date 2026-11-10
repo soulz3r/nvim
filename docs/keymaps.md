@@ -35,7 +35,7 @@ The leader key is Space. This is a compact reference for the most-used mappings;
 | `<leader>ft` | Live grep |
 | `<leader>fb` | Buffers |
 | `<leader>fo` | Recent files |
-| `<leader>fp` | Search files from the detected project root |
+| `<leader>fp` | Select a project with Telescope Projects |
 | `<leader>fC` | Colorscheme picker |
 | `<leader>fr` | Resume last Telescope picker |
 | `<leader>fgb` | Git branches |
@@ -133,4 +133,4 @@ Mini.ai provides additional built-in text objects for arguments, function calls,
 | `Alt-2` | Vertical terminal |
 | `Alt-3` | Floating terminal |
 | `Ctrl-;` | Leave terminal mode |
-| `<leader>nn` | Build and run the S3D engine/testbed task |
+| `<leader>rr` | Build and run the selected project |\n| `<leader>rf` | Run the current file independently |
