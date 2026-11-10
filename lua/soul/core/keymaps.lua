@@ -103,8 +103,6 @@ local function show_messages()
 		relative = "editor",
 		style = "minimal",
 		border = "rounded",
-		title = " Messages ",
-		title_pos = "center",
 		width = width,
 		height = height,
 		row = row,
