@@ -4,6 +4,8 @@ local M = {
 }
 
 function M.config()
+	local palette = require("soul.ui.colors").palette
+
 	require("lualine").setup({
 		options = {
 			icons_enabled = true,
@@ -81,7 +83,7 @@ function M.config()
 					cond = function()
 						return require("soul.core.project_registry").status() ~= ""
 					end,
-					color = { fg = "#A7C080" },
+					color = { fg = palette.green },
 				},
 				{
 					function()
@@ -91,7 +93,7 @@ function M.config()
 					cond = function()
 						return #vim.lsp.get_clients({ bufnr = 0 }) > 0
 					end,
-					color = { fg = "#7FBBB3" },
+					color = { fg = palette.teal },
 				},
 			},
 			lualine_z = {

@@ -64,7 +64,7 @@ vim.opt.fillchars:append({
 
 vim.opt.shortmess:append("c")
 
-vim.opt.winborder = "rounded"
+vim.opt.winborder = require("soul.ui.floats").border
 
 vim.cmd("set whichwrap+=<,>,[,],h,l")
 vim.cmd([[set iskeyword+=-]])

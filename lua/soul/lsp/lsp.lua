@@ -199,7 +199,7 @@ return {
 				severity_sort = true,
 
 				float = {
-					border = "rounded",
+					border = require("soul.ui.floats").border,
 					source = true,
 				},
 			})

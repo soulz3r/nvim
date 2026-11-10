@@ -8,41 +8,6 @@ function M.config()
 	local icons = require("soul.icons")
 	local utils = require("alpha.utils")
 
-	vim.api.nvim_set_hl(0, "AlphaGreen", {
-		fg = "#A7C080",
-	})
-
-	vim.api.nvim_set_hl(0, "AlphaTeal", {
-		fg = "#7FBBB3",
-	})
-
-	vim.api.nvim_set_hl(0, "AlphaYellow", {
-		fg = "#DBBC7F",
-	})
-
-	vim.api.nvim_set_hl(0, "AlphaRed", {
-		fg = "#E67E80",
-	})
-
-	vim.api.nvim_set_hl(0, "AlphaMuted", {
-		fg = "#859289",
-	})
-
-	vim.api.nvim_set_hl(0, "AlphaBlue", {
-		fg = "#7FBBB3",
-	})
-
-	vim.api.nvim_set_hl(0, "AlphaAqua", {
-		fg = "#83C092",
-	})
-
-	vim.api.nvim_set_hl(0, "AlphaPurple", {
-		fg = "#D699B6",
-	})
-
-	vim.api.nvim_set_hl(0, "AlphaOrange", {
-		fg = "#E69875",
-	})
 
 	local function button(sc, txt, keybind, keybind_opts)
 		local b = dashboard.button(sc, txt, keybind, keybind_opts)
