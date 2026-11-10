@@ -21,7 +21,7 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Mini sessions for project session save, restore, and automatic persistence
 - Mini.ai text objects, Mini.surround editing, and Mini.notify notifications
 - Treesitter highlighting and folding integration
-- Telescope Projects integration with a C build-script runner and direct binary selection
+- YAP project workflows with a component-based runner, live build/run summary, and ANSI-colored process output
 - ToggleTerm with persistent horizontal, vertical, and floating terminals
 - Alpha dashboard with recent files, recent projects, quick actions, and an animated header
 - Minimal context-aware Lualine statusline with project and LSP indicators
@@ -142,31 +142,40 @@ See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry det
 
 ## Projects
 
-Telescope Projects is the project hub. Use `<leader>fp` to open the picker:
+YAP is the project hub. Use `<leader>pp` to open Telescope Projects:
 
 | Key | Action |
 |---|---|
 | Enter | Change Neovim's working directory to the selected project |
-| `Ctrl-g` | Build and run the selected C project |
-| `Ctrl-y` | Build the selected C project only |
-| `Ctrl-e` | Select and run a binary from the selected project's `bin/` directory |
+| `Ctrl-g` / `gR` | Build and run the selected project |
+| `Ctrl-y` / `gB` | Build the selected project only |
+| `Ctrl-e` / `gE` | Select and run a binary from the selected project's `bin/` directory |
+| `gC` | Clean the selected project |
+| `gX` | Clean and rebuild the selected project |
+| `gS` | Choose the build script |
+| `gA` / `Ctrl-a` | Open project actions |
 | `Ctrl-f` | Find files in the selected project (native action) |
 | `Ctrl-s` | Search inside the selected project (native action) |
 | `Ctrl-b` | Browse files in the selected project (native action) |
 | `Ctrl-r` | Find recently opened files in the selected project (native action) |
-| `gR` | Build and run the selected C project in normal mode |
-| `gB` | Build the selected C project in normal mode |
-| `gE` | Select and run a binary from the selected project in normal mode |
 
-The same project actions are available outside the picker:
+The same actions are available outside the picker:
 
-- `<leader>rr` runs the current C project: it finds a build script, builds, then runs `bin/<project-name>` (with `.exe` on Windows).
-- `<leader>rb` builds the current C project without running it.
-- `<leader>re` selects an executable directly from the current project's `bin/` directory, prompts for arguments, and runs it without building.
+- `<leader>pr` builds and runs the current project.
+- `<leader>pb` builds the current project without running it.
+- `<leader>pc` cleans the current project.
+- `<leader>pB` cleans and rebuilds the current project.
+- `<leader>pS` selects a build script.
+- `<leader>pe` selects an executable from `bin/`, prompts for arguments, and runs it without building.
+- `<leader>ps` stops the active project process.
+- `<leader>pR` reruns the most recently used executable and its saved arguments.
+- `<leader>pq` extracts compiler diagnostics from the runner output into the quickfix list.
 
-The runner recognizes `build_all.bat` and `build.bat` on Windows, and `build_all.sh` and `build.sh` on Unix-like systems. It does not invoke CMake, Make, Cargo, Go, npm, or individual source-file runners. Custom build scripts are responsible for placing the default executable in `bin/` with the same name as the project directory.
+The runner recognizes `build_all.bat` / `build.bat` on Windows and `build_all.sh` / `build.sh` on Unix-like systems. It runs scripts from the project root and expects the default executable at `bin/<project-name>` (with `.exe` on Windows). When that binary is not uniquely identifiable, use the executable picker.
 
-`lua/soul/core/projects.lua` contains the build and execution logic without depending on Telescope. `lua/soul/plugins/projects.lua` connects it to Telescope Projects and the project keymaps.
+The runner opens a component-based floating window with a live operation summary, per-step status and duration, and a separate ANSI-colored process-output pane. The output is read-only; press `q` or `Esc` to close it, `Ctrl-c` to stop a running process, and `<leader>pq` to open parsed diagnostics.
+
+YAP owns project execution, C/C++ helpers, project metadata, and the Telescope Projects integration. Its component UI uses `nui-components.nvim` and `nui.nvim`; both are declared as direct dependencies in `lua/soul/plugins/yap.lua`.
 
 ## Local DAP state
 
