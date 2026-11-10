@@ -60,7 +60,27 @@ function M.config()
 		desc = "Clear notifications",
 	})
 
-	vim.keymap.set("n", "<leader>nh", MiniNotify.show_history, {
+	local function show_notification_history()
+		local width = math.floor(vim.o.columns * 0.70)
+		local height = math.floor(vim.o.lines * 0.60)
+		local row = math.floor((vim.o.lines - height) / 2 - 1)
+		local col = math.floor((vim.o.columns - width) / 2)
+
+		local buf = vim.api.nvim_create_buf(false, true)
+		local win = vim.api.nvim_open_win(buf, true, {
+			relative = "editor",
+			style = "minimal",
+			border = "rounded",
+			width = width,
+			height = height,
+			row = row,
+			col = col,
+		})
+
+		vim.api.nvim_win_call(win, MiniNotify.show_history)
+	end
+
+	vim.keymap.set("n", "<leader>nh", show_notification_history, {
 		desc = "Show notification history",
 	})
 
