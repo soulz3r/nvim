@@ -206,8 +206,6 @@ function M.config()
 						["<C-g>"] = run_project,
 						["<C-y>"] = build_project,
 						["<C-e>"] = select_project_executable,
-						["<C-c>"] = clean_project,
-						["<C-b>"] = rebuild_project,
 					},
 					n = {
 						["gR"] = run_project,
