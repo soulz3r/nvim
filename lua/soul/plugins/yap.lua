@@ -1,6 +1,10 @@
 local M = {
 	"soulz3r/yap.nvim",
 	lazy = true,
+	dependencies = {
+		"MunifTanjim/nui.nvim",
+		"grapp-dev/nui-components.nvim",
+	},
 }
 
 function M.config()
