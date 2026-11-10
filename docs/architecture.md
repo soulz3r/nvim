@@ -18,7 +18,13 @@ The entry point is `init.lua`. It loads core settings, registers plugin imports 
 
 ## Plugins
 
-Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`. The main groups are:
+Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
+
+- `lua/soul/plugins/telescope.lua` owns general Telescope setup and pickers.
+- `lua/soul/plugins/telescope-projects.lua` owns the project picker and its project-specific actions.
+- `lua/soul/core/projects.lua` owns project detection, build/run commands, and individual-file execution without depending on Telescope.
+
+The main plugin groups are:
 
 - Dashboard and UI: Alpha, minimal Lualine, Everforest, icons
 - Navigation: Telescope, Telescope Projects, Mini Files, Mini Sessions
