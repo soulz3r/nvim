@@ -15,6 +15,10 @@ local function normalize(path)
 end
 
 local function read_data()
+	if vim.fn.filereadable(storage) ~= 1 then
+		return {}
+	end
+
 	local lines = vim.fn.readfile(storage)
 	if #lines == 0 then
 		return {}
