@@ -376,6 +376,32 @@ local function find_bin_executables(root)
 	return found
 end
 
+local function mark_telescope_project_recent(root)
+	local ok, utils = pcall(require, "telescope._extensions.project.utils")
+	if not ok then
+		return
+	end
+
+	pcall(function()
+		local saved_projects = utils.get_project_objects()
+		local file = io.open(utils.telescope_projects_file, "w")
+		if not file then
+			return
+		end
+
+		local normalized_root = vim.fs.normalize(root)
+		for _, project in ipairs(saved_projects) do
+			if vim.fs.normalize(project.path) == normalized_root then
+				project.last_accessed_time = os.time()
+			end
+
+			utils.store_project(file, project)
+		end
+
+		file:close()
+	end)
+end
+
 local function launch(file, root, append, args)
 	local state = {
 		file = file,
@@ -398,10 +424,7 @@ local function launch(file, root, append, args)
 		last_runs[vim.fs.normalize(root)] = state
 		save_run_records()
 
-		local ok, telescope_utils = pcall(require, "telescope._extensions.project.utils")
-		if ok then
-			pcall(telescope_utils.update_last_accessed_project_time, root)
-		end
+		mark_telescope_project_recent(root)
 	end
 end
 
