@@ -96,6 +96,9 @@ function M.config()
 		})
 
 		vim.api.nvim_win_call(win, MiniNotify.show_history)
+
+		local history_buf = vim.api.nvim_win_get_buf(win)
+		vim.b[history_buf].mininotify_history = true
 	end
 
 	vim.keymap.set("n", "<leader>nh", show_notification_history, {
