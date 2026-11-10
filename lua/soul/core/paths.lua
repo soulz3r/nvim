@@ -11,8 +11,6 @@ M.projects = vim.env.PROJECTS_DIR
   or (M.is_windows and "D:/config/projects")
   or vim.fn.expand("~/projects")
 
-M.s3d = M.projects .. "/s3d"
-
 -- PowerShell (Windows only)
 local function find_powershell()
   if vim.env.PWSH and vim.fn.executable(vim.env.PWSH) == 1 then
