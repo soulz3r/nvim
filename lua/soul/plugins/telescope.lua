@@ -32,6 +32,11 @@ function M.config()
 
   telescope.setup({
     defaults = {
+      history = {
+        path = vim.fn.stdpath("data") .. "/telescope_history",
+        limit = 100,
+      },
+
       winblend = 0,
 
       prompt_prefix = icons.ui.Telescope .. " ",
