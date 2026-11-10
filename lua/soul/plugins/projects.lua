@@ -33,7 +33,54 @@ function M.config()
 
 		local key = vim.fn.sha256(normalize_path(root) .. "\\0" .. normalize_path(executable))
 		local path = directory .. "/" .. key .. ".txt"
-		local history = vim.fn.filereadable(path) == 1 and vim.fn.readfile(path) or {}
+		local history = {}
+		local seen = {}
+		local legacy_paths = {}
+
+		local root_variants = {
+			root,
+			root:gsub("/", "\\\\"),
+			root:gsub("\\\\", "/"),
+		}
+		local executable_variants = {
+			executable,
+			executable:gsub("/", "\\\\"),
+			executable:gsub("\\\\", "/"),
+		}
+
+		for _, root_variant in ipairs(root_variants) do
+			for _, executable_variant in ipairs(executable_variants) do
+				local legacy_key = vim.fn.sha256(root_variant .. "\\0" .. executable_variant)
+				local legacy_path = directory .. "/" .. legacy_key .. ".txt"
+
+				if legacy_path ~= path then
+					legacy_paths[legacy_path] = true
+				end
+			end
+		end
+
+		local function merge_history(entries)
+			for _, value in ipairs(entries) do
+				if not seen[value] then
+					seen[value] = true
+					history[#history + 1] = value
+				end
+			end
+		end
+
+		for legacy_path in pairs(legacy_paths) do
+			if vim.fn.filereadable(legacy_path) == 1 then
+				merge_history(vim.fn.readfile(legacy_path))
+			end
+		end
+
+		if vim.fn.filereadable(path) == 1 then
+			merge_history(vim.fn.readfile(path))
+		end
+
+		if #history > 0 then
+			vim.fn.writefile(history, path)
+		end
 
 		return path, history
 	end
