@@ -172,22 +172,43 @@ local function open_output(root, title)
 		title_pos = "center",
 	})
 
+	vim.bo[buf].buftype = "nofile"
 	vim.bo[buf].bufhidden = "wipe"
-	local terminal = vim.api.nvim_open_term(buf, {})
+	vim.bo[buf].swapfile = false
+	vim.bo[buf].modifiable = true
 	vim.wo[win].wrap = true
 	vim.wo[win].cursorline = true
 	vim.wo[win].winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,FloatTitle:FloatTitle"
+
+	local function clean_output_line(line)
+		return line
+			:gsub("\27%[[0-?]*[ -/]*[@-~]", "")
+			:gsub("\r", "")
+	end
 
 	local function append(lines)
 		if not vim.api.nvim_buf_is_valid(buf) then
 			return
 		end
 
+		local clean_lines = {}
 		for _, line in ipairs(lines) do
+			line = clean_output_line(line)
+			clean_lines[#clean_lines + 1] = line
 			output_lines[#output_lines + 1] = line
 		end
 
-		vim.api.nvim_chan_send(terminal, table.concat(lines, "\r\n") .. "\r\n")
+		vim.bo[buf].modifiable = true
+
+		if vim.api.nvim_buf_line_count(buf) == 1
+			and vim.api.nvim_buf_get_lines(buf, 0, -1, false)[1] == ""
+		then
+			vim.api.nvim_buf_set_lines(buf, 0, -1, false, clean_lines)
+		else
+			vim.api.nvim_buf_set_lines(buf, -1, -1, false, clean_lines)
+		end
+
+		vim.bo[buf].modifiable = false
 
 		if vim.api.nvim_win_is_valid(win) then
 			local line_count = vim.api.nvim_buf_line_count(buf)
