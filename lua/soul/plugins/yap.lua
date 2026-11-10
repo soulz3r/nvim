@@ -3,6 +3,8 @@ local M = {
 	dependencies = {
 		"MunifTanjim/nui.nvim",
 		"grapp-dev/nui-components.nvim",
+		"nvim-telescope/telescope.nvim",
+		"nvim-telescope/telescope-project.nvim",
 	},
 }
 
@@ -11,6 +13,7 @@ function M.config()
 
 	require("yap").setup({
 		projects_dir = require("soul.core.paths").projects,
+		telescope = true,
 		keymaps = true,
 		highlights = {
 			normal = { fg = palette.foreground, bg = "NONE" },
