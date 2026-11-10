@@ -78,10 +78,10 @@ function M.config()
 			lualine_y = {
 				{
 					function()
-						return require("soul.core.project_registry").status()
+						return require("yap.project_registry").status()
 					end,
 					cond = function()
-						return require("soul.core.project_registry").status() ~= ""
+						return require("yap.project_registry").status() ~= ""
 					end,
 					color = { fg = palette.green },
 				},
