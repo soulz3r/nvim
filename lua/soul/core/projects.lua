@@ -329,44 +329,23 @@ local function parse_args(input)
 	return args
 end
 
-function M.run_executable(path)
+function M.get_root(path)
+	return project_root(path)
+end
+
+function M.list_executables(path)
 	local root = project_root(path)
-	local executables = find_bin_executables(root)
+	return root, find_bin_executables(root)
+end
 
-	if #executables == 0 then
-		vim.notify("No executables found in " .. root .. "/bin", vim.log.levels.WARN)
-		return
-	end
+function M.parse_args(input)
+	return parse_args(input)
+end
 
-	vim.ui.select(executables, {
-		prompt = "Select executable:",
-		format_item = function(file)
-			return vim.fn.fnamemodify(file, ":t")
-		end,
-	}, function(choice)
-		if not choice then
-			return
-		end
-
-		vim.ui.input({
-			title = " Arguments ",
-			prompt = "Arguments: ",
-		}, function(input)
-			if input == nil then
-				return
-			end
-
-			local args, err = parse_args(input)
-			if not args then
-				vim.notify(err, vim.log.levels.ERROR)
-				return
-			end
-
-			local append = open_output(root, "Run Executable")
-			append({ "Executable: " .. vim.fn.fnamemodify(choice, ":t") })
-			launch(choice, root, append, args)
-		end)
-	end)
+function M.run_binary(file, root, args)
+	local append = open_output(root, "Run Executable")
+	append({ "Executable: " .. vim.fn.fnamemodify(file, ":t") })
+	launch(file, root, append, args)
 end
 
 return M
