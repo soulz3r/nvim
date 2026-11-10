@@ -12,6 +12,7 @@ M.config = function()
 	local dap_widgets = require("dap.ui.widgets")
 	local fn = vim.fn
 	local paths = require("soul.core.paths")
+	local project_registry = require("soul.core.project_registry")
 
 	-- =========================================================
 	-- Project registry
@@ -220,6 +221,10 @@ M.config = function()
 
 		projects[key] = entry
 		active_root = key
+		project_registry.update(root, {
+			debug_executable = entry.executable,
+			last_executable = entry.executable,
+		})
 		save_projects()
 
 		return entry
@@ -312,6 +317,17 @@ M.config = function()
 
 		local key = project_key(root)
 		local entry = key and projects[key] or nil
+
+		if not entry then
+			local shared = project_registry.get(root)
+			if shared and (shared.debug_executable or shared.last_executable) then
+				entry = {
+					root = root,
+					executable = shared.debug_executable or shared.last_executable,
+				}
+				projects[key] = entry
+			end
+		end
 
 		if entry then
 			active_root = key

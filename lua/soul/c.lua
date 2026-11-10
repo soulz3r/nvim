@@ -57,11 +57,14 @@ local function switch_header_source()
 end
 
 local function insert_include()
+  local buf = vim.api.nvim_get_current_buf()
+  local row = vim.api.nvim_win_get_cursor(0)[1] - 1
+
   vim.ui.input({ prompt = "Header to include: " }, function(value)
-    if not value or vim.trim(value) == "" then return end
-    value = vim.trim(value):gsub("[<>\"\r\n]", "")
+    if not value or vim.trim(value) == "" or not vim.api.nvim_buf_is_valid(buf) then return end
+    value = vim.trim(value):gsub("[<>\\\"\\r\\n]", "")
     local line = "#include <" .. value .. ">"
-    vim.api.nvim_buf_set_lines(0, vim.api.nvim_win_get_cursor(0)[1] - 1, vim.api.nvim_win_get_cursor(0)[1] - 1, false, { line })
+    vim.api.nvim_buf_set_lines(buf, row, row, false, { line })
   end)
 end
 
