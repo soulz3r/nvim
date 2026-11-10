@@ -66,6 +66,7 @@ local function open_output(root, title)
 		col = math.floor((vim.o.columns - width) / 2),
 		style = "minimal",
 		border = "rounded",
+		winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,FloatTitle:FloatTitle",
 		title = " " .. title .. " ",
 		title_pos = "center",
 	})
@@ -350,6 +351,7 @@ function M.run_executable(path)
 		end
 
 		vim.ui.input({
+			title = " Arguments ",
 			prompt = "Arguments: ",
 		}, function(input)
 			if input == nil then
