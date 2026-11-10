@@ -266,6 +266,53 @@ function M.config()
 
 	telescope.load_extension("project")
 
+	vim.api.nvim_create_autocmd("VimEnter", {
+		once = true,
+		callback = function()
+			vim.schedule(function()
+				local ok, utils = pcall(require, "telescope._extensions.project.utils")
+				if not ok then
+					vim.notify("Telescope Projects could not be loaded.", vim.log.levels.WARN)
+					return
+				end
+
+				local projects_ok, saved_projects = pcall(utils.get_projects, "recent")
+				if not projects_ok then
+					vim.notify("Could not read saved Telescope projects.", vim.log.levels.WARN)
+					return
+				end
+
+				if #saved_projects == 0 then
+					vim.notify(
+						"No saved projects yet. Add one with <leader>pp.",
+						vim.log.levels.INFO,
+						{ title = "Projects" }
+					)
+					return
+				end
+
+				for _, project in ipairs(saved_projects) do
+					local root = project.path
+					if type(root) == "string" and vim.fn.isdirectory(root) == 1 then
+						vim.cmd.cd(vim.fn.fnameescape(root))
+						vim.notify(
+							"Default project: " .. (project.title or vim.fn.fnamemodify(root, ":t")),
+						vim.log.levels.INFO,
+						{ title = "Projects" }
+					)
+						return
+					end
+				end
+
+				vim.notify(
+					"No available saved project directories. Add or update one with <leader>pp.",
+					vim.log.levels.INFO,
+					{ title = "Projects" }
+				)
+			end)
+		end,
+	})
+
 	vim.keymap.set("n", "<leader>pp", function()
 		telescope.extensions.project.project()
 	end, OPTS("Projects"))
