@@ -29,11 +29,11 @@ function M.config()
         PmenuThumb = { bg = "#859289" },
 
         -- Mini.nvim components
-        MiniFilesBorder = { fg = "#859289", bg = "#272e33" },
-        MiniFilesTitle = { fg = "#A7C080", bg = "#272e33", bold = true },
-        MiniFilesDirectory = { fg = "#7FBBB3", bg = "#272e33" },
-        MiniFilesFile = { fg = "#D3C6AA", bg = "#272e33" },
-        MiniFilesNormal = { fg = "#D3C6AA", bg = "#272e33" },
+        MiniFilesBorder = { fg = "#859289", bg = "NONE" },
+        MiniFilesTitle = { fg = "#A7C080", bg = "NONE", bold = true },
+        MiniFilesDirectory = { fg = "#7FBBB3", bg = "NONE" },
+        MiniFilesFile = { fg = "#D3C6AA", bg = "NONE" },
+        MiniFilesNormal = { bg = "NONE" },
         MiniFilesCursorLine = { bg = "#343F44" },
 
         MiniNotifyBorder = { fg = "#859289", bg = "#272e33" },
