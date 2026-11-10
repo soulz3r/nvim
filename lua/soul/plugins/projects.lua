@@ -39,13 +39,13 @@ function M.config()
 
 		local root_variants = {
 			root,
-			root:gsub("/", "\\\\"),
-			root:gsub("\\\\", "/"),
+			root:gsub("/", "\\"),
+			root:gsub("\\", "/"),
 		}
 		local executable_variants = {
 			executable,
-			executable:gsub("/", "\\\\"),
-			executable:gsub("\\\\", "/"),
+			executable:gsub("/", "\\"),
+			executable:gsub("\\", "/"),
 		}
 
 		for _, root_variant in ipairs(root_variants) do
