@@ -60,8 +60,9 @@ function M.list()
 end
 
 function M.status(root)
-  root = root or vim.fn.getcwd()
-  local markers = { ".git", "compile_commands.json", "compile_flags.txt", "CMakeLists.txt", "build.sh", "build.bat" }
+  root = root or vim.api.nvim_buf_get_name(0)
+  if root == "" then root = vim.fn.getcwd() end
+  local markers = { ".git", "compile_commands.json", "compile_flags.txt", "CMakeLists.txt", "Makefile", "build.sh", "build.bat" }
   local directory = vim.fn.isdirectory(root) == 1 and root or vim.fs.dirname(root)
   local project = vim.fs.root(directory, markers)
   if not project then return "" end

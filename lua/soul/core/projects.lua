@@ -506,6 +506,7 @@ local function run_command(command, root, append, callback)
 
 	active_job = nil
 	append({ "", "$ " .. table.concat(command, " ") })
+	local started_at = vim.uv.hrtime()
 
 	local job = vim.fn.jobstart(command, {
 		cwd = root,
@@ -543,6 +544,8 @@ local function run_command(command, root, append, callback)
 					active_job = nil
 				end
 
+				local elapsed = (vim.uv.hrtime() - started_at) / 1000000000
+				append({ string.format("Duration: %.2fs", elapsed) })
 				callback(code)
 			end)
 		end,
@@ -730,6 +733,7 @@ end
 function M.build(path, selected_script)
 	local root = project_root(path)
 	local append = open_output(root, "Build Project")
+	append({ "", "BUILD" })
 
 	build(root, append, function() end, selected_script)
 end
@@ -737,6 +741,7 @@ end
 function M.clean(path)
 	local root = project_root(path)
 	local append = open_output(root, "Clean Project")
+	append({ "", "CLEAN" })
 
 	clean(root, append, function(ok, found)
 		if not found then
@@ -748,12 +753,14 @@ end
 function M.rebuild(path)
 	local root = project_root(path)
 	local append = open_output(root, "Rebuild Project")
+	append({ "", "CLEAN" })
 
 	clean(root, append, function(ok, found)
 		if found and not ok then
 			return
 		end
 
+		append({ "", "BUILD" })
 		build(root, append, function() end)
 	end)
 end
@@ -761,6 +768,7 @@ end
 function M.run(path, args, selected_script)
 	local root = project_root(path)
 	local append = open_output(root, "Run Executable")
+	append({ "", "BUILD" })
 
 	build(root, append, function(ok)
 		if not ok then
@@ -792,6 +800,7 @@ function M.run(path, args, selected_script)
 			return
 		end
 
+		append({ "", "EXECUTION" })
 		launch(executable, root, append, args)
 	end, selected_script)
 end
