@@ -1,4 +1,4 @@
-vim.cmd [[
+  vim.cmd [[
   highlight NormalFloat guibg=NONE
   highlight FloatBorder guibg=NONE
   highlight PmenuSel guibg=NONE
