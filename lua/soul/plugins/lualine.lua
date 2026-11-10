@@ -72,9 +72,6 @@ function M.config()
 				{
 					"filetype",
 					icon_only = true,
-					fmt = function(value)
-						return vim.b.mininotify_history and "History" or value
-					end,
 					padding = { left = 1, right = 1 },
 				},
 			},
