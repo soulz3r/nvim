@@ -179,16 +179,7 @@ local function open_output(root, title)
 	vim.bo[buf].readonly = true
 	vim.bo[buf].modifiable = false
 
-	local previous_laststatus = vim.o.laststatus
-	vim.o.laststatus = 0
-
-	vim.api.nvim_create_autocmd("WinClosed", {
-		pattern = tostring(win),
-		once = true,
-		callback = function()
-			vim.o.laststatus = previous_laststatus
-		end,
-	})
+	require("soul.ui").hide_statusline(win)
 
 	vim.wo[win].wrap = true
 	vim.wo[win].cursorline = true
