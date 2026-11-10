@@ -21,8 +21,10 @@ Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 
 - `lua/soul/plugins/telescope.lua` owns general Telescope setup and pickers.
 - `lua/soul/plugins/projects.lua` owns the config-specific Telescope Projects picker, actions, and keymaps, while delegating execution to `yap.projects`.
-- `lua/soul/plugins/yap.lua` configures the pre-nui-components YAP plugin without enabling its duplicate Telescope integration or keymaps.
+- `lua/soul/plugins/yap.lua` initializes YAP through its public setup API, passes the shared projects directory, and explicitly disables YAP's optional Telescope integration and duplicate project keymaps.
 - `soulz3r/yap.nvim` owns project detection, build-script execution, binary launching, run history, and the floating output UI.
+
+YAP's Telescope integration is opt-in. This matters here because the Neovim config owns the Telescope Projects extension and its custom actions. YAP is loaded as a dependency of the Telescope Projects plugin, so enabling YAP's own Telescope integration during dependency loading would try to load the extension before its parent plugin has finished loading.
 
 The project runner is intentionally narrow:
 
