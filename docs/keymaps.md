@@ -17,7 +17,7 @@ The leader key is Space. This is a compact reference for the most-used mappings;
 | `<leader>qa` | Quit without saving |
 | `<leader>ne` | Restart Neovim |
 | `<leader>ni` | Open the config's `init.lua` |
-| `<leader>nm` | Show messages |
+| `<leader>nm` | Show all messages in a floating window |
 | `<leader>u` | Open Undotree |
 
 ## Files and search
@@ -131,14 +131,16 @@ Inside the Telescope Projects picker (`<leader>fp`):
 | Mapping | Action |
 |---|---|
 | `Enter` | Change working directory to the selected project |
-| `Ctrl-g` | Run the selected project |
-| `Ctrl-y` | Build the selected project |
+| `Ctrl-g` | Build and run the selected C project |
+| `Ctrl-y` | Build the selected C project only |
+| `Ctrl-e` | Select and run a binary from the selected project's `bin/` directory |
 | `Ctrl-f` | Find files in the selected project (native action) |
 | `Ctrl-s` | Search inside the selected project (native action) |
 | `Ctrl-b` | Browse files in the selected project (native action) |
 | `Ctrl-r` | Find recently opened files in the selected project (native action) |
-| `gR` | Run the selected project in normal mode |
-| `gB` | Build the selected project in normal mode |
+| `gR` | Build and run the selected C project in normal mode |
+| `gB` | Build the selected C project in normal mode |
+| `gE` | Select and run a binary from the selected project in normal mode |
 
 | Mapping | Action |
 |---|---|
@@ -147,6 +149,6 @@ Inside the Telescope Projects picker (`<leader>fp`):
 | `Alt-2` | Vertical terminal |
 | `Alt-3` | Floating terminal |
 | `Ctrl-;` | Leave terminal mode |
-| `<leader>rr` | Run the current project |
-| `<leader>rb` | Build the current project |
-| `<leader>rf` | Run the current file independently |
+| `<leader>rr` | Build and run the current C project |
+| `<leader>rb` | Build the current C project only |
+| `<leader>re` | Select a binary from `bin/`, enter arguments, and run it without building |
