@@ -9,10 +9,6 @@ local function has_file(root, name)
   return vim.fn.filereadable(root .. "/" .. name) == 1
 end
 
-local function command_exists(root, name)
-  return vim.fn.executable(root .. "/" .. name) == 1
-end
-
 local function script_connector(root)
   local windows = vim.fn.has("win32") == 1
   local script = windows and "build.bat" or "build.sh"
