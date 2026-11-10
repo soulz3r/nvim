@@ -17,22 +17,62 @@ function M.config()
 	local themes = require("telescope.themes")
 	local projects = require("soul.core.projects")
 
+	local function argument_history(root, executable)
+		local directory = vim.fn.stdpath("data") .. "/soul/argument-history"
+		vim.fn.mkdir(directory, "p")
+
+		local key = vim.fn.sha256(root .. "\\0" .. executable)
+		local path = directory .. "/" .. key .. ".txt"
+		local history = vim.fn.filereadable(path) == 1 and vim.fn.readfile(path) or {}
+
+		return path, history
+	end
+
+	local function save_argument(path, history, input)
+		if input == "" then
+			return
+		end
+
+		vim.tbl_filter(function(value)
+			return value ~= input
+		end, history)
+		table.insert(history, input)
+
+		while #history > 100 do
+			table.remove(history, 1)
+		end
+
+		vim.fn.writefile(history, path)
+	end
+
 	local function prompt_arguments(root, executable)
+		local history_path, history = argument_history(root, executable)
+		local suggestions = {}
+
+		for index = #history, 1, -1 do
+			table.insert(suggestions, history[index])
+		end
+
 		pickers.new(themes.get_dropdown({}), {
 			prompt_title = "Arguments: " .. vim.fn.fnamemodify(executable, ":t"),
 			finder = finders.new_table({
-				results = {},
+				results = suggestions,
 			}),
 			sorter = conf.generic_sorter({}),
 			previewer = false,
 			attach_mappings = function(prompt_bufnr)
 				actions.select_default:replace(function()
-					local input = action_state.get_current_line()
+					local entry = action_state.get_selected_entry()
+					local input = entry and entry.value or action_state.get_current_line()
 					local args, err = projects.parse_args(input)
 
 					if not args then
 						vim.notify(err, vim.log.levels.ERROR)
 						return
+					end
+
+					if not entry then
+						save_argument(history_path, history, input)
 					end
 
 					actions.close(prompt_bufnr)
