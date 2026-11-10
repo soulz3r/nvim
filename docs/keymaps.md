@@ -131,10 +131,14 @@ Inside the Telescope Projects picker (`<leader>fp`):
 | Mapping | Action |
 |---|---|
 | `Enter` | Change working directory to the selected project |
-| `Ctrl-r` | Run the selected project |
-| `Ctrl-b` | Build the selected project |
-| `Ctrl-f` | Find files in the selected project |
-| `Ctrl-g` | Live grep in the selected project |
+| `Ctrl-g` | Run the selected project |
+| `Ctrl-y` | Build the selected project |
+| `Ctrl-f` | Find files in the selected project (native action) |
+| `Ctrl-s` | Search inside the selected project (native action) |
+| `Ctrl-b` | Browse files in the selected project (native action) |
+| `Ctrl-r` | Find recently opened files in the selected project (native action) |
+| `gR` | Run the selected project in normal mode |
+| `gB` | Build the selected project in normal mode |
 
 | Mapping | Action |
 |---|---|
