@@ -15,6 +15,7 @@ local root_markers = {
 }
 
 local active_job
+local last_run
 
 local function project_root(path)
 	path = vim.fn.fnamemodify(path or vim.fn.getcwd(), ":p")
@@ -311,6 +312,12 @@ local function find_bin_executables(root)
 end
 
 local function launch(file, root, append, args)
+	last_run = {
+		file = file,
+		root = root,
+		args = vim.deepcopy(args or {}),
+	}
+
 	local command = { file }
 	vim.list_extend(command, args or {})
 
@@ -513,6 +520,16 @@ function M.run_binary(file, root, args)
 	local append = open_output(root, "Run Executable")
 	append({ "Executable: " .. vim.fn.fnamemodify(file, ":t") })
 	launch(file, root, append, args)
+end
+
+function M.rerun()
+	if not last_run then
+		vim.notify("No previous project executable to rerun.", vim.log.levels.INFO)
+		return
+	end
+
+	local previous = vim.deepcopy(last_run)
+	M.run_binary(previous.file, previous.root, previous.args)
 end
 
 return M
