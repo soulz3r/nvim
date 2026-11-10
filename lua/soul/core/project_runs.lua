@@ -40,9 +40,10 @@ local function write_data(data)
 		return false
 	end
 
-	if vim.fn.rename(temporary, storage) ~= 0 then
+	local renamed, err = vim.uv.fs_rename(temporary, storage)
+	if not renamed then
 		vim.fn.delete(temporary)
-		vim.notify("Could not replace project run configuration.", vim.log.levels.ERROR)
+		vim.notify("Could not replace project run configuration: " .. err, vim.log.levels.ERROR)
 		return false
 	end
 
