@@ -90,6 +90,7 @@ local function script_command(script)
 end
 
 local function open_output(root, title)
+	local output_lines = {}
 	local buf = vim.api.nvim_create_buf(false, true)
 	local width = math.max(1, math.min(vim.o.columns - 4, math.floor(vim.o.columns * 0.82)))
 	local height = math.max(1, math.min(vim.o.lines - 4, math.floor(vim.o.lines * 0.72)))
@@ -114,6 +115,10 @@ local function open_output(root, title)
 	local function append(lines)
 		if not vim.api.nvim_buf_is_valid(buf) then
 			return
+		end
+
+		for _, line in ipairs(lines) do
+			output_lines[#output_lines + 1] = line
 		end
 
 		vim.api.nvim_chan_send(terminal, table.concat(lines, "\r\n") .. "\r\n")
@@ -147,6 +152,48 @@ local function open_output(root, title)
 		buffer = buf,
 		silent = true,
 		desc = "Stop project process",
+	})
+
+	vim.keymap.set("n", "<leader>pq", function()
+		local items = {}
+
+		for _, line in ipairs(output_lines) do
+			local filename, row, column, severity, message =
+				line:match("^(.-):(%d+):(%d+):%s*(%w+):%s*(.*)$")
+
+			if not filename then
+				filename, row, column, severity, message =
+					line:match("^(.-)%((%d+),(%d+)%)%s*:%s*(%w+):%s*(.*)$")
+			end
+
+			if filename and row and column then
+				local absolute = filename:match("^%a:[/\\\\]") or filename:match("^[/\\\\]")
+					and filename
+					or (root .. "/" .. filename)
+
+				items[#items + 1] = {
+					filename = absolute,
+					lnum = tonumber(row),
+						col = tonumber(column),
+						text = severity .. ": " .. message,
+				}
+			end
+		end
+
+		if #items == 0 then
+			vim.notify("No compiler diagnostics found in project output.", vim.log.levels.INFO)
+			return
+		end
+
+		vim.fn.setqflist({}, " ", {
+			title = "Project Diagnostics",
+			items = items,
+		})
+		vim.cmd.copen()
+	end, {
+		buffer = buf,
+		silent = true,
+		desc = "Open project diagnostics",
 	})
 
 	append({ "Project: " .. root })
