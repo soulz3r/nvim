@@ -13,7 +13,7 @@ The entry point is `init.lua`. It loads core settings, registers plugin imports 
 | `lua/soul/core/keymaps.lua` | Global keymaps and helper options |
 | `lua/soul/core/autocmds.lua` | Core autocmds |
 | `lua/soul/core/paths.lua` | Platform detection and external tool paths |
-| `lua/soul/core/pRunner.lua` | Asynchronous S3D build-and-run task |
+| `lua/soul/core/pRunner.lua` | Project and individual-file execution |\n| `lua/soul/core/pRunner/connectors.lua` | Project build/run-system detection and connectors |
 | `lua/soul/core/colors.lua` | Colorscheme and highlight setup |
 
 ## Plugins
