@@ -69,6 +69,7 @@ function M.config()
 						input = entry.value
 					end
 
+					local selected_history = entry and input == entry.value
 					local args, err = projects.parse_args(input)
 
 					if not args then
@@ -76,7 +77,7 @@ function M.config()
 						return
 					end
 
-					if not entry then
+					if not selected_history then
 						save_argument(history_path, history, input)
 					end
 
