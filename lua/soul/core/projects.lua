@@ -19,8 +19,12 @@ local root_markers = {
 }
 
 local function project_root(path)
-  path = path or vim.fn.getcwd()
-  return vim.fs.root(path, root_markers) or path
+  if path and path ~= "" then
+    return vim.fn.fnamemodify(path, ":p")
+  end
+
+  local cwd = vim.fn.getcwd()
+  return vim.fs.root(cwd, root_markers) or cwd
 end
 
 local function has_file(root, name)
@@ -129,14 +133,12 @@ local function script_connector(root)
         "-Command",
         "& '.\\build.bat'; exit $LASTEXITCODE",
       },
-      run_after_build = true,
     }
   end
 
   return {
     name = "Custom build script",
     build = { "bash", "./build.sh" },
-    run_after_build = true,
   }
 end
 
