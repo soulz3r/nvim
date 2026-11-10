@@ -82,4 +82,6 @@ function M.open_text(lines, title, opts)
   return buf, win
 end
 
+M.setup()
+
 return M
