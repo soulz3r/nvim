@@ -43,14 +43,33 @@ local function stop_active_job()
 	return false
 end
 
-local function build_script(root)
+local function list_build_scripts(root)
+	local patterns = paths.is_windows and { "build*.bat", "build*.sh" } or { "build*.sh" }
+	local found = {}
+
+	for _, pattern in ipairs(patterns) do
+		for _, file in ipairs(vim.fn.globpath(root, pattern, false, true)) do
+			if vim.fn.filereadable(file) == 1 then
+				found[#found + 1] = vim.fn.fnamemodify(file, ":t")
+			end
+		end
+	end
+
+	table.sort(found)
+	return found
+end
+
+local function build_script(root, selected)
+	if selected and vim.fn.filereadable(root .. "/" .. selected) == 1 then
+		return selected
+	end
+
 	local scripts = paths.is_windows
 		and { "build_all.bat", "build.bat", "build_all.sh", "build.sh" }
 		or { "build_all.sh", "build.sh" }
 
 	for _, name in ipairs(scripts) do
-		local file = root .. "/" .. name
-		if vim.fn.filereadable(file) == 1 then
+		if vim.fn.filereadable(root .. "/" .. name) == 1 then
 			return name
 		end
 	end
@@ -253,8 +272,8 @@ local function run_command(command, root, append, callback)
 	return true
 end
 
-local function get_build_command(root, append)
-	local script = build_script(root)
+local function get_build_command(root, append, selected_script)
+	local script = build_script(root, selected_script)
 
 	if not script then
 		append({
@@ -330,8 +349,8 @@ local function launch(file, root, append, args)
 	end)
 end
 
-local function build(root, append, callback)
-	local command = get_build_command(root, append)
+local function build(root, append, callback, selected_script)
+	local command = get_build_command(root, append, selected_script)
 	if not command then
 		return
 	end
@@ -381,11 +400,11 @@ function M.stop()
 	end
 end
 
-function M.build(path)
+function M.build(path, selected_script)
 	local root = project_root(path)
 	local append = open_output(root, "Build Project")
 
-	build(root, append, function() end)
+	build(root, append, function() end, selected_script)
 end
 
 function M.clean(path)
@@ -412,7 +431,7 @@ function M.rebuild(path)
 	end)
 end
 
-function M.run(path, args)
+function M.run(path, args, selected_script)
 	local root = project_root(path)
 	local append = open_output(root, "Run Project")
 
@@ -434,7 +453,7 @@ function M.run(path, args)
 
 		append({ "", "Launching: " .. vim.fn.fnamemodify(executable, ":.") })
 		launch(executable, root, append, args)
-	end)
+	end, selected_script)
 end
 
 local function parse_args(input)
@@ -499,6 +518,11 @@ end
 
 function M.get_root(path)
 	return project_root(path)
+end
+
+function M.list_build_scripts(path)
+	local root = project_root(path)
+	return root, list_build_scripts(root)
 end
 
 function M.list_executables(path)
