@@ -25,22 +25,7 @@ function M.config()
 
 	MiniNotify.setup({
 		content = {
-			format = function(notif)
-				local levels = {
-					ERROR = "✖ ERROR",
-					WARN = "▲ WARN",
-					INFO = "● INFO",
-					DEBUG = "◌ DEBUG",
-					TRACE = "⋯ TRACE",
-					OFF = "· OFF",
-				}
-
-				local level = levels[notif.level] or notif.level
-				local source = notif.data and notif.data.source
-				local source_label = source and source ~= "vim.notify" and (" [" .. source .. "]") or ""
-
-				return level .. source_label .. "  " .. MiniNotify.default_format(notif)
-			end,
+			sort = MiniNotify.default_sort,
 		},
 		lsp_progress = {
 			enable = true,
@@ -57,8 +42,6 @@ function M.config()
 					col = vim.o.columns,
 					row = vim.o.lines - padding,
 					border = "rounded",
-					title = " Notifications ",
-					title_pos = "right",
 				}
 			end,
 			max_width_share = 0.30,
@@ -68,12 +51,12 @@ function M.config()
 	})
 
 	vim.notify = MiniNotify.make_notify({
-		ERROR = { duration = 10000 },
-		WARN = { duration = 7000 },
-		INFO = { duration = 5000 },
-		DEBUG = { duration = 4000 },
-		TRACE = { duration = 4000 },
-		OFF = { duration = 0 },
+		ERROR = { duration = 10000, hl_group = "DiagnosticError" },
+		WARN = { duration = 7000, hl_group = "DiagnosticWarn" },
+		INFO = { duration = 5000, hl_group = "DiagnosticInfo" },
+		DEBUG = { duration = 4000, hl_group = "DiagnosticHint" },
+		TRACE = { duration = 4000, hl_group = "DiagnosticOk" },
+		OFF = { duration = 0, hl_group = "MiniNotifyNormal" },
 	})
 
 	vim.keymap.set("n", "<leader>nc", MiniNotify.clear, {
