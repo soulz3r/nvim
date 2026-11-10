@@ -315,11 +315,10 @@ local function open_output(root, title)
 		local highlights = {}
 		local position = 1
 		local column = 0
-		local segment_start = 1
 		local segment_group = ansi_group()
 
 		while position <= #line do
-			local first, last, parameters, final =
+			local first, last, parameters, intermediate, final =
 				line:find("\27%[([%d;?]*)([ -/]*)([@-~])", position)
 
 			if not first then
@@ -349,7 +348,6 @@ local function open_output(root, title)
 				apply_sgr(parameters)
 			end
 			position = last + 1
-			segment_start = position
 			segment_group = ansi_group()
 		end
 
