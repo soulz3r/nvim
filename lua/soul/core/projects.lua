@@ -56,13 +56,7 @@ local function save_last_run(state)
 	end
 
 	local path = last_run_path()
-	local temporary = path .. ".tmp"
-
-	if vim.fn.writefile({ encoded }, temporary) ~= 0 then
-		return false
-	end
-
-	return vim.fn.rename(temporary, path) == 0
+	return vim.fn.writefile({ encoded }, path) == 0
 end
 
 last_run = load_last_run()
