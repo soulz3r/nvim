@@ -16,46 +16,35 @@ function M.config()
 	local conf = require("telescope.config").values
 	local themes = require("telescope.themes")
 	local projects = require("soul.core.projects")
-	local project_runs = require("soul.core.project_runs")
 
-	local function prompt_arguments(root, executable, should_run)
-		local saved = project_runs.get(root, executable)
+	local function prompt_arguments(root, executable)
+		pickers.new(themes.get_dropdown({}), {
+			prompt_title = "Arguments: " .. vim.fn.fnamemodify(executable, ":t"),
+			finder = finders.new_table({
+				results = {},
+			}),
+			sorter = conf.generic_sorter({}),
+			previewer = false,
+			attach_mappings = function(prompt_bufnr)
+				actions.select_default:replace(function()
+					local input = action_state.get_current_line()
+					local args, err = projects.parse_args(input)
 
-		vim.ui.input({
-			title = " " .. vim.fn.fnamemodify(executable, ":t") .. " ",
-			prompt = "Arguments: ",
-			default = saved,
-		}, function(input)
-			if input == nil then
-				return
-			end
+					if not args then
+						vim.notify(err, vim.log.levels.ERROR)
+						return
+					end
 
-			local args, err = projects.parse_args(input)
-			if not args then
-				vim.notify(err, vim.log.levels.ERROR)
-				return
-			end
+					actions.close(prompt_bufnr)
 
-			if not project_runs.set(root, executable, input) then
-				return
-			end
+					vim.schedule(function()
+						projects.run_binary(executable, root, args)
+					end)
+				end)
 
-			if should_run then
-				projects.run_binary(executable, root, args)
-			end
-		end)
-	end
-
-	local function run_saved(root, executable)
-		local saved = project_runs.get(root, executable)
-		local args, err = projects.parse_args(saved)
-
-		if not args then
-			vim.notify(err, vim.log.levels.ERROR)
-			return
-		end
-
-		projects.run_binary(executable, root, args)
+				return true
+			end,
+		}):find()
 	end
 
 	local function open_executable_picker(path)
@@ -71,53 +60,32 @@ function M.config()
 			finder = finders.new_table({
 				results = executables,
 				entry_maker = function(file)
-					local saved = project_runs.get(root, file)
 					local name = vim.fn.fnamemodify(file, ":t")
 					local relative = "bin/" .. name
 
 					return {
 						value = file,
-						ordinal = name .. " " .. relative .. " " .. saved,
-						display = name .. (saved ~= "" and "  [" .. saved .. "]" or ""),
+						ordinal = name .. " " .. relative,
+						display = name,
 						filename = file,
 					}
 				end,
 			}),
 			sorter = conf.generic_sorter({}),
 			previewer = false,
-			attach_mappings = function(prompt_bufnr, map)
-				local function selected(run_now)
+			attach_mappings = function(prompt_bufnr)
+				actions.select_default:replace(function()
 					local entry = action_state.get_selected_entry()
+
 					if not entry then
 						return
 					end
 
 					actions.close(prompt_bufnr)
+
 					vim.schedule(function()
-						if run_now == "saved" then
-							run_saved(root, entry.value)
-						else
-							prompt_arguments(root, entry.value, run_now)
-						end
+						prompt_arguments(root, entry.value)
 					end)
-				end
-
-				actions.select_default:replace(function()
-					selected(true)
-				end)
-
-				map("i", "<C-r>", function()
-					selected("saved")
-				end)
-				map("n", "<C-r>", function()
-					selected("saved")
-				end)
-
-				map("i", "<C-e>", function()
-					selected(false)
-				end)
-				map("n", "<C-e>", function()
-					selected(false)
 				end)
 
 				return true
