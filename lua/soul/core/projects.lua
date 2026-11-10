@@ -14,9 +14,32 @@ local root_markers = {
 	"CMakeLists.txt",
 }
 
+local active_job
+
 local function project_root(path)
 	path = vim.fn.fnamemodify(path or vim.fn.getcwd(), ":p")
+
+	if vim.fn.isdirectory(path) ~= 1 then
+		path = vim.fs.dirname(path)
+	end
+
 	return vim.fs.root(path, root_markers) or path
+end
+
+local function stop_active_job()
+	if not active_job then
+		return false
+	end
+
+	local job = active_job
+	local stopped = vim.fn.jobstop(job)
+
+	if stopped > 0 then
+		return true
+	end
+
+	active_job = nil
+	return false
 end
 
 local function build_script(root)
@@ -104,12 +127,28 @@ local function open_output(root, title)
 		})
 	end
 
+	vim.keymap.set("n", "<C-c>", function()
+		if not stop_active_job() then
+			vim.notify("No project process is running.", vim.log.levels.INFO)
+		end
+	end, {
+		buffer = buf,
+		silent = true,
+		desc = "Stop project process",
+	})
+
 	append({ "Project: " .. root })
 
 	return append
 end
 
 local function run_command(command, root, append, callback)
+	if active_job and vim.fn.jobwait({ active_job }, 0)[1] == -1 then
+		append({ "", "Another project process is already running.", "Stop it before starting another." })
+		return false
+	end
+
+	active_job = nil
 	append({ "", "$ " .. table.concat(command, " ") })
 
 	local job = vim.fn.jobstart(command, {
@@ -134,8 +173,12 @@ local function run_command(command, root, append, callback)
 				end)
 			end
 		end,
-		on_exit = function(_, code)
+		on_exit = function(job_id, code)
 			vim.schedule(function()
+				if active_job == job_id then
+					active_job = nil
+				end
+
 				callback(code)
 			end)
 		end,
@@ -146,6 +189,7 @@ local function run_command(command, root, append, callback)
 		return false
 	end
 
+	active_job = job
 	return true
 end
 
@@ -235,6 +279,12 @@ local function build(root, append, callback)
 			callback(false)
 		end
 	end)
+end
+
+function M.stop()
+	if not stop_active_job() then
+		vim.notify("No project process is running.", vim.log.levels.INFO)
+	end
 end
 
 function M.build(path)
