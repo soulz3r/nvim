@@ -27,7 +27,7 @@ function M.config()
 		lsp_progress = {
 			enable = true,
 			level = "INFO",
-			duration_last = 60000,
+			duration_last = 3000,
 		},
 		window = {
 			config = function()
@@ -48,12 +48,12 @@ function M.config()
 	})
 
 	vim.notify = MiniNotify.make_notify({
-		ERROR = { duration = 60000 },
-		WARN = { duration = 60000 },
-		INFO = { duration = 60000 },
-		DEBUG = { duration = 60000 },
-		TRACE = { duration = 60000 },
-		OFF = { duration = 60000 },
+		ERROR = { duration = 10000 },
+		WARN = { duration = 7000 },
+		INFO = { duration = 5000 },
+		DEBUG = { duration = 4000 },
+		TRACE = { duration = 4000 },
+		OFF = { duration = 0 },
 	})
 
 	vim.keymap.set("n", "<leader>nc", MiniNotify.clear, {
