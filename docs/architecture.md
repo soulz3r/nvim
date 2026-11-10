@@ -13,7 +13,7 @@ The entry point is `init.lua`. It loads core settings, registers plugin imports 
 | `lua/soul/core/keymaps.lua` | Global keymaps and helper options |
 | `lua/soul/core/autocmds.lua` | Core autocmds |
 | `lua/soul/core/paths.lua` | Platform detection and external tool paths |
-| `lua/soul/core/projects.lua` | C project build-script detection, build, and binary execution |
+| `lua/soul/plugins/yap.lua` | Configures the pre-nui-components YAP project runner and its floating UI |
 | `lua/soul/core/colors.lua` | Colorscheme and highlight setup |
 
 ## Plugins
@@ -22,7 +22,8 @@ Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 
 - `lua/soul/plugins/telescope.lua` owns general Telescope setup and pickers.
 - `lua/soul/plugins/projects.lua` owns the Telescope Projects picker and project-specific actions/keymaps.
-- `lua/soul/core/projects.lua` owns C build-script detection and execution. It does not depend on Telescope.
+- `soulz3r/yap.nvim` owns project detection, build-script execution, binary launching, run history, and the floating output UI.
+- `lua/soul/plugins/projects.lua` keeps the config-specific Telescope project picker and keymaps, while delegating execution to `yap.projects`.
 
 The project runner is intentionally narrow:
 
