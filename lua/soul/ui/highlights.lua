@@ -1,9 +1,6 @@
 local M = {}
 
 local groups = {
-  SoulFloatTitle = { link = "FloatTitle" },
-  SoulFloatBorder = { link = "FloatBorder" },
-  SoulFloatNormal = { link = "NormalFloat" },
   SoulSectionTitle = { link = "Title" },
   SoulMuted = { link = "Comment" },
   SoulSuccess = { link = "DiagnosticOk" },
