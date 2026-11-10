@@ -153,7 +153,6 @@ local function cmake_connector(root)
     name = "CMake",
     configure = { "cmake", "-S", root, "-B", build_dir },
     build = { "cmake", "--build", build_dir, "--config", "Debug" },
-    run_after_build = true,
   }
 end
 
@@ -172,7 +171,6 @@ local function make_connector(root)
   return {
     name = "Make",
     build = { make },
-    run_after_build = true,
   }
 end
 
