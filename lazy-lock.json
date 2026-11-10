@@ -39,5 +39,5 @@
   "todo-comments.nvim": { "branch": "main", "commit": "31e3c38ce9b29781e4422fc0322eb0a21f4e8668" },
   "toggleterm.nvim": { "branch": "main", "commit": "9a88eae817ef395952e08650b3283726786fb5fb" },
   "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" },
-  "yap.nvim": { "branch": "feat/nui-components-ui", "commit": "d8d5b2c9df00b52e69442f825b6d5fe802b83df1" }
+  "yap.nvim": { "branch": "feat/nui-components-ui", "commit": "4f882b46eb93af705d5ce531910298dcdcd9bffd" }
 }
