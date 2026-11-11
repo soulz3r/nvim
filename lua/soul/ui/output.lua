@@ -40,6 +40,7 @@ function M.create(title, initial, opts)
 	vim.wo[win].wrap = opts.wrap ~= false
 	vim.wo[win].cursorline = true
 
+	local current_buf = buf
 	local terminal_job
 
 	local function stop_terminal()
@@ -56,20 +57,28 @@ function M.create(title, initial, opts)
 		end
 	end
 
-	vim.keymap.set("n", "q", close, { buffer = buf, silent = true, nowait = true })
-	vim.keymap.set("n", "<Esc>", close, { buffer = buf, silent = true, nowait = true })
+	local function map_close_keys(target_buf)
+		vim.keymap.set("n", "q", close, { buffer = target_buf, silent = true, nowait = true })
+		vim.keymap.set("n", "<Esc>", close, { buffer = target_buf, silent = true, nowait = true })
+	end
+
+	map_close_keys(buf)
 
 	local output = {
 		buf = buf,
 		win = win,
 	}
 
+	function output.is_open()
+		return vim.api.nvim_win_is_valid(win)
+	end
+
 	function output.append(value)
-		if not vim.api.nvim_buf_is_valid(buf) then
+		if not vim.api.nvim_buf_is_valid(current_buf) then
 			return
 		end
 
-		local current = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+		local current = vim.api.nvim_buf_get_lines(current_buf, 0, -1, false)
 		if #current == 0 then
 			current = { "" }
 		end
@@ -85,11 +94,11 @@ function M.create(title, initial, opts)
 			table.insert(current, addition[i])
 		end
 
-		vim.bo[buf].modifiable = true
-		vim.api.nvim_buf_set_lines(buf, 0, -1, false, current)
-		vim.bo[buf].modifiable = false
+		vim.bo[current_buf].modifiable = true
+		vim.api.nvim_buf_set_lines(current_buf, 0, -1, false, current)
+		vim.bo[current_buf].modifiable = false
 
-		if vim.api.nvim_win_is_valid(win) then
+		if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == current_buf then
 			vim.api.nvim_win_set_cursor(win, { #current, 0 })
 		end
 	end
@@ -106,7 +115,7 @@ function M.create(title, initial, opts)
 
 	function output.open_terminal(command, terminal_opts)
 		if not vim.api.nvim_win_is_valid(win) then
-			return
+			return nil, "Output window was closed"
 		end
 
 		terminal_opts = terminal_opts or {}
@@ -114,6 +123,8 @@ function M.create(title, initial, opts)
 		local term_buf = vim.api.nvim_create_buf(false, true)
 		vim.bo[term_buf].bufhidden = "wipe"
 		vim.bo[term_buf].swapfile = false
+
+		current_buf = term_buf
 		vim.api.nvim_win_set_buf(win, term_buf)
 
 		local user_on_exit = terminal_opts.on_exit
@@ -124,7 +135,7 @@ function M.create(title, initial, opts)
 					and vim.api.nvim_buf_is_valid(term_buf)
 					and vim.api.nvim_win_get_buf(win) == term_buf
 				then
-					output.set_title(("C Run · exit %d"):format(code))
+					output.set_title(("C Run · exit %d"):format(code or -1))
 				end
 
 				if user_on_exit then
@@ -143,12 +154,24 @@ function M.create(title, initial, opts)
 			end,
 		})
 
-		terminal_job = vim.api.nvim_win_call(win, function()
+		local ok, job = pcall(vim.api.nvim_win_call, win, function()
 			return vim.fn.termopen(command, terminal_opts)
 		end)
 
-		vim.keymap.set("n", "q", close, { buffer = term_buf, silent = true, nowait = true })
-		vim.keymap.set("n", "<Esc>", close, { buffer = term_buf, silent = true, nowait = true })
+		if not ok or type(job) ~= "number" or job <= 0 then
+			local message = ok and ("termopen failed with job id " .. tostring(job)) or tostring(job)
+			if vim.api.nvim_buf_is_valid(term_buf) then
+				vim.api.nvim_buf_delete(term_buf, { force = true })
+			end
+			current_buf = buf
+			if vim.api.nvim_buf_is_valid(buf) then
+				vim.api.nvim_win_set_buf(win, buf)
+			end
+			return nil, message
+		end
+
+		terminal_job = job
+		map_close_keys(term_buf)
 		vim.keymap.set("t", "<C-q>", close, { buffer = term_buf, silent = true, nowait = true })
 
 		vim.api.nvim_set_current_win(win)
