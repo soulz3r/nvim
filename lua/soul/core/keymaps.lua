@@ -49,7 +49,11 @@ keymap("n", "<leader>cd", function()
 
 	local directory = vim.fn.fnamemodify(file, ":h")
 	vim.cmd.cd(vim.fn.fnameescape(directory))
-	vim.notify("Working directory: " .. vim.fn.fnamemodify(directory, ":~"), vim.log.levels.INFO, { title = "Working Directory" })
+	vim.notify(
+		"Working directory: " .. vim.fn.fnamemodify(directory, ":~"),
+		vim.log.levels.INFO,
+		{ title = "Working Directory" }
+	)
 end, OPTS("Set cwd to current file directory"))
 keymap("n", "<leader>q", "<cmd>quit<CR>", OPTS("Quit window"))
 
@@ -90,7 +94,11 @@ keymap("n", "<leader>x", function()
 		return vim.notify(vim.trim(result.stderr or "chmod failed"), vim.log.levels.ERROR)
 	end
 
-	vim.notify("Made executable: " .. vim.fn.fnamemodify(file, ":t"), vim.log.levels.INFO, { title = "File Permissions" })
+	vim.notify(
+		"Made executable: " .. vim.fn.fnamemodify(file, ":t"),
+		vim.log.levels.INFO,
+		{ title = "File Permissions" }
+	)
 end, { desc = "Make executable" })
 
 keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart Neovim" })
