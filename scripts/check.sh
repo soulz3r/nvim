@@ -42,7 +42,7 @@ if [[ -e lsp/dap-projects.json ]]; then
 fi
 
 # Autocmd file patterns do not support a leading "!" as a negative match.
-if grep -nE 'pattern[[:space:]]*=[[:space:]]*\{[[:space:]]*"!vim"' lua/soul/core/autocmds.lua; then
+if grep -nF 'pattern = { "!vim" }' lua/soul/core/autocmds.lua; then
   echo "Invalid negative autocmd pattern detected." >&2
   exit 1
 fi
