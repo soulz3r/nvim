@@ -102,11 +102,11 @@ local function append_result(lines, label, result)
 	local stderr = vim.trim(result.stderr or "")
 
 	if stdout ~= "" then
-		vim.list_extend(lines, vim.split(stdout, "\\n", { plain = true }))
+		vim.list_extend(lines, vim.split(stdout, "\n", { plain = true }))
 	end
 
 	if stderr ~= "" then
-		vim.list_extend(lines, vim.split(stderr, "\\n", { plain = true }))
+		vim.list_extend(lines, vim.split(stderr, "\n", { plain = true }))
 	end
 
 	if stdout == "" and stderr == "" then
@@ -167,14 +167,13 @@ local function compile_and_run_c()
 			end
 
 			table.insert(lines, "")
-			vim.list_extend(lines, { "EXECUTION" })
 
 			vim.system({ executable }, {
 				cwd = directory,
 				text = true,
 			}, function(run_result)
 				vim.schedule(function()
-					append_result(lines, "PROGRAM OUTPUT", run_result)
+					append_result(lines, "EXECUTION", run_result)
 					Output.open("C Build / Run", lines, {
 						filetype = "text",
 					})
