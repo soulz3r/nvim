@@ -11,56 +11,41 @@ function M.capabilities()
 	return capabilities
 end
 
-local function format_lua(bufnr)
-	local filename = vim.api.nvim_buf_get_name(bufnr)
-	if filename == "" then
-		return false, "The Lua buffer has no file path."
-	end
+local clangd_filetypes = {
+	c = true,
+	cpp = true,
+	objc = true,
+	objcpp = true,
+	cuda = true,
+}
 
-	local stylua = vim.fn.exepath("stylua")
-	if stylua == "" then
-		return false, "Stylua is not installed or is not available on PATH."
+local function formatter_for(bufnr)
+	local filetype = vim.bo[bufnr].filetype
+	if filetype == "lua" then
+		return "stylua"
 	end
-
-	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-	local input = table.concat(lines, "\n")
-	if vim.bo[bufnr].endofline then
-		input = input .. "\n"
+	if clangd_filetypes[filetype] then
+		return "clangd"
 	end
-
-	local ok, process = pcall(vim.system, { stylua, "--stdin-filepath", filename }, {
-		stdin = input,
-		text = true,
-	})
-	if not ok then
-		return false, tostring(process)
-	end
-
-	local result = process:wait(3000)
-	if not result then
-		pcall(process.kill, process, 15)
-		return false, "Stylua timed out after 3 seconds."
-	end
-	if result.code ~= 0 then
-		return false, vim.trim(result.stderr or "Stylua failed.")
-	end
-
-	local output = result.stdout or ""
-	local formatted = vim.split(output, "\n", { plain = true })
-	if output:sub(-1) == "\n" then
-		table.remove(formatted)
-	end
-	if #formatted == 0 then
-		formatted = { "" }
-	end
-
-	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, formatted)
-	return true
+	return nil
 end
 
 function M.format_buffer(bufnr)
-	if vim.bo[bufnr].filetype == "lua" then
-		return format_lua(bufnr)
+	local formatter = formatter_for(bufnr)
+	if not formatter then
+		return false, "No formatter is configured for this filetype."
+	end
+
+	local has_formatter = false
+	for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr, name = formatter })) do
+		if client:supports_method("textDocument/formatting", bufnr) then
+			has_formatter = true
+			break
+		end
+	end
+
+	if not has_formatter then
+		return false, ("No attached %s formatter supports this buffer."):format(formatter)
 	end
 
 	local ok, err = pcall(vim.lsp.buf.format, {
@@ -68,7 +53,7 @@ function M.format_buffer(bufnr)
 		async = true,
 		timeout_ms = 3000,
 		filter = function(active_client)
-			return active_client.name == "clangd"
+			return active_client.name == formatter
 				and active_client:supports_method("textDocument/formatting", bufnr)
 		end,
 	})
@@ -79,27 +64,9 @@ function M.format_buffer(bufnr)
 	return true
 end
 
-function M.setup_stylua_on_save()
-	local group = vim.api.nvim_create_augroup("SoulStyluaFormat", { clear = true })
-
-	vim.api.nvim_create_autocmd("BufWritePre", {
-		group = group,
-		pattern = "*.lua",
-		callback = function(args)
-			if vim.fn.executable("stylua") ~= 1 then
-				return
-			end
-
-			local ok, err = format_lua(args.buf)
-			if not ok then
-				vim.notify("Stylua formatting failed: " .. err, vim.log.levels.WARN)
-			end
-		end,
-	})
-end
-
 function M.setup_format_on_save(client, bufnr)
-	if client.name ~= "clangd" then
+	local formatter = formatter_for(bufnr)
+	if client.name ~= formatter then
 		return
 	end
 
@@ -126,7 +93,7 @@ function M.setup_format_on_save(client, bufnr)
 				async = false,
 				timeout_ms = 3000,
 				filter = function(active_client)
-					return active_client.name == "clangd"
+					return active_client.name == formatter
 						and active_client:supports_method("textDocument/formatting", bufnr)
 				end,
 			})
@@ -261,7 +228,7 @@ return {
 
 			-- Enable each server independently so one removed or broken config
 			-- cannot prevent every other language server from starting.
-			for _, server in ipairs({ "lua_ls", "clangd", "bashls", "fish_lsp" }) do
+			for _, server in ipairs({ "lua_ls", "stylua", "clangd", "bashls", "fish_lsp" }) do
 				local ok, err = pcall(vim.lsp.enable, server)
 				if not ok then
 					vim.notify(
