@@ -194,9 +194,7 @@ local function compile_and_run_c()
 		terminal_command = { "/bin/sh", "-c", command }
 	end
 
-	local terminal, terminal_error = Output.terminal("C Run", terminal_command, {
-		cwd = directory,
-	})
+	local terminal, terminal_error = Output.terminal("C Run", terminal_command, terminal_opts)
 
 	if not terminal then
 		show_error("Could not start the floating terminal:\n" .. tostring(terminal_error))
