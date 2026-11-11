@@ -1,28 +1,49 @@
-name: Lua syntax
+name: Neovim compatibility
 
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  syntax:
-    name: Check Lua syntax
+  compatibility:
+    name: Neovim ${{ matrix.channel }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        channel: [stable, nightly]
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Lua
+      - name: Set up Lua 5.1
         uses: leafo/gh-actions-lua@v10
         with:
           luaVersion: "5.1"
 
-      - name: Parse Lua files
+      - name: Install Neovim (${{ matrix.channel }})
         shell: bash
         run: |
-          find . -type f -name '*.lua' -not -path './.git/*' -print0 \
-            | xargs -0 -r -n1 luac -p
+          curl --fail --location --retry 3 \
+            "https://github.com/neovim/neovim/releases/download/${{ matrix.channel }}/nvim-linux-x86_64.tar.gz" \
+            --output /tmp/neovim.tar.gz
+          tar -xzf /tmp/neovim.tar.gz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+
+      - name: Show tool versions
+        run: |
+          nvim --version
+          lua -v
+          luac -v
+
+      - name: Run repository checks
+        env:
+          REQUIRE_LUA: "1"
+          REQUIRE_NVIM: "1"
+        run: bash scripts/check.sh
