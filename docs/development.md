@@ -8,10 +8,11 @@ Project run records and argument history are stored under `stdpath("data")/yap`.
 
 ## C tools
 
-YAP keeps the C/C++ helper functionality available without assigning default keymaps:
+YAP keeps the C/C++ helper functionality available with only one default mapping:
 
-| Command | Action |
+| Mapping / Command | Action |
 |---|---|
+| `<leader>pi` | Show project root, compile metadata, and attached LSP clients in a float (C/C++ buffers only) |
 | `:CSwitchHeader` | Switch between matching source and header files |
 | `:CInsertInclude` | Insert an include directive |
 | `:CProjectInfo` | Show project root, compile metadata, and attached LSP clients |
