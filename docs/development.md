@@ -31,4 +31,4 @@ The plugin configuration in `lua/soul/plugins/yap.lua` declares both UI librarie
 
 ## Checks
 
-Run `bash scripts/check.sh` for JSON and repository hygiene checks. When Lua 5.1 is installed, the script also parses every Lua file. When Neovim is installed, it runs a headless startup smoke test with plugins disabled.
+Run `bash scripts/check.sh` for JSON validation, deprecated/private API scans, Lua syntax checks, and a headless core/plugin-spec smoke test. GitHub Actions runs these checks against the latest Neovim stable release and nightly build. The smoke test does not install or execute third-party plugin configurations.
