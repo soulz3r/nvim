@@ -107,11 +107,14 @@ vim.api.nvim_create_autocmd({ "VimResized" }, {
   end,
 })
 
-vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
-  pattern = { "!vim" },
-  callback = function()
-    vim.cmd("checktime")
-  end,
+vim.api.nvim_create_autocmd("BufWinEnter", {
+	callback = function(args)
+		-- Only check ordinary file buffers; special/plugin buffers have no
+		-- external file timestamp to refresh.
+		if vim.bo[args.buf].buftype == "" then
+			vim.cmd.checktime()
+		end
+	end,
 })
 
 vim.api.nvim_create_autocmd({ "TextYankPost" }, {
