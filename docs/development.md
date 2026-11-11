@@ -12,7 +12,7 @@ YAP keeps the C/C++ helper functionality available with only one default mapping
 
 | Mapping / Command | Action |
 |---|---|
-| `<leader>pi` | Show project root, compile metadata, and attached LSP clients in a float (C/C++ buffers only) |
+| `<leader>pi` | Show project root, compile metadata, and attached LSP clients in a float that closes on focus loss (C/C++ buffers only) |
 | `:CSwitchHeader` | Switch between matching source and header files |
 | `:CInsertInclude` | Insert an include directive |
 | `:CProjectInfo` | Show project root, compile metadata, and attached LSP clients |
