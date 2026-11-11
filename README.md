@@ -16,7 +16,7 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Shared project metadata for last executable, arguments, and project activity
 - Project actions hub for build, run, clean, and executable selection
 - C/C++ helpers for source-header switching, include insertion, and compile metadata
-- Per-user DAP project registry stored outside the repository
+- DAP project metadata stored in YAP's shared runtime project registry
 - Telescope pickers with project-root search and Mini Files with preview and hidden-file controls
 - Mini sessions for project session save, restore, and automatic persistence
 - Mini.ai text objects, Mini.surround editing, and Mini.notify notifications
@@ -178,18 +178,22 @@ The runner opens a component-based floating window with a live operation summary
 
 YAP's direct UI dependencies are `nui.nvim` and `nui-components.nvim`, declared in `lua/soul/plugins/yap.lua`.
 
-## Local DAP state
+## Local project state
 
-The DAP registry is runtime state and is not committed to Git. It is stored under:
+YAP's project registry is runtime state and is not committed to Git. It is stored under:
 
 ```text
-stdpath("state")/soul/dap-projects.json
+stdpath("state")/yap/projects.json
 ```
 
-The configuration can migrate the previous file at `stdpath("config")/lsp/dap-projects.json` when that file is present.
+DAP stores its project marker and selected executable in the same registry, so the project picker, YAP runner, statusline, and debugger share one source of truth.
 
-**When upgrading from an older checkout:** back up the old `lsp/dap-projects.json` before switching branches or pulling changes that remove it. Restore the backup at the old path once, start Neovim, and the configuration will migrate it.
+On startup, the configuration imports older DAP-only registries from:
 
+- `stdpath("config")/lsp/dap-projects.json`
+- `stdpath("state")/soul/dap-projects.json`
+
+After a successful import, each old file is renamed with a `.migrated` suffix (or a timestamped suffix if that backup already exists). The original data is preserved as a backup.
 ## Repository layout
 
 See [docs/architecture.md](docs/architecture.md) for the module map and [docs/development.md](docs/development.md) for project metadata, C helpers, and UI conventions.
