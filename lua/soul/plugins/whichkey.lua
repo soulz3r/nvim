@@ -11,6 +11,11 @@ function M.config()
 
     spec = {
       {
+        "<leader>q",
+        group = "Save / Quit",
+        icon = icons.ui.Exit,
+      },
+      {
         "<leader>d",
         group = "Debug",
         icon = icons.diagnostics.Debug,
