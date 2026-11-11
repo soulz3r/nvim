@@ -84,7 +84,7 @@ keymap("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make e
 
 keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart Neovim" })
 keymap("n", "<leader>ni", "<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>", { desc = "Open config" })
-local Output = require("soul.ui.output")
+local Output = require("soul.core.helpers.ui.output")
 
 local function show_messages()
 	local messages = vim.api.nvim_exec2("messages", { output = true }).output
@@ -137,8 +137,16 @@ local function compile_and_run_c()
 
 	-- cmd.exe does not understand the single-quote escaping used by shellescape().
 	-- Use a temporary batch file so paths containing spaces are handled correctly.
-	local build_marker = "==================== COMPILATION ===================="
-	local execution_marker = "===================== EXECUTION ====================="
+	local float_width = math.max(1, math.min(vim.o.columns - 4, math.floor(vim.o.columns * 0.80)))
+	local function separator(label)
+		local remaining = math.max(2, float_width - #label - 2)
+		local left = math.floor(remaining / 2)
+		local right = remaining - left
+		return string.rep("=", left) .. " " .. label .. " " .. string.rep("=", right)
+	end
+
+	local build_marker = separator("COMPILATION")
+	local execution_marker = separator("EXECUTION")
 	local terminal_command
 	local terminal_opts = {
 		cwd = directory,
@@ -172,23 +180,42 @@ local function compile_and_run_c()
 			ps_quote(executable),
 			ps_quote(file),
 		}, " ")
-		terminal_opts.highlight_markers["> " .. compile_command] = "SoulMuted"
+
+		local command_lines = {}
+		local line = "> "
+		local continuation = "  "
+		for word in compile_command:gmatch("%S+") do
+			local candidate = line == "> " and (line .. word) or (line .. " " .. word)
+			if vim.fn.strdisplaywidth(candidate) > float_width then
+				table.insert(command_lines, line)
+				line = continuation .. word
+			else
+				line = candidate
+			end
+		end
+		table.insert(command_lines, line)
+
+		for _, command_line in ipairs(command_lines) do
+			terminal_opts.highlight_markers[command_line] = "SoulMuted"
+		end
 
 		local lines = {
 			"Write-Output " .. ps_quote(build_marker),
-			"Write-Output ('> ' + " .. ps_quote(compile_command) .. ")",
-			"& " .. compile_command,
-			"$compileExitCode = $LASTEXITCODE",
-			"if ($compileExitCode -ne 0) {",
-			"	Write-Output ('Compilation failed (exit code ' + $compileExitCode + ').')",
-			"	exit $compileExitCode",
-			"}",
-			"Write-Output 'Compilation successful.'",
-			"Write-Output ''",
-			"Write-Output " .. ps_quote(execution_marker),
-			"& " .. ps_quote(executable),
-			"exit $LASTEXITCODE",
 		}
+		for _, command_line in ipairs(command_lines) do
+			table.insert(lines, "Write-Output " .. ps_quote(command_line))
+		end
+		table.insert(lines, "& " .. compile_command)
+		table.insert(lines, "$compileExitCode = $LASTEXITCODE")
+		table.insert(lines, "if ($compileExitCode -ne 0) {")
+		table.insert(lines, "\tWrite-Output ('Compilation failed (exit code ' + $compileExitCode + ').')")
+		table.insert(lines, "\texit $compileExitCode")
+		table.insert(lines, "}")
+		table.insert(lines, "Write-Output 'Compilation successful.'")
+		table.insert(lines, "Write-Output ''")
+		table.insert(lines, "Write-Output " .. ps_quote(execution_marker))
+		table.insert(lines, "& " .. ps_quote(executable))
+		table.insert(lines, "exit $LASTEXITCODE")
 
 		local ok, result = pcall(vim.fn.writefile, lines, script)
 		if not ok or result ~= 0 then
