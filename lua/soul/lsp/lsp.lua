@@ -52,10 +52,7 @@ end
 function M.on_attach(client, bufnr)
 	local navic_ok, navic = pcall(require, "nvim-navic")
 
-	if navic_ok
-		and client.server_capabilities.documentSymbolProvider
-		and not navic.is_available(bufnr)
-	then
+	if navic_ok and client.server_capabilities.documentSymbolProvider and not navic.is_available(bufnr) then
 		navic.attach(client, bufnr)
 	end
 
@@ -102,7 +99,7 @@ function M.setup_keymaps(bufnr)
 			timeout_ms = 3000,
 			filter = function(client)
 				return client:supports_method("textDocument/formatting")
-					and (client.name == "clangd" or client.name == "stylua")
+					and (client.name == "clangd" or client.name == "stylua" or client.name == "fish_ls")
 			end,
 		})
 	end, "Format")
@@ -181,32 +178,12 @@ return {
 				end,
 			})
 
-			vim.lsp.config("stylua", {
-
-				cmd = {
-					"stylua",
-					"--lsp",
-				},
-
-				filetypes = {
-					"lua",
-					"luau",
-				},
-
-				root_markers = {
-					".stylua.toml",
-					"stylua.toml",
-					".git",
-				},
-
-				workspace_required = false,
-			})
-
 			vim.lsp.enable({
 				"lua_ls",
 				"stylua",
 				"clangd",
 				"bashls",
+				"fish_ls",
 			})
 
 			vim.diagnostic.config({
