@@ -37,7 +37,8 @@ Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 - `lua/soul/plugins/lualine.lua` reads the current project label from `yap.project_registry`; YAP is declared as a dependency so the registry is available before the statusline uses it.
 - `lua/soul/lsp/dap.lua` also depends on YAP because it shares project executable metadata through `yap.project_registry`.
 - `lua/soul/plugins/gitsigns.lua` registers Git mappings with WhichKey.
-- LSP capabilities use Blink.cmp when it is available. LSP keymaps are attached per buffer when a server attaches.
+- `lua/soul/plugins/breadcrumbs.lua` initializes nvim-navic and breadcrumbs.nvim; its dependencies include nvim-lspconfig and nvim-navic.
+- LSP capabilities use Blink.cmp when it is available. LSP keymaps are attached per buffer when a server attaches. The LSP attach callback connects nvim-navic to clients that support document symbols, which supplies the context rendered by breadcrumbs.nvim.
 - Render Markdown depends on Treesitter and Mini Icons. Mini Files depends on Mini Icons.
 - ToggleTerm uses the configured shell and shared float border helpers.
 
