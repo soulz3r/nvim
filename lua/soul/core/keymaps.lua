@@ -135,20 +135,51 @@ local function compile_and_run_c()
 		executable = executable .. ".exe"
 	end
 
-	-- Use one short-lived shell command, not an interactive shell prompt.
-	-- The float is visible before the compiler process starts.
+	-- cmd.exe does not understand the single-quote escaping used by shellescape().
+	-- Use a temporary batch file so paths containing spaces are handled correctly.
 	local terminal_command
-	if is_windows then
-		local command = table.concat({
-			vim.fn.shellescape(clang),
-			"-std=c23 -g -O0 -o",
-			vim.fn.shellescape(executable),
-			vim.fn.shellescape(file),
-			"&&",
-			vim.fn.shellescape(executable),
-		}, " ")
+	local terminal_opts = {
+		cwd = directory,
+	}
 
-		terminal_command = { "cmd.exe", "/d", "/q", "/c", command }
+	if is_windows then
+		local function batch_quote(path)
+			return '"' .. path:gsub("%%", "%%%%") .. '"'
+		end
+
+		local script = vim.fn.tempname() .. ".cmd"
+		local lines = {
+			"@echo off",
+			"setlocal DisableDelayedExpansion",
+			table.concat({
+				batch_quote(clang),
+				"-std=c23 -g -O0 -o",
+				batch_quote(executable),
+				batch_quote(file),
+			}, " "),
+			"if errorlevel 1 exit /b %errorlevel%",
+			batch_quote(executable),
+			"exit /b %errorlevel%",
+		}
+
+		local written, write_error = pcall(vim.fn.writefile, lines, script)
+		if not written then
+			return show_error("Could not create build script:\n" .. tostring(write_error))
+		end
+
+		terminal_command = {
+			"cmd.exe",
+			"/d",
+			"/q",
+			"/c",
+			'call "' .. script .. '"',
+		}
+
+		terminal_opts.on_exit = function()
+			vim.schedule(function()
+				vim.fn.delete(script)
+			end)
+		end
 	else
 		local command = table.concat({
 			vim.fn.shellescape(clang),
