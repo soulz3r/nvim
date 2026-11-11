@@ -4,15 +4,16 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "Missing python3. Install Python 3 to validate JSON files." >&2
+PYTHON="$(command -v python3 || command -v python || true)"
+if [[ -z "$PYTHON" ]]; then
+  echo "Missing Python 3. Install Python 3 to validate JSON files." >&2
   exit 1
 fi
 
-python3 -m json.tool lazy-lock.json >/dev/null
-python3 -m json.tool .luarc.json >/dev/null
+"$PYTHON" -m json.tool lazy-lock.json >/dev/null
+"$PYTHON" -m json.tool .luarc.json >/dev/null
 
-python3 - <<'PY'
+"$PYTHON" - <<'PY'
 import json
 import re
 import sys
