@@ -117,6 +117,9 @@ function M.terminal(title, command, opts)
 	vim.wo[win].foldcolumn = "0"
 
 	local markers = opts.highlight_markers
+	local job_opts = vim.tbl_extend("force", {}, opts)
+	job_opts.highlight_markers = nil
+
 	if type(markers) == "table" and next(markers) ~= nil then
 		local namespace = vim.api.nvim_create_namespace("SoulOutputTerminal")
 		vim.api.nvim_buf_attach(buf, false, {
@@ -225,7 +228,7 @@ function M.terminal(title, command, opts)
 	})
 
 	local ok, result = pcall(vim.api.nvim_win_call, win, function()
-		return vim.fn.termopen(command, opts)
+		return vim.fn.termopen(command, job_opts)
 	end)
 
 	if not ok or type(result) ~= "number" or result <= 0 then
