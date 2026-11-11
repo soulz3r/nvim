@@ -99,21 +99,21 @@ local function compile_and_run_c()
 	local file = vim.api.nvim_buf_get_name(0)
 
 	if file == "" then
-		return vim.notify("Current buffer has no file", vim.log.levels.WARN)
+		return vim.notify("Current buffer has no file", vim.log.levels.WARN, { title = "C Build" })
 	end
 
 	if vim.bo.filetype ~= "c" then
-		return vim.notify("Current buffer is not a C file", vim.log.levels.WARN)
+		return vim.notify("Current buffer is not a C file", vim.log.levels.WARN, { title = "C Build" })
 	end
 
 	local saved, save_error = pcall(vim.cmd, "silent update")
 	if not saved then
-		return vim.notify(save_error, vim.log.levels.ERROR)
+		return vim.notify(save_error, vim.log.levels.ERROR, { title = "C Build" })
 	end
 
 	local clang = vim.fn.exepath("clang")
 	if clang == "" then
-		return vim.notify("clang was not found in PATH", vim.log.levels.ERROR)
+		return vim.notify("clang was not found in PATH", vim.log.levels.ERROR, { title = "C Build" })
 	end
 
 	local directory = vim.fn.fnamemodify(file, ":h")
@@ -122,21 +122,9 @@ local function compile_and_run_c()
 		executable = executable .. ".exe"
 	end
 
-	local output = Output.create("C Build / Run", {
-		"Source: " .. vim.fn.fnamemodify(file, ":~:."),
-		"",
-		"COMPILING...",
-	}, {
-		filetype = "compiler",
+	vim.notify("Compiling " .. vim.fn.fnamemodify(file, ":t"), vim.log.levels.INFO, {
+		title = "C Build",
 	})
-
-	output.set_title("C Build / Run · compiling")
-
-	local function append_stream(data)
-		if data and data ~= "" then
-			output.append(data)
-		end
-	end
 
 	vim.system({
 		clang,
@@ -149,26 +137,41 @@ local function compile_and_run_c()
 	}, {
 		cwd = directory,
 		text = true,
-		stdout = function(_, data)
-			vim.schedule(function()
-				append_stream(data)
-			end)
-		end,
-		stderr = function(_, data)
-			vim.schedule(function()
-				append_stream(data)
-			end)
-		end,
 	}, function(result)
 		vim.schedule(function()
+			local compiler_output = vim.trim(table.concat({
+				result.stdout or "",
+				result.stderr or "",
+			}, "\n"))
+
 			if result.code ~= 0 then
-				output.append(("\nCompilation failed. Exit code: %d\n"):format(result.code))
-				output.set_title(("C Build / Run · compile failed (%d)"):format(result.code))
+				local message = ("Compilation failed (exit %d)"):format(result.code)
+				if compiler_output ~= "" then
+					message = message .. "\n" .. compiler_output
+				end
+
+				vim.notify(message, vim.log.levels.ERROR, {
+					title = "C Build",
+				})
 				return
 			end
 
-			output.append("\nCompilation successful.\nStarting program...\n")
-			output.set_title("C Build / Run · running")
+			if compiler_output ~= "" then
+				vim.notify("Build successful.\n" .. compiler_output, vim.log.levels.WARN, {
+					title = "C Build",
+				})
+			else
+				vim.notify("Build successful. Starting program.", vim.log.levels.INFO, {
+					title = "C Build",
+				})
+			end
+
+			local output = Output.create("C Run", {
+				"Starting " .. vim.fn.fnamemodify(file, ":t"),
+			}, {
+				filetype = "terminal",
+				wrap = false,
+			})
 
 			output.open_terminal({ executable }, {
 				cwd = directory,
