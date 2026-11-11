@@ -107,8 +107,6 @@ function M.terminal(title, command, opts)
 
 	local win = vim.api.nvim_open_win(buf, true, window_config(title or "Terminal", opts))
 	floats.apply(win)
-
-	-- Show the floating terminal before starting the child process.
 	vim.cmd("redraw!")
 
 	vim.wo[win].wrap = false
@@ -134,6 +132,38 @@ function M.terminal(title, command, opts)
 		end
 	end
 
+	local terminal = {
+		buf = buf,
+		win = win,
+	}
+
+	function terminal.is_open()
+		return vim.api.nvim_win_is_valid(win) and vim.api.nvim_buf_is_valid(buf)
+	end
+
+	function terminal.send(value)
+		if not terminal.is_open() or not job then
+			return false
+		end
+
+		local ok = pcall(vim.api.nvim_chan_send, job, value)
+		return ok
+	end
+
+	function terminal.set_title(value)
+		if not terminal.is_open() then
+			return
+		end
+
+		local config = vim.api.nvim_win_get_config(win)
+		config.title = " " .. value .. " "
+		vim.api.nvim_win_set_config(win, config)
+	end
+
+	function terminal.close()
+		close()
+	end
+
 	map_close_keys(buf, close)
 	vim.keymap.set("t", "<C-q>", close, { buffer = buf, silent = true, nowait = true })
 
@@ -146,22 +176,6 @@ function M.terminal(title, command, opts)
 			end
 		end,
 	})
-
-	local user_on_exit = opts.on_exit
-	opts.on_exit = function(_, code, event)
-		vim.schedule(function()
-			job = nil
-			if vim.api.nvim_win_is_valid(win) and vim.api.nvim_buf_is_valid(buf) then
-				local config = vim.api.nvim_win_get_config(win)
-				config.title = (" %s · exit %d "):format(title or "Terminal", code or -1)
-				vim.api.nvim_win_set_config(win, config)
-			end
-
-			if user_on_exit then
-				user_on_exit(code, event)
-			end
-		end)
-	end
 
 	local ok, result = pcall(vim.api.nvim_win_call, win, function()
 		return vim.fn.termopen(command, opts)
@@ -179,14 +193,10 @@ function M.terminal(title, command, opts)
 	end
 
 	job = result
+	terminal.job = job
 	vim.api.nvim_set_current_win(win)
 	vim.cmd.startinsert()
-	return {
-		buf = buf,
-		win = win,
-		job = job,
-		close = close,
-	}
+	return terminal
 end
 
 function M.open(title, content, opts)
