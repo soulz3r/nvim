@@ -19,7 +19,8 @@ return {
 				sort = MiniNotify.default_sort,
 			},
 			lsp_progress = {
-				enable = false,
+				enable = true,
+				level = "INFO",
 			},
 			window = {
 				config = function()
