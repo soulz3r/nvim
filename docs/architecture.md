@@ -56,7 +56,7 @@ YAP's project switcher and runner use `nui-components.nvim` on top of `nui.nvim`
 
 WSL detection uses WSL environment variables and Linux kernel information. It identifies the OS running Neovim, not the filesystem containing the current project. Run Neovim inside the WSL distribution to use the WSL profile; opening a WSL filesystem from Windows Neovim remains the Windows profile.
 
-Machine-specific tool paths belong in `lua/soul/core/helpers/paths.lua`. Use `PROJECTS_DIR`, `LLDB_DAP`, and `PWSH` to override the defaults without changing the shared configuration.
+Machine-specific tool paths belong in `lua/soul/core/helpers/paths.lua`. Use `PROJECTS_DIR`, `LLDB_DAP`, `PWSH`, and `CLANG` to override the defaults without changing the shared configuration. The C runner and editor shell use the same resolved executable paths.
 
 ## LSP and debugging
 
