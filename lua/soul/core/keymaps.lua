@@ -172,6 +172,8 @@ local function compile_and_run_c()
 			ps_quote(executable),
 			ps_quote(file),
 		}, " ")
+		terminal_opts.highlight_markers["> " .. compile_command] = "SoulMuted"
+
 		local lines = {
 			"Write-Output " .. ps_quote(build_marker),
 			"Write-Output ('> ' + " .. ps_quote(compile_command) .. ")",
