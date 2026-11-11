@@ -1,5 +1,6 @@
 local M = {
   "lewis6991/gitsigns.nvim",
+  dependencies = { "folke/which-key.nvim" },
   event = "BufEnter",
   cmd = "Gitsigns",
 }
