@@ -3,7 +3,7 @@
 ## Supported runtime
 
 - **Neovim:** 0.12 or newer.
-- **Neovide:** settings are isolated in `lua/soul/core/neovide.lua`. The current configuration uses documented settings, including options introduced in Neovide 0.14 and 0.16.
+- **Neovide:** 0.16 or newer is recommended for the complete GUI configuration. Settings are isolated in `lua/soul/core/neovide.lua` and use documented options, including options introduced in Neovide 0.14 and 0.16. Terminal Neovim does not depend on Neovide.
 - **Platforms:** Windows, WSL, Linux, macOS, and Termux where the required external tools are available.
 
 The configuration checks its Neovim minimum at startup and stops with a clear error on older versions rather than failing later on a missing API.
