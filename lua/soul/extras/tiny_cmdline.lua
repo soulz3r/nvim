@@ -19,6 +19,7 @@ function M.config()
 	local function notify_message(kind, content)
 		local levels = {
 			emsg = vim.log.levels.ERROR,
+			lua_error = vim.log.levels.ERROR,
 			echoerr = vim.log.levels.ERROR,
 			rpc_error = vim.log.levels.ERROR,
 			shell_err = vim.log.levels.WARN,
