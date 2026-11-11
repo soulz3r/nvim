@@ -48,6 +48,28 @@ M.config = function()
 		return platform.is_windows and root:lower() or root
 	end
 
+	local function is_executable(path)
+		return type(path) == "string"
+			and path ~= ""
+			and fn.executable(path) == 1
+	end
+
+	local function is_within(path, root)
+		path = project_key(path)
+		root = project_key(root)
+
+		if not path or not root then
+			return false
+		end
+
+		if path == root then
+			return true
+		end
+
+		local prefix = root:sub(-1) == "/" and root or (root .. "/")
+		return path:sub(1, #prefix) == prefix
+	end
+
 	local function read_json(path)
 		local file = io.open(path, "r")
 		if not file then
@@ -347,24 +369,46 @@ M.config = function()
 			table.insert(found, executable)
 		end
 
-		local directories = {
-			root .. "/bin",
-			root .. "/build",
-			root .. "/build/Debug",
-			root .. "/build/Release",
-			root .. "/Debug",
-			root .. "/Release",
-			root,
+		local ignored_directories = {
+			[".git"] = true,
+			["node_modules"] = true,
+			[".venv"] = true,
+			["venv"] = true,
 		}
 
-		for _, directory in ipairs(directories) do
-			if fn.isdirectory(directory) == 1 then
-				for name, kind in vim.fs.dir(directory) do
-					if kind == "file" then
-						add(directory .. "/" .. name)
-					end
+		local function scan(directory, depth, recursive)
+			if fn.isdirectory(directory) ~= 1 then
+				return
+			end
+
+			local ok, entries = pcall(vim.fs.dir, directory)
+			if not ok then
+				return
+			end
+
+			for name, kind in entries do
+				local path = directory .. "/" .. name
+
+				if kind == "file" then
+					add(path)
+				elseif recursive and kind == "directory"
+					and depth < 3 and not ignored_directories[name]
+				then
+					scan(path, depth + 1, true)
 				end
 			end
+		end
+
+		-- Root-level files are cheap to inspect. Search output directories
+		-- recursively, but keep traversal bounded and avoid dependency trees.
+		scan(root, 0, false)
+		for _, directory in ipairs({
+			root .. "/bin",
+			root .. "/build",
+			root .. "/Debug",
+			root .. "/Release",
+		}) do
+			scan(directory, 0, true)
 		end
 
 		table.sort(found, function(a, b)
