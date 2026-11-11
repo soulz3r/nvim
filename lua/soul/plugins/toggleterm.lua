@@ -121,19 +121,9 @@ function M.config()
     augroup END
   ]])
 
-	local function set_terminal_keymaps(bufnr)
-		local opts = {
-			buffer = bufnr,
-			noremap = true,
-			silent = true,
-		}
-	end
-
 	vim.api.nvim_create_autocmd("TermEnter", {
-		pattern = "*",
-		callback = function(args)
-			set_terminal_keymaps(args.buf)
-			vim.cmd("startinsert")
+		callback = function()
+			vim.cmd.startinsert()
 		end,
 	})
 	vim.api.nvim_create_autocmd("TermOpen", {
