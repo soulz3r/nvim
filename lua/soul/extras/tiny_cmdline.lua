@@ -60,9 +60,14 @@ function M.config()
 				return
 			end
 
-			local message = table.concat(vim.tbl_map(function(chunk)
-				return type(chunk) == "table" and tostring(chunk[2] or "") or tostring(chunk)
-			end, content or {}))
+			local message
+			if type(content) == "table" then
+				message = table.concat(vim.tbl_map(function(chunk)
+					return type(chunk) == "table" and tostring(chunk[2] or "") or tostring(chunk)
+				end, content))
+			else
+				message = tostring(content or "")
+			end
 			message = vim.trim(message)
 
 			if message == "" then
