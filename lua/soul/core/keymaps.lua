@@ -95,27 +95,6 @@ end
 
 keymap("n", "<leader>nm", show_messages, OPTS("Show messages in floating window"))
 
-local function append_result(lines, label, result)
-	table.insert(lines, label)
-
-	local stdout = vim.trim(result.stdout or "")
-	local stderr = vim.trim(result.stderr or "")
-
-	if stdout ~= "" then
-		vim.list_extend(lines, vim.split(stdout, "\n", { plain = true }))
-	end
-
-	if stderr ~= "" then
-		vim.list_extend(lines, vim.split(stderr, "\n", { plain = true }))
-	end
-
-	if stdout == "" and stderr == "" then
-		table.insert(lines, "No output.")
-	end
-
-	table.insert(lines, ("Exit code: %d"):format(result.code))
-end
-
 local function compile_and_run_c()
 	local file = vim.api.nvim_buf_get_name(0)
 
@@ -143,12 +122,23 @@ local function compile_and_run_c()
 		executable = executable .. ".exe"
 	end
 
-	local lines = {
+	local output = Output.create("C Build / Run", {
 		"Source: " .. vim.fn.fnamemodify(file, ":~:."),
 		"",
-	}
+		"COMPILING...",
+	}, {
+		filetype = "compiler",
+	})
 
-	local command = {
+	output.set_title("C Build / Run · compiling")
+
+	local function append_stream(data)
+		if data and data ~= "" then
+			output.append(data)
+		end
+	end
+
+	vim.system({
 		clang,
 		"-std=c23",
 		"-g",
@@ -156,34 +146,33 @@ local function compile_and_run_c()
 		"-o",
 		executable,
 		file,
-	}
-
-	vim.system(command, {
+	}, {
 		cwd = directory,
 		text = true,
-	}, function(compile_result)
+		stdout = function(_, data)
+			vim.schedule(function()
+				append_stream(data)
+			end)
+		end,
+		stderr = function(_, data)
+			vim.schedule(function()
+				append_stream(data)
+			end)
+		end,
+	}, function(result)
 		vim.schedule(function()
-			append_result(lines, "COMPILATION", compile_result)
-
-			if compile_result.code ~= 0 then
-				return Output.open("C Build", lines, {
-					filetype = "compiler",
-				})
+			if result.code ~= 0 then
+				output.append(("\\nCompilation failed. Exit code: %d\\n"):format(result.code))
+				output.set_title(("C Build / Run · compile failed (%d)"):format(result.code))
+				return
 			end
 
-			table.insert(lines, "")
+			output.append("\\nCompilation successful.\\nStarting program...\\n")
+			output.set_title("C Build / Run · running")
 
-			vim.system({ executable }, {
+			output.open_terminal({ executable }, {
 				cwd = directory,
-				text = true,
-			}, function(run_result)
-				vim.schedule(function()
-					append_result(lines, "EXECUTION", run_result)
-					Output.open("C Build / Run", lines, {
-						filetype = "text",
-					})
-				end)
-			end)
+			})
 		end)
 	end)
 end
