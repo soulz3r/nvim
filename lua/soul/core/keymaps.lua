@@ -328,3 +328,6 @@ keymap("n", "<leader>u", function()
 end, { desc = "Undotree" })
 
 keymap("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
+vim.keymap.set("t", ",,", [[<C-\><C-n>]], {
+	desc = "Terminal Normal Mode",
+})

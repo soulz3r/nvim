@@ -127,11 +127,6 @@ function M.config()
 			noremap = true,
 			silent = true,
 		}
-
-		vim.keymap.set("t", "<M-h>", [[<C-\><C-n><C-W>h]], opts)
-		vim.keymap.set("t", "<M-j>", [[<C-\><C-n><C-W>j]], opts)
-		vim.keymap.set("t", "<M-k>", [[<C-\><C-n><C-W>k]], opts)
-		vim.keymap.set("t", "<M-l>", [[<C-\><C-n><C-W>l]], opts)
 	end
 
 	vim.api.nvim_create_autocmd("TermEnter", {
