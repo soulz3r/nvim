@@ -61,9 +61,7 @@ end
 
 if platform.is_windows and (vim.env.REQUIRE_PWSH == "1" or pwsh_on_path) then
 	assert(
-		type(resolved_paths.pwsh) == "string"
-			and resolved_paths.pwsh ~= ""
-			and resolved_paths.pwsh ~= "pwsh",
+		type(resolved_paths.pwsh) == "string" and resolved_paths.pwsh ~= "" and resolved_paths.pwsh ~= "pwsh",
 		"PowerShell 7 must resolve to a concrete Windows executable path"
 	)
 	assert(
