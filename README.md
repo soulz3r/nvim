@@ -27,7 +27,7 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Minimal context-aware Lualine statusline with project and LSP indicators
 - Shared floating-window helpers and centralized Everforest palette/highlights
 - Consistent rounded borders and transparent float backgrounds across editor and plugin UI
-- Windows and Linux path, shell, clipboard, and debugger handling
+- Windows, WSL, and Linux path, shell, clipboard, compiler, and debugger handling
 
 ## Requirements
 
@@ -138,7 +138,8 @@ See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry det
 |---|---|---|
 | `PROJECTS_DIR` | Base directory for YAP project picker and project discovery | Windows: `D:/config/projects`; Linux: `~/projects` |
 | `LLDB_DAP` | Full path or command name for `lldb-dap` | Windows LLVM path; Linux `lldb-dap` |
-| `PWSH` | PowerShell executable used by the configured shell | `pwsh` or `pwsh.exe` |
+| `PWSH` | PowerShell executable used by the configured shell and C runner | `pwsh` or `pwsh.exe` |
+| `CLANG` | Clang executable used by the C compile/run keymap | `clang` from `PATH` |
 
 ## Projects
 
