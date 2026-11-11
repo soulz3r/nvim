@@ -141,7 +141,7 @@ local function compile_and_run_c()
 		return show_error("Could not open the floating terminal:\n" .. tostring(terminal_error))
 	end
 
-	terminal.send("echo Compiling...\\r")
+	terminal.send("echo Compiling..." .. string.char(13))
 
 	vim.system({
 		clang,
