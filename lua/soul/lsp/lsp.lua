@@ -143,12 +143,25 @@ return {
 	{
 		"neovim/nvim-lspconfig",
 
+		dependencies = {
+			"SmiteshP/nvim-navic",
+		},
+
 		event = {
 			"BufReadPre",
 			"BufNewFile",
 		},
 
 		config = function()
+			require("nvim-navic").setup({
+				lsp = {
+					auto_attach = false,
+				},
+				highlight = true,
+				separator = " ",
+				safe_output = true,
+			})
+
 			vim.lsp.config("*", {
 				capabilities = M.capabilities(),
 			})
