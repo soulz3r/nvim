@@ -25,6 +25,19 @@ local function find_powershell()
 		return pwsh
 	end
 
+	-- `exepath()` may not recognize Windows App Execution Aliases (MSIX).
+	-- `where.exe` can still resolve the aliases exposed through PATH.
+	if platform.is_windows then
+		local matches = vim.fn.systemlist({ "where.exe", "pwsh.exe" })
+		if vim.v.shell_error == 0 then
+			for _, path in ipairs(matches) do
+				if path ~= "" then
+					return path
+				end
+			end
+		end
+	end
+
 	if platform.is_windows then
 		local program_files = vim.env.ProgramFiles or "C:/Program Files"
 		local pwsh_path = program_files .. "/PowerShell/7/pwsh.exe"
