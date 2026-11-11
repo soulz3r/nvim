@@ -12,9 +12,9 @@ YAP provides the C/C++ helpers:
 
 | Mapping | Action |
 |---|---|
-| `<leader>pch` | Switch between matching source and header files |
-| `<leader>pci` | Insert an include directive |
-| `<leader>pcI` | Show project root, compile metadata, and attached LSP clients |
+| `<leader>ch` | Switch between matching source and header files |
+| `<leader>ci` | Insert an include directive |
+| `<leader>pi` | Show project root, compile metadata, and attached LSP clients |
 
 Commands: `:CProjectInfo` and `:CSwitchHeader`.
 
