@@ -28,10 +28,14 @@ if command -v nvim >/dev/null 2>&1; then
     --cmd "lua package.path = './lua/?.lua;./lua/?/init.lua;' .. package.path" \
     -c "lua require('soul.launch')" \
     -c "lua assert(require('soul.core.platform').name)" \
-    -c "lua assert(require('soul.core.helpers.paths'))" \
-    -c "lua assert(require('soul.core.helpers.ui'))" \
-    -c "lua assert(require('soul.core.helpers.ui.output'))" \
-    -c "lua assert(type(require('soul.plugins.mini')) == 'table')" \
+    -c "lua require('soul.core.helpers.paths')" \
+    -c "lua require('soul.core.options')" \
+    -c "lua require('soul.core.keymaps')" \
+    -c "lua require('soul.core.autocmds')" \
+    -c "lua require('soul.core.helpers.ui')" \
+    -c "lua require('soul.core.helpers.ui.output')" \
+    -c "lua require('soul.core.neovide')" \
+    -c "lua local modules = { 'soul.plugins.alpha', 'soul.plugins.breadcrumbs', 'soul.plugins.devicons', 'soul.plugins.gitsigns', 'soul.plugins.lualine', 'soul.plugins.mini', 'soul.plugins.render_md', 'soul.plugins.telescope', 'soul.plugins.yap', 'soul.plugins.toggleterm', 'soul.plugins.treesitter', 'soul.plugins.whichkey', 'soul.lsp.lsp', 'soul.lsp.dap', 'soul.cmp.blink', 'soul.extras.colorizer', 'soul.extras.everforest', 'soul.extras.eyeliner', 'soul.extras.tiny_cmdline', 'soul.extras.todo', 'soul.extras.ufo' }; for _, name in ipairs(modules) do local ok, spec = pcall(require, name); assert(ok, name .. ': ' .. tostring(spec)); assert(type(spec) == 'table', name .. ' did not return a spec table'); end" \
     -c "qa!"
   echo "Neovim module smoke tests passed."
 fi
