@@ -13,41 +13,14 @@ return {
 			return time and (message .. " │ " .. time) or message
 		end
 
-		local function sort_notifications(notifications)
-			local sorted = MiniNotify.default_sort(notifications)
-			local seen = {}
-
-			return vim.tbl_filter(function(notif)
-				local is_lsp_progress = notif.hl_group == "MiniNotifyLspProgress"
-					or (notif.data and notif.data.source == "lsp_progress")
-
-				if not is_lsp_progress then
-					return true
-				end
-
-				local message = vim.trim(tostring(notif.msg or "")):gsub("%s+", " ")
-				local key = table.concat({
-					tostring(notif.data and notif.data.client_name or ""),
-					message,
-				}, "\\0")
-
-				if seen[key] then
-					return false
-				end
-
-				seen[key] = true
-				return true
-			end, sorted)
-		end
-
 		MiniNotify.setup({
 			content = {
 				format = format_notification,
-				sort = sort_notifications,
+				sort = MiniNotify.default_sort,
 			},
+			-- Progress is handled below, once per client instead of once per token.
 			lsp_progress = {
-				enable = true,
-				level = "INFO",
+				enable = false,
 			},
 			window = {
 				config = function()
@@ -86,8 +59,7 @@ return {
 			WARN = { duration = 7000, hl_group = "DiagnosticWarn" },
 		})
 
-		-- All vim.notify() calls pass through this gate. MiniNotify receives
-		-- warnings and errors only; informational noise is deliberately dropped.
+		-- Keep routine INFO messages quiet while preserving warnings and errors.
 		vim.notify = function(message, level, opts)
 			level = level or vim.log.levels.INFO
 
@@ -98,6 +70,114 @@ return {
 			return mini_notify(message, level, opts)
 		end
 
+		-- LuaLS can report the same workspace operation under multiple progress
+		-- tokens. Track those tokens, but render only one notification per client.
+		local progress_by_client = {}
+		local progress_group = vim.api.nvim_create_augroup("SoulLspProgress", {
+			clear = true,
+		})
+
+		local function render_progress(client_id, state)
+			local latest
+
+			for _, progress in pairs(state.tokens) do
+				if not latest or progress.updated_at > latest.updated_at then
+					latest = progress
+				end
+			end
+
+			if not latest then
+				vim.defer_fn(function()
+					if progress_by_client[client_id] ~= state or next(state.tokens) ~= nil then
+						return
+					end
+
+					MiniNotify.remove(state.notification_id)
+					progress_by_client[client_id] = nil
+				end, 1000)
+				return
+			end
+
+			local message = latest.title or latest.message or "Working"
+			if latest.title and latest.message and latest.message ~= latest.title then
+				message = message .. ": " .. latest.message
+			end
+			if type(latest.percentage) == "number" then
+				message = message .. (" (%d%%)"):format(math.floor(latest.percentage))
+			end
+
+			message = state.client_name .. ": " .. message
+			local data = {
+				source = "lsp_progress",
+				client_id = client_id,
+				client_name = state.client_name,
+			}
+
+			if state.notification_id then
+				MiniNotify.update(state.notification_id, {
+					msg = message,
+					data = data,
+				})
+			else
+				state.notification_id = MiniNotify.add(
+					message,
+					"INFO",
+					"MiniNotifyLspProgress",
+					data
+				)
+			end
+		end
+
+		vim.api.nvim_create_autocmd("LspProgress", {
+			group = progress_group,
+			callback = function(event)
+				local client_id = event.data.client_id
+				local client = vim.lsp.get_client_by_id(client_id)
+				local params = event.data.params
+				local value = params and params.value
+				local token = params and params.token
+
+				if not client or token == nil or type(value) ~= "table" then
+					return
+				end
+
+				local state = progress_by_client[client_id]
+				if not state then
+					state = {
+						client_name = client.name,
+						tokens = {},
+					}
+					progress_by_client[client_id] = state
+				end
+
+				if value.kind == "end" then
+					state.tokens[token] = nil
+				else
+					local previous = state.tokens[token] or {}
+					state.tokens[token] = {
+						title = value.title or previous.title,
+						message = value.message,
+						percentage = value.percentage,
+						updated_at = vim.uv.hrtime(),
+					}
+				end
+
+				render_progress(client_id, state)
+			end,
+		})
+
+		vim.api.nvim_create_autocmd("LspDetach", {
+			group = progress_group,
+			callback = function(event)
+				local client_id = event.data.client_id
+				local state = progress_by_client[client_id]
+
+				if state then
+					MiniNotify.remove(state.notification_id)
+					progress_by_client[client_id] = nil
+				end
+			end,
+		})
 
 		vim.keymap.set("n", "<leader>nc", MiniNotify.clear, {
 			desc = "Clear notifications",
