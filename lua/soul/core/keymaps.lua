@@ -129,61 +129,47 @@ local function compile_and_run_c()
 
 	local directory = vim.fn.fnamemodify(file, ":h")
 	local executable = vim.fn.fnamemodify(file, ":r")
-	if vim.fn.has("win32") == 1 then
+	local is_windows = vim.fn.has("win32") == 1
+
+	if is_windows then
 		executable = executable .. ".exe"
 	end
 
-	-- Open the terminal first. Compilation happens only after it is visible.
-	local terminal, terminal_error = Output.terminal("C Run · Compiling", { vim.o.shell }, {
-		cwd = directory,
-	})
-	if not terminal then
-		return show_error("Could not open the floating terminal:\n" .. tostring(terminal_error))
+	-- Use one short-lived shell command, not an interactive shell prompt.
+	-- The float is visible before the compiler process starts.
+	local terminal_command
+	if is_windows then
+		local command = table.concat({
+			vim.fn.shellescape(clang),
+			"-std=c23 -g -O0 -o",
+			vim.fn.shellescape(executable),
+			vim.fn.shellescape(file),
+			"&&",
+			vim.fn.shellescape(executable),
+		}, " ")
+
+		terminal_command = { "cmd.exe", "/d", "/q", "/c", command }
+	else
+		local command = table.concat({
+			vim.fn.shellescape(clang),
+			"-std=c23 -g -O0 -o",
+			vim.fn.shellescape(executable),
+			vim.fn.shellescape(file),
+			"&&",
+			"exec",
+			vim.fn.shellescape(executable),
+		}, " ")
+
+		terminal_command = { "/bin/sh", "-c", command }
 	end
 
-	terminal.send("echo Compiling..." .. string.char(13))
-
-	vim.system({
-		clang,
-		"-std=c23",
-		"-g",
-		"-O0",
-		"-o",
-		executable,
-		file,
-	}, {
+	local terminal, terminal_error = Output.terminal("C Run", terminal_command, {
 		cwd = directory,
-		text = true,
-	}, function(result)
-		vim.schedule(function()
-			if not terminal.is_open() then
-				return
-			end
+	})
 
-			local compiler_output = vim.trim(table.concat({
-				result.stdout or "",
-				result.stderr or "",
-			}, "\n"))
-
-			if result.code ~= 0 then
-				terminal.close()
-
-				local message = ("Compilation failed (exit %d)"):format(result.code)
-				if compiler_output ~= "" then
-					message = message .. "\n\n" .. compiler_output
-				end
-				show_error(message)
-				return
-			end
-
-			terminal.set_title("C Run")
-			local command_line = vim.fn.shellescape(executable) .. "\r"
-			if not terminal.send(command_line) then
-				terminal.close()
-				show_error("Compilation succeeded, but the executable could not be sent to the terminal.")
-			end
-		end)
-	end)
+	if not terminal then
+		show_error("Could not start the floating terminal:\n" .. tostring(terminal_error))
+	end
 end
 
 keymap("n", "<leader>X", compile_and_run_c, OPTS("Compile and run C file"))
