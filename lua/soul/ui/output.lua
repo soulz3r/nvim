@@ -126,17 +126,38 @@ function M.terminal(title, command, opts)
 				end
 
 				local lines = vim.api.nvim_buf_get_lines(changed_buf, firstline, new_lastline, false)
+				local matches = {}
+
 				for offset, line in ipairs(lines) do
-					local group = markers[line:gsub("\\r$", "")]
+					local normalized = line:gsub("\r$", "")
+					local group = markers[normalized]
 					if group then
-						local row = firstline + offset - 1
-						vim.api.nvim_buf_set_extmark(changed_buf, namespace, row, 0, {
-							end_row = row,
-							end_col = #line,
-							hl_group = group,
-							priority = 200,
+						table.insert(matches, {
+							row = firstline + offset - 1,
+							line = normalized,
+							group = group,
 						})
 					end
+				end
+
+				if #matches > 0 then
+					vim.schedule(function()
+						if not vim.api.nvim_buf_is_valid(changed_buf) then
+							return
+						end
+
+						for _, match in ipairs(matches) do
+							local current = vim.api.nvim_buf_get_lines(changed_buf, match.row, match.row + 1, false)[1]
+							if current and current:gsub("\r$", "") == match.line then
+								vim.api.nvim_buf_set_extmark(changed_buf, namespace, match.row, 0, {
+									end_row = match.row,
+									end_col = #current,
+									hl_group = match.group,
+									priority = 200,
+								})
+							end
+						end
+					end)
 				end
 			end,
 		})
