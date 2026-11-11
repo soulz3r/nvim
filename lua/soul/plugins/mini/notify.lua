@@ -64,31 +64,64 @@ return {
 			OFF = { duration = 0, hl_group = "MiniNotifyNormal" },
 		})
 
-		local readonly_warning_ns = vim.api.nvim_create_namespace("soul.readonly_warning")
+		local message_ns = vim.api.nvim_create_namespace("soul.message_notifications")
 		if vim.ui_detach then
-			pcall(vim.ui_detach, readonly_warning_ns)
+			pcall(vim.ui_detach, message_ns)
 		end
 
 		if vim.ui_attach then
-			vim.ui_attach(readonly_warning_ns, { ext_messages = true }, function(event, kind, chunks)
-				if event ~= "msg_show" or kind ~= "wmsg" then
+			vim.ui_attach(message_ns, { ext_messages = true }, function(event, kind, chunks)
+				if event ~= "msg_show" then
+					return false
+				end
+
+				-- Keep interactive prompts native. These require input rather than
+				-- merely reporting something, so turning them into notifications
+				-- would make command-line workflows awkward or break them.
+				if kind == "return_prompt" then
 					return false
 				end
 
 				local message = table.concat(vim.tbl_map(function(chunk)
-					return chunk[2]
-				end, chunks))
+					return type(chunk) == "table" and tostring(chunk[2] or "") or tostring(chunk)
+				end, chunks or {}))
+				message = vim.trim(message)
 
-				if not message:find("W10", 1, true) and not message:find("Changing a readonly file", 1, true) then
-					return false
+				if message == "" then
+					return true
+				end
+
+				local levels = {
+					emsg = { level = vim.log.levels.ERROR, title = "ERROR" },
+					echoerr = { level = vim.log.levels.ERROR, title = "ERROR" },
+					wmsg = { level = vim.log.levels.WARN, title = "WARNING" },
+					echomsg = { level = vim.log.levels.INFO, title = "MESSAGE" },
+					echo = { level = vim.log.levels.INFO, title = "MESSAGE" },
+					lua_print = { level = vim.log.levels.INFO, title = "PRINT" },
+					quickfix = { level = vim.log.levels.WARN, title = "QUICKFIX" },
+				}
+				local notification = levels[kind] or {
+					level = vim.log.levels.INFO,
+					title = "NEOVIM",
+				}
+
+				if message:find("W10", 1, true)
+					or message:find("Changing a readonly file", 1, true)
+				then
+					message = "This buffer is read-only. Changes are disabled."
+					notification = {
+						level = vim.log.levels.WARN,
+						title = "READ-ONLY",
+					}
 				end
 
 				vim.schedule(function()
-					vim.notify("This buffer is read-only. Changes are disabled.", vim.log.levels.WARN, {
-						title = "READ-ONLY",
+					vim.notify(message, notification.level, {
+						title = notification.title,
 					})
 				end)
 
+				-- Consume the message so it never reaches the command area.
 				return true
 			end)
 		end
