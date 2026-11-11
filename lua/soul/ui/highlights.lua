@@ -4,6 +4,7 @@ local groups = {
   SoulSectionTitle = { link = "Title" },
   SoulMuted = { link = "Comment" },
   SoulSuccess = { link = "DiagnosticOk" },
+  SoulExecutionSeparator = { link = "SoulSuccess", bold = true },
   SoulWarning = { link = "DiagnosticWarn" },
   SoulError = { link = "DiagnosticError" },
 }
