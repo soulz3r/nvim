@@ -25,12 +25,14 @@ local function find_powershell()
 		return pwsh
 	end
 
-	-- `exepath()` may not recognize Windows App Execution Aliases (MSIX).
-	-- `where.exe` can still resolve the aliases exposed through PATH.
+	-- exepath() may not recognize Windows App Execution Aliases (MSIX).
+	-- Prefer the generic WindowsApps alias over package-specific alias paths,
+	-- which may be listed by where.exe but cannot be spawned directly.
 	if platform.is_windows then
 		local matches = vim.fn.systemlist({ "where.exe", "pwsh.exe" })
 		if vim.v.shell_error == 0 then
-			for _, path in ipairs(matches) do
+			for i = #matches, 1, -1 do
+				local path = vim.trim(matches[i])
 				if path ~= "" then
 					return path
 				end
