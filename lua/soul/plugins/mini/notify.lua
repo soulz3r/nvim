@@ -58,13 +58,23 @@ function M.config()
 	local mini_notify = MiniNotify.make_notify({
 		ERROR = { duration = 10000, hl_group = "DiagnosticError" },
 		WARN = { duration = 7000, hl_group = "DiagnosticWarn" },
+		INFO = { duration = 3500, hl_group = "MiniNotifyNormal" },
 	})
 
-	-- Keep routine INFO messages quiet while preserving warnings and errors.
+	-- Keep untitled routine INFO messages quiet, but allow explicit
+	-- user-facing confirmations through the standard vim.notify title option.
 	vim.notify = function(message, level, opts)
 		level = level or vim.log.levels.INFO
+		opts = opts or {}
 
-		if level ~= vim.log.levels.ERROR and level ~= vim.log.levels.WARN then
+		if level == vim.log.levels.INFO and not opts.title then
+			return
+		end
+
+		if level ~= vim.log.levels.ERROR
+			and level ~= vim.log.levels.WARN
+			and level ~= vim.log.levels.INFO
+		then
 			return
 		end
 
