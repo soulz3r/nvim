@@ -139,6 +139,9 @@ Mini.ai provides additional built-in text objects for arguments, function calls,
 
 | Mapping | Action |
 |---|---|
+| `<leader>X` | Compile and run the current C file in an interactive floating terminal |
+| `<leader>x` | Add executable permission on POSIX systems; explain the Windows limitation on Windows |
+|---|---|
 | `Ctrl-\\` | Toggle the default terminal |
 | `Alt-1` | Horizontal terminal |
 | `Alt-2` | Vertical terminal |
