@@ -395,6 +395,7 @@ M.config = function()
 	-- =========================================================
 
 	local function select_project()
+		projects = load_projects()
 		local entries = {}
 
 		for key, entry in pairs(projects) do
