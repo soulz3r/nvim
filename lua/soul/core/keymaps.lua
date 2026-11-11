@@ -135,8 +135,8 @@ local function compile_and_run_c()
 		executable = executable .. ".exe"
 	end
 
-	-- cmd.exe does not understand the single-quote escaping used by shellescape().
-	-- Use a temporary batch file so paths containing spaces are handled correctly.
+	-- Build the command display from the same arguments passed to Clang.
+	-- Its separators and wrapped lines use the floating window's actual width.
 	local float_width = math.max(1, math.min(vim.o.columns - 4, math.floor(vim.o.columns * 0.80)))
 	local function separator(label)
 		local remaining = math.max(2, float_width - #label - 2)
