@@ -181,12 +181,33 @@ local function compile_and_run_c()
 			ps_quote(file),
 		}, " ")
 
+		local words = {}
+		local current = {}
+		local quoted = false
+		for i = 1, #compile_command do
+			local char = compile_command:sub(i, i)
+			if char == "'" then
+				quoted = not quoted
+			end
+			if char:match("%s") and not quoted then
+				if #current > 0 then
+					table.insert(words, table.concat(current))
+					current = {}
+				end
+			else
+				table.insert(current, char)
+			end
+		end
+		if #current > 0 then
+			table.insert(words, table.concat(current))
+		end
+
 		local command_lines = {}
 		local line = "> "
 		local continuation = "  "
-		for word in compile_command:gmatch("%S+") do
+		for _, word in ipairs(words) do
 			local candidate = line == "> " and (line .. word) or (line .. " " .. word)
-			if vim.fn.strdisplaywidth(candidate) > float_width then
+			if vim.fn.strdisplaywidth(candidate) > float_width and line ~= "> " then
 				table.insert(command_lines, line)
 				line = continuation .. word
 			else
