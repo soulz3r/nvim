@@ -64,7 +64,7 @@ vim.opt.fillchars:append({
 
 vim.opt.shortmess:append("c")
 
-vim.opt.winborder = require("soul.ui.floats").style
+vim.opt.winborder = require("soul.core.helpers.ui.floats").style
 
 vim.cmd("set whichwrap+=<,>,[,],h,l")
 vim.cmd([[set iskeyword+=-]])
@@ -89,7 +89,7 @@ if vim.fn.has("wsl") == 1 then
 	}
 end
 
-local paths = require("soul.core.paths")
+local paths = require("soul.core.helpers.paths")
 if paths.is_windows then
 	vim.opt.shell = paths.pwsh
 	vim.opt.shellcmdflag = "-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command"
