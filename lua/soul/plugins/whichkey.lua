@@ -4,7 +4,7 @@ local M = {
 
 function M.config()
   local which_key = require("which-key")
-  local icons = require("soul.icons")
+  local icons = require("soul.core.helpers.icons")
 
   which_key.setup({
     preset = "modern",
