@@ -1,6 +1,6 @@
 # soulz3r/nvim
 
-A personal Neovim configuration for **Windows 11** and **Arch Linux** (including Hyprland).
+A personal Neovim configuration for **Windows 11**, **WSL**, and **Linux** (including Arch Linux and Hyprland).
 
 The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Telescope, Mini Files, Treesitter, custom LLDB debugging, and an Everforest-oriented UI.
 
