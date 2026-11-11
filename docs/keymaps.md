@@ -11,10 +11,10 @@ The leader key is Space. This is a compact reference for the most-used mappings;
 | `,,` | Exit insert/visual mode; clear search highlighting in normal mode |
 | `n` / `N` | Next / previous search result, centered |
 | `Alt-j` / `Alt-k` | Move line or selection down / up |
-| `<leader>ww` | Save |
-| `<leader>wa` | Force save |
-| `<leader>qq` | Quit |
-| `<leader>qa` | Quit without saving |
+| `<leader>w` | Save current file |
+| `<leader>W` | Force-save current file |
+| `<leader>q` | Quit all Neovim windows |
+| `<leader>Q` | Force-quit Neovim without saving |
 | `<leader>ne` | Restart Neovim |
 | `<leader>ni` | Open the config's `init.lua` |
 | `<leader>nm` | Show all messages in a floating window |
@@ -97,7 +97,7 @@ These mappings are buffer-local and appear when an LSP client attaches.
 |---|---|
 | `<leader>ch` | Switch between source and header |
 | `<leader>ci` | Insert an include directive |
-| `<leader>cp` | Show C/C++ project and compile metadata |
+| `<leader>cp` | Show C/C++ project and compile metadata in a focused float (`q` or `Esc` closes it) |
 
 ## Editing
 
