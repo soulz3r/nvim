@@ -8,7 +8,14 @@ function M.config()
 	vim.o.cmdheight = 0
 
 	-- Enable Neovim's new UI2 system
-	require("vim._core.ui2").enable({})
+	require("vim._core.ui2").enable({
+		msg = {
+			-- Keep passive messages out of the command line. vim.notify calls
+			-- continue to use mini.notify; native Neovim messages use UI2's
+			-- short-lived message window instead of the bottom command area.
+			targets = "msg",
+		},
+	})
 
 	local tiny_cmdline = require("tiny-cmdline")
 
