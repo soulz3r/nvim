@@ -1,7 +1,7 @@
 return {
 	"nvim-mini/mini.surround",
 	version = "*",
-	event = "VeryLazy",
+	event = { "BufReadPost", "BufNewFile" },
 	config = function()
 		require("mini.surround").setup()
 	end,
