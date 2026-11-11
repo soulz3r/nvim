@@ -10,9 +10,9 @@ function M.config()
 	-- Enable Neovim's new UI2 system.
 	require("vim._core.ui2").enable({
 		msg = {
-			-- Never route passive messages to the command area. The dedicated
-			-- message target allows the notification handler to consume them.
-			targets = "msg",
+			-- Keep passive messages out of UI2's separate message float.
+			-- The notification handler forwards warnings and errors to MiniNotify.
+			targets = "cmd",
 		},
 	})
 
