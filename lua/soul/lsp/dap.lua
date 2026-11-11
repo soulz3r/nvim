@@ -401,6 +401,7 @@ M.config = function()
 	-- =========================================================
 
 	local function select_project()
+		local current_key = project_key(resolve_project_root())
 		projects = load_projects()
 		local entries = {}
 
@@ -427,7 +428,6 @@ M.config = function()
 		end
 
 		local choices = {}
-		local current_key = project_key(resolve_project_root())
 
 		for _, entry in ipairs(entries) do
 			local marker = entry.key == current_key and " [active]" or ""
