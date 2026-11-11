@@ -43,13 +43,19 @@ fi
 
 # Private Neovim APIs are not allowed in the core configuration. UI2 is the
 # sole exception and must remain isolated in the optional tiny-cmdline module.
-if grep -RInE --include='*.lua' --exclude='tiny_cmdline.lua' 'vim\._' lua; then
+if grep -RInE --include='*.lua' --exclude='tiny_cmdline.lua' --exclude-dir='.git' 'vim\._' .; then
   echo "Private Neovim APIs must stay out of the core configuration." >&2
   exit 1
 fi
 
 if ! grep -q 'vim\._core\.ui2' lua/soul/extras/tiny_cmdline.lua; then
   echo "The UI2 compatibility exception moved; review scripts/check.sh." >&2
+  exit 1
+fi
+
+ui2_private_refs="$(grep -o 'vim\._' lua/soul/extras/tiny_cmdline.lua | wc -l | tr -d ' ')"
+if [[ "$ui2_private_refs" != "1" ]]; then
+  echo "Only the single UI2 module import is allowed in tiny_cmdline.lua." >&2
   exit 1
 fi
 
@@ -66,7 +72,7 @@ legacy_patterns=(
 )
 
 for pattern in "${legacy_patterns[@]}"; do
-  if grep -RInE --include='*.lua' "$pattern" lua; then
+  if grep -RInE --include='*.lua' --exclude-dir='.git' "$pattern" .; then
     echo "Legacy or deprecated API detected: $pattern" >&2
     exit 1
   fi
