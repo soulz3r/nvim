@@ -13,10 +13,33 @@ return {
 			return time and (message .. " │ " .. time) or message
 		end
 
+		local function sort_notifications(notifications)
+			local sorted = MiniNotify.default_sort(notifications)
+			local seen = {}
+
+			return vim.tbl_filter(function(notif)
+				if not (notif.data and notif.data.source == "lsp_progress") then
+					return true
+				end
+
+				local key = table.concat({
+					tostring(notif.data.client_name or ""),
+					tostring(notif.msg or ""),
+				}, "\0")
+
+				if seen[key] then
+					return false
+				end
+
+				seen[key] = true
+				return true
+			end, sorted)
+		end
+
 		MiniNotify.setup({
 			content = {
 				format = format_notification,
-				sort = MiniNotify.default_sort,
+				sort = sort_notifications,
 			},
 			lsp_progress = {
 				enable = true,
