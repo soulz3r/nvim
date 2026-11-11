@@ -1,4 +1,4 @@
--- lua/soul/core/paths.lua
+-- lua/soul/core/helpers/paths.lua
 local M = {}
 
 M.is_windows = vim.fn.has("win32") == 1
