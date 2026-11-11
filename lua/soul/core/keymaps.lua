@@ -80,52 +80,111 @@ keymap("n", "<Tab>", "<cmd>:popup mousemenu<CR>")
 
 keymap("n", "<leader>c", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Replace word under cursor" })
 
-keymap("n", "<leader>X", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make executable" })
+keymap("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make executable" })
 
 keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart Neovim" })
 keymap("n", "<leader>ni", "<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>", { desc = "Open config" })
+local Output = require("soul.ui.output")
+
 local function show_messages()
-	local output = vim.api.nvim_exec2("messages", { output = true }).output
-	local lines = vim.split(output, "\n", { plain = true })
-
-	local width = math.min(vim.o.columns - 4, math.max(60, math.floor(vim.o.columns * 0.80)))
-	local height = math.min(vim.o.lines - 4, math.max(8, math.floor(vim.o.lines * 0.70)))
-	local row = math.floor((vim.o.lines - height) / 2 - 1)
-	local col = math.floor((vim.o.columns - width) / 2)
-
-	local buf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-	vim.bo[buf].bufhidden = "wipe"
-	vim.bo[buf].modifiable = false
-	vim.bo[buf].filetype = "messages"
-
-	local win = vim.api.nvim_open_win(buf, true, {
-		relative = "editor",
-		style = "minimal",
-		border = "rounded",
-		title = " Messages ",
-		title_pos = "center",
-		width = width,
-		height = height,
-		row = row,
-		col = col,
+	local messages = vim.api.nvim_exec2("messages", { output = true }).output
+	Output.open("Messages", messages, {
+		filetype = "messages",
 	})
-
-	vim.wo[win].wrap = true
-	vim.wo[win].cursorline = true
-	vim.api.nvim_win_set_cursor(win, { #lines, 0 })
-
-	local function close()
-		if vim.api.nvim_win_is_valid(win) then
-			vim.api.nvim_win_close(win, true)
-		end
-	end
-
-	vim.keymap.set("n", "q", close, { buffer = buf, silent = true, nowait = true })
-	vim.keymap.set("n", "<Esc>", close, { buffer = buf, silent = true, nowait = true })
 end
 
 keymap("n", "<leader>nm", show_messages, OPTS("Show messages in floating window"))
+
+local function append_result(lines, label, result)
+	table.insert(lines, label)
+
+	local stdout = vim.trim(result.stdout or "")
+	local stderr = vim.trim(result.stderr or "")
+
+	if stdout ~= "" then
+		vim.list_extend(lines, vim.split(stdout, "\\n", { plain = true }))
+	end
+
+	if stderr ~= "" then
+		vim.list_extend(lines, vim.split(stderr, "\\n", { plain = true }))
+	end
+
+	if stdout == "" and stderr == "" then
+		table.insert(lines, "No output.")
+	end
+
+	table.insert(lines, ("Exit code: %d"):format(result.code))
+end
+
+local function compile_and_run_c()
+	local file = vim.api.nvim_buf_get_name(0)
+
+	if file == "" then
+		return vim.notify("Current buffer has no file", vim.log.levels.WARN)
+	end
+
+	if vim.bo.filetype ~= "c" then
+		return vim.notify("Current buffer is not a C file", vim.log.levels.WARN)
+	end
+
+	local clang = vim.fn.exepath("clang")
+	if clang == "" then
+		return vim.notify("clang was not found in PATH", vim.log.levels.ERROR)
+	end
+
+	local directory = vim.fn.fnamemodify(file, ":h")
+	local executable = vim.fn.fnamemodify(file, ":r")
+	if vim.fn.has("win32") == 1 then
+		executable = executable .. ".exe"
+	end
+
+	local lines = {
+		"Source: " .. vim.fn.fnamemodify(file, ":~:."),
+		"",
+	}
+
+	local command = {
+		clang,
+		"-std=c23",
+		"-g",
+		"-O0",
+		"-o",
+		executable,
+		file,
+	}
+
+	vim.system(command, {
+		cwd = directory,
+		text = true,
+	}, function(compile_result)
+		vim.schedule(function()
+			append_result(lines, "COMPILATION", compile_result)
+
+			if compile_result.code ~= 0 then
+				return Output.open("C Build", lines, {
+					filetype = "compiler",
+				})
+			end
+
+			table.insert(lines, "")
+			vim.list_extend(lines, { "EXECUTION" })
+
+			vim.system({ executable }, {
+				cwd = directory,
+				text = true,
+			}, function(run_result)
+				vim.schedule(function()
+					append_result(lines, "PROGRAM OUTPUT", run_result)
+					Output.open("C Build / Run", lines, {
+						filetype = "text",
+					})
+				end)
+			end)
+		end)
+	end)
+end
+
+keymap("n", "<leader>X", compile_and_run_c, OPTS("Compile and run C file"))
 
 keymap("n", "<leader>u", function()
 	vim.cmd.packadd("nvim.undotree")
