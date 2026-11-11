@@ -78,8 +78,6 @@ vim.cmd([[
 keymap("n", "<RightMouse>", "<cmd>:popup mousemenu<CR>")
 keymap("n", "<Tab>", "<cmd>:popup mousemenu<CR>")
 
-keymap("n", "<leader>c", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Replace word under cursor" })
-
 keymap("n", "<leader>x", function()
 	local file = vim.api.nvim_buf_get_name(0)
 
@@ -294,7 +292,7 @@ local function compile_and_run_c()
 			"printf '%s\\n' " .. vim.fn.shellescape("> " .. compile_command),
 			compile_command,
 			"compile_exit_code=$?",
-			"if [ \"$compile_exit_code\" -ne 0 ]; then printf 'Compilation failed.\\nExit code: %s\\n' \"$compile_exit_code\"; exit \"$compile_exit_code\"; fi",
+			'if [ "$compile_exit_code" -ne 0 ]; then printf \'Compilation failed.\\nExit code: %s\\n\' "$compile_exit_code"; exit "$compile_exit_code"; fi',
 			"printf '%s\\n' 'Compilation successful.'",
 			"printf '\\n%s\\n' " .. vim.fn.shellescape(execution_marker),
 			"exec " .. vim.fn.shellescape(executable),
