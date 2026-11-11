@@ -21,6 +21,7 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Mini sessions for project session save, restore, and automatic persistence
 - Mini.ai text objects, Mini.surround editing, and Mini.notify notifications
 - Treesitter highlighting and folding integration
+- A floating single-file C23 compile/run terminal across Windows, WSL, and Linux
 - YAP project workflows with a component-based runner, live build/run summary, and ANSI-colored process output
 - ToggleTerm with persistent horizontal, vertical, and floating terminals
 - Alpha dashboard with recent files, recent projects, quick actions, and an animated header
