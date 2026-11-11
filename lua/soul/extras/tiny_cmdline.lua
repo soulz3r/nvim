@@ -10,10 +10,10 @@ function M.config()
 	-- Enable Neovim's new UI2 system
 	require("vim._core.ui2").enable({
 		msg = {
-			-- Keep passive messages out of the command line. vim.notify calls
-			-- continue to use mini.notify; native Neovim messages use UI2's
-			-- short-lived message window instead of the bottom command area.
-			targets = "msg",
+			-- The mini.notify UI attachment consumes passive messages and
+			-- forwards only warnings and errors. Keep UI2 as a fallback target
+			-- for interactive/native UI behavior, not a second message popup.
+			targets = "cmd",
 		},
 	})
 
