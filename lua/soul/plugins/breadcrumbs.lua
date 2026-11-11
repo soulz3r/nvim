@@ -10,6 +10,7 @@ function M.config()
   local breadcrumbs = require("breadcrumbs")
 
   table.insert(breadcrumbs.winbar_filetype_exclude, "minifiles")
+  table.insert(breadcrumbs.winbar_filetype_exclude, "project-output")
 
   breadcrumbs.setup()
 
