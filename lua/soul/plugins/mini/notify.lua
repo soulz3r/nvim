@@ -73,27 +73,39 @@ return {
 		-- LuaLS can report the same workspace operation under multiple progress
 		-- tokens. Track those tokens, but render only one notification per client.
 		local progress_by_client = {}
+		local progress_by_server = {}
 		local progress_group = vim.api.nvim_create_augroup("SoulLspProgress", {
 			clear = true,
 		})
 
-		local function render_progress(client_id, state)
+		local function render_progress(server_name, server_state)
 			local latest
 
-			for _, progress in pairs(state.tokens) do
-				if not latest or progress.updated_at > latest.updated_at then
-					latest = progress
+			for _, client_state in pairs(server_state.clients) do
+				for _, progress in pairs(client_state.tokens) do
+					if not latest or progress.updated_at > latest.updated_at then
+						latest = progress
+					end
 				end
 			end
 
 			if not latest then
 				vim.defer_fn(function()
-					if progress_by_client[client_id] ~= state or next(state.tokens) ~= nil then
+					if progress_by_server[server_name] ~= server_state then
 						return
 					end
 
-					MiniNotify.remove(state.notification_id)
-					progress_by_client[client_id] = nil
+					for _, client_state in pairs(server_state.clients) do
+						if next(client_state.tokens) ~= nil then
+							return
+						end
+					end
+
+					MiniNotify.remove(server_state.notification_id)
+					for client_id in pairs(server_state.clients) do
+						progress_by_client[client_id] = nil
+					end
+					progress_by_server[server_name] = nil
 				end, 1000)
 				return
 			end
@@ -106,20 +118,20 @@ return {
 				message = message .. (" (%d%%)"):format(math.floor(latest.percentage))
 			end
 
-			message = state.client_name .. ": " .. message
+			message = server_name .. ": " .. message
 			local data = {
 				source = "lsp_progress",
-				client_id = client_id,
-				client_name = state.client_name,
+				client_id = latest.client_id,
+				client_name = server_name,
 			}
 
-			if state.notification_id then
-				MiniNotify.update(state.notification_id, {
+			if server_state.notification_id then
+				MiniNotify.update(server_state.notification_id, {
 					msg = message,
 					data = data,
 				})
 			else
-				state.notification_id = MiniNotify.add(
+				server_state.notification_id = MiniNotify.add(
 					message,
 					"INFO",
 					"MiniNotifyLspProgress",
@@ -141,20 +153,28 @@ return {
 					return
 				end
 
-				local state = progress_by_client[client_id]
-				if not state then
-					state = {
+				local server_state = progress_by_server[client.name]
+				if not server_state then
+					server_state = {
 						client_name = client.name,
-						tokens = {},
+						clients = {},
 					}
-					progress_by_client[client_id] = state
+					progress_by_server[client.name] = server_state
+				end
+
+				local client_state = server_state.clients[client_id]
+				if not client_state then
+					client_state = { tokens = {} }
+					server_state.clients[client_id] = client_state
+					progress_by_client[client_id] = server_state
 				end
 
 				if value.kind == "end" then
-					state.tokens[token] = nil
+					client_state.tokens[token] = nil
 				else
-					local previous = state.tokens[token] or {}
-					state.tokens[token] = {
+					local previous = client_state.tokens[token] or {}
+					client_state.tokens[token] = {
+						client_id = client_id,
 						title = value.title or previous.title,
 						message = value.message,
 						percentage = value.percentage,
@@ -162,7 +182,7 @@ return {
 					}
 				end
 
-				render_progress(client_id, state)
+				render_progress(client.name, server_state)
 			end,
 		})
 
@@ -170,12 +190,15 @@ return {
 			group = progress_group,
 			callback = function(event)
 				local client_id = event.data.client_id
-				local state = progress_by_client[client_id]
+				local server_state = progress_by_client[client_id]
 
-				if state then
-					MiniNotify.remove(state.notification_id)
-					progress_by_client[client_id] = nil
+				if not server_state then
+					return
 				end
+
+				server_state.clients[client_id] = nil
+				progress_by_client[client_id] = nil
+				render_progress(server_state.client_name, server_state)
 			end,
 		})
 
