@@ -40,7 +40,17 @@ function M.create(title, initial, opts)
 	vim.wo[win].wrap = opts.wrap ~= false
 	vim.wo[win].cursorline = true
 
+	local terminal_job
+
+	local function stop_terminal()
+		if terminal_job and vim.fn.jobwait({ terminal_job }, 0)[1] == -1 then
+			vim.fn.jobstop(terminal_job)
+		end
+		terminal_job = nil
+	end
+
 	local function close()
+		stop_terminal()
 		if vim.api.nvim_win_is_valid(win) then
 			vim.api.nvim_win_close(win, true)
 		end
@@ -100,27 +110,46 @@ function M.create(title, initial, opts)
 		end
 
 		terminal_opts = terminal_opts or {}
-		local term_buf = vim.api.nvim_create_buf(false, true)
-		vim.api.nvim_win_set_buf(win, term_buf)
 
+		local term_buf = vim.api.nvim_create_buf(false, true)
 		vim.bo[term_buf].bufhidden = "wipe"
 		vim.bo[term_buf].swapfile = false
+		vim.api.nvim_win_set_buf(win, term_buf)
 
 		local user_on_exit = terminal_opts.on_exit
-		terminal_opts.on_exit = function(_, code, signal)
+		terminal_opts.on_exit = function(_, code, event)
 			vim.schedule(function()
-				if vim.api.nvim_win_is_valid(win) then
+				terminal_job = nil
+				if vim.api.nvim_win_is_valid(win)
+					and vim.api.nvim_buf_is_valid(term_buf)
+					and vim.api.nvim_win_get_buf(win) == term_buf
+				then
 					output.set_title(("C Run · exit %d"):format(code))
 				end
+
 				if user_on_exit then
-					user_on_exit(code, signal)
+					user_on_exit(code, event)
 				end
 			end)
 		end
 
-		vim.api.nvim_win_call(win, function()
-			vim.fn.termopen(command, terminal_opts)
+		vim.api.nvim_create_autocmd("BufHidden", {
+			buffer = term_buf,
+			once = true,
+			callback = function()
+				if vim.fn.bufwinid(term_buf) == -1 then
+					stop_terminal()
+				end
+			end,
+		})
+
+		terminal_job = vim.api.nvim_win_call(win, function()
+			return vim.fn.termopen(command, terminal_opts)
 		end)
+
+		vim.keymap.set("n", "q", close, { buffer = term_buf, silent = true, nowait = true })
+		vim.keymap.set("n", "<Esc>", close, { buffer = term_buf, silent = true, nowait = true })
+		vim.keymap.set("t", "<C-q>", close, { buffer = term_buf, silent = true, nowait = true })
 
 		vim.api.nvim_set_current_win(win)
 		vim.cmd.startinsert()
