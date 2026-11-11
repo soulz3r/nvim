@@ -75,23 +75,28 @@ vim.g.netrw_mouse = 2
 vim.opt.clipboard = "unnamedplus"
 
 local platform = require("soul.core.platform")
+local paths = require("soul.core.helpers.paths")
 
-if platform.is_wsl then
+if platform.is_wsl and paths.wsl_clipboard then
+	local copy_command = vim.fn.shellescape(paths.wsl_clipboard.copy)
+	local paste_command = vim.fn.shellescape(paths.wsl_clipboard.paste)
+		.. " -NoLogo -NoProfile -Command "
+		.. vim.fn.shellescape('[Console]::Out.Write((Get-Clipboard -Raw).Replace("`r", ""))')
+
 	vim.g.clipboard = {
 		name = "WslClipboard",
 		copy = {
-			["+"] = "clip.exe",
-			["*"] = "clip.exe",
+			["+"] = copy_command,
+			["*"] = copy_command,
 		},
 		paste = {
-			["+"] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
-			["*"] = 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+			["+"] = paste_command,
+			["*"] = paste_command,
 		},
 		cache_enabled = 0,
 	}
 end
 
-local paths = require("soul.core.helpers.paths")
 if platform.is_windows then
 	vim.opt.shell = paths.pwsh
 	vim.opt.shellcmdflag = "-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command"
