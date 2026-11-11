@@ -163,20 +163,25 @@ local function compile_and_run_c()
 		end
 
 		local script = vim.fn.tempname() .. ".ps1"
+		local compile_command = table.concat({
+			ps_quote(clang),
+			"'-std=c23'",
+			"'-g'",
+			"'-O0'",
+			"'-o'",
+			ps_quote(executable),
+			ps_quote(file),
+		}, " ")
 		local lines = {
 			"Write-Output " .. ps_quote(build_marker),
-			table.concat({
-				"&",
-				ps_quote(clang),
-				"'-std=c23'",
-				"'-g'",
-				"'-O0'",
-				"'-o'",
-				ps_quote(executable),
-				ps_quote(file),
-			}, " "),
+			"Write-Output ('> ' + " .. ps_quote(compile_command) .. ")",
+			"& " .. compile_command,
 			"$compileExitCode = $LASTEXITCODE",
-			"if ($compileExitCode -ne 0) { exit $compileExitCode }",
+			"if ($compileExitCode -ne 0) {",
+			"	Write-Output ('Compilation failed (exit code ' + $compileExitCode + ').')",
+			"	exit $compileExitCode",
+			"}",
+			"Write-Output 'Compilation successful.'",
 			"Write-Output ''",
 			"Write-Output " .. ps_quote(execution_marker),
 			"& " .. ps_quote(executable),
