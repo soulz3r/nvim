@@ -238,7 +238,6 @@ return {
 				end
 			end
 
-			M.setup_stylua_on_save()
 
 			vim.diagnostic.config({
 
