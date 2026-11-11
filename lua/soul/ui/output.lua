@@ -118,10 +118,11 @@ function M.create(title, initial, opts)
 			end)
 		end
 
-		vim.api.nvim_buf_call(term_buf, function()
+		vim.api.nvim_win_call(win, function()
 			vim.fn.termopen(command, terminal_opts)
 		end)
 
+		vim.api.nvim_set_current_win(win)
 		vim.cmd.startinsert()
 		return term_buf
 	end
