@@ -1,8 +1,10 @@
-return {
+local M = {
 	"nvim-mini/mini.surround",
 	version = "*",
 	event = { "BufReadPost", "BufNewFile" },
-	config = function()
-		require("mini.surround").setup()
-	end,
 }
+function M.config()
+	require("mini.surround").setup()
+end
+
+return M

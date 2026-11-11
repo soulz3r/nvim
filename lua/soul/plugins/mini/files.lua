@@ -1,4 +1,4 @@
-return {
+local M = {
 	"nvim-mini/mini.files",
 	version = "*",
 	dependencies = {
@@ -13,103 +13,103 @@ return {
 			desc = "Open Mini.files",
 		},
 	},
-	config = function()
-		local MiniFiles = require("mini.files")
-		local floats = require("soul.core.helpers.ui.floats")
-		local show_hidden = false
-
-		local function filter_show()
-			return true
-		end
-
-		local function filter_hide(entry)
-			return not vim.startswith(entry.name, ".")
-		end
-
-		local function toggle_hidden()
-			show_hidden = not show_hidden
-
-			MiniFiles.refresh({
-				content = {
-					filter = show_hidden and filter_show or filter_hide,
-				},
-			})
-		end
-
-		MiniFiles.setup({
-			mappings = {
-				go_in = "<CR>",
-				go_in_plus = "L",
-				go_out = ",",
-				go_out_plus = "H",
-				synchronize = "s",
-			},
-			options = {
-				use_as_default_explorer = false,
-				permanent_delete = false,
-			},
-			windows = {
-				preview = true,
-				width_focus = 25,
-				width_nofocus = 15,
-				width_preview = 20,
-			},
-			content = {
-				filter = filter_hide,
-			},
-		})
-
-		local function set_cwd()
-			local entry = MiniFiles.get_fs_entry()
-
-			if not entry or not entry.path then
-				return vim.notify("Cursor is not on a valid entry", vim.log.levels.WARN)
-			end
-
-			local path = entry.path
-			local directory = vim.fn.isdirectory(path) == 1 and path or vim.fs.dirname(path)
-
-			vim.cmd.cd(vim.fn.fnameescape(directory))
-			vim.notify("Working directory: " .. vim.fn.fnamemodify(directory, ":~"))
-		end
-
-		local function open_entry()
-			local entry = MiniFiles.get_fs_entry()
-
-			if not entry or not entry.path then
-				return
-			end
-
-			vim.ui.open(entry.path)
-		end
-
-		vim.api.nvim_create_autocmd("User", {
-			pattern = "MiniFilesBufferCreate",
-			callback = function(args)
-				local buf = args.data.buf_id
-
-				vim.keymap.set("n", "g~", set_cwd, {
-					buffer = buf,
-					desc = "Set working directory",
-				})
-
-				vim.keymap.set("n", "g.", toggle_hidden, {
-					buffer = buf,
-					desc = "Toggle hidden files",
-				})
-
-				vim.keymap.set("n", "gx", open_entry, {
-					buffer = buf,
-					desc = "Open with system application",
-				})
-
-				vim.keymap.set("n", "<CR>", function()
-					MiniFiles.go_in({ close_on_file = true })
-				end, {
-					buffer = buf,
-					desc = "Enter directory or open file and close explorer",
-				})
-			end,
-		})
-	end,
 }
+function M.config()
+	local MiniFiles = require("mini.files")
+	local show_hidden = false
+
+	local function filter_show()
+		return true
+	end
+
+	local function filter_hide(entry)
+		return not vim.startswith(entry.name, ".")
+	end
+
+	local function toggle_hidden()
+		show_hidden = not show_hidden
+
+		MiniFiles.refresh({
+			content = {
+				filter = show_hidden and filter_show or filter_hide,
+			},
+		})
+	end
+
+	MiniFiles.setup({
+		mappings = {
+			go_in = "<CR>",
+			go_in_plus = "L",
+			go_out = ",",
+			go_out_plus = "H",
+			synchronize = "s",
+		},
+		options = {
+			use_as_default_explorer = false,
+			permanent_delete = false,
+		},
+		windows = {
+			preview = true,
+			width_focus = 25,
+			width_nofocus = 15,
+			width_preview = 20,
+		},
+		content = {
+			filter = filter_hide,
+		},
+	})
+
+	local function set_cwd()
+		local entry = MiniFiles.get_fs_entry()
+
+		if not entry or not entry.path then
+			return vim.notify("Cursor is not on a valid entry", vim.log.levels.WARN)
+		end
+
+		local path = entry.path
+		local directory = vim.fn.isdirectory(path) == 1 and path or vim.fs.dirname(path)
+
+		vim.cmd.cd(vim.fn.fnameescape(directory))
+		vim.notify("Working directory: " .. vim.fn.fnamemodify(directory, ":~"))
+	end
+
+	local function open_entry()
+		local entry = MiniFiles.get_fs_entry()
+
+		if not entry or not entry.path then
+			return
+		end
+
+		vim.ui.open(entry.path)
+	end
+
+	vim.api.nvim_create_autocmd("User", {
+		pattern = "MiniFilesBufferCreate",
+		callback = function(args)
+			local buf = args.data.buf_id
+
+			vim.keymap.set("n", "g~", set_cwd, {
+				buffer = buf,
+				desc = "Set working directory",
+			})
+
+			vim.keymap.set("n", "g.", toggle_hidden, {
+				buffer = buf,
+				desc = "Toggle hidden files",
+			})
+
+			vim.keymap.set("n", "gx", open_entry, {
+				buffer = buf,
+				desc = "Open with system application",
+			})
+
+			vim.keymap.set("n", "<CR>", function()
+				MiniFiles.go_in({ close_on_file = true })
+			end, {
+				buffer = buf,
+				desc = "Enter directory or open file and close explorer",
+			})
+		end,
+	})
+end
+return M

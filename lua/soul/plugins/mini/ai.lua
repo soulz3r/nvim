@@ -1,8 +1,11 @@
-return {
+local M = {
 	"nvim-mini/mini.ai",
 	version = "*",
 	event = { "BufReadPost", "BufNewFile" },
-	config = function()
-		require("mini.ai").setup()
-	end,
 }
+
+function M.config()
+	require("mini.ai").setup()
+end
+
+return M

@@ -1,8 +1,9 @@
-return {
+local M = {
 	"nvim-mini/mini.icons",
 	version = "*",
 	event = "VeryLazy",
-	config = function()
-		require("mini.icons").setup()
-	end,
 }
+function M.config()
+	require("mini.icons").setup()
+end
+return M
