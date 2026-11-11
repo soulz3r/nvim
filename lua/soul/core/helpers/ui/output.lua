@@ -200,6 +200,13 @@ function M.terminal(title, command, opts)
 		end
 	end
 
+	vim.keymap.set("n", "q", close, {
+		buffer = buf,
+		silent = true,
+		nowait = true,
+		desc = "Close output terminal",
+	})
+
 	local terminal = {
 		buf = buf,
 		win = win,
