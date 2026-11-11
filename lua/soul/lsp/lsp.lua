@@ -50,6 +50,15 @@ function M.setup_format_on_save(client, bufnr)
 end
 
 function M.on_attach(client, bufnr)
+	local navic_ok, navic = pcall(require, "nvim-navic")
+
+	if navic_ok
+		and client.server_capabilities.documentSymbolProvider
+		and not navic.is_available(bufnr)
+	then
+		navic.attach(client, bufnr)
+	end
+
 	if client.name == "lua_ls" then
 		client.server_capabilities.documentFormattingProvider = false
 	end
