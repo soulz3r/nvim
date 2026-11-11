@@ -8,13 +8,17 @@ function M.config()
 	vim.o.cmdheight = 0
 
 	-- Enable Neovim's new UI2 system.
-	require("vim._core.ui2").enable({
+	local ui2 = require("vim._core.ui2")
+	ui2.enable({
 		msg = {
-			-- Keep passive messages out of UI2's separate message float.
-			-- The notification handler forwards warnings and errors to MiniNotify.
+			-- MiniNotify handles passive messages instead of UI2's message area.
 			targets = "cmd",
 		},
 	})
+
+	-- UI2 and MiniNotify both subscribe to msg_show. Disable UI2's renderer
+	-- so it cannot duplicate messages in the cmdline or its own float.
+	ui2.msg.msg_show = function() end
 
 	local tiny_cmdline = require("tiny-cmdline")
 
