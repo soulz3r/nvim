@@ -29,10 +29,10 @@ local function is_runnable_powershell(path)
 			"-NoLogo",
 			"-NoProfile",
 			"-Command",
-			"exit 0",
+			"Write-Output $PSVersionTable.PSVersion.Major",
 		}, { text = true })
 
-		local completed = process:wait(5000)
+		local completed = process:wait(2000)
 		if not completed then
 			pcall(process.kill, process, 9)
 		end
@@ -40,7 +40,10 @@ local function is_runnable_powershell(path)
 		return completed
 	end)
 
-	return ok and type(result) == "table" and result.code == 0
+	return ok
+		and type(result) == "table"
+		and result.code == 0
+		and vim.trim(result.stdout or ""):match("^%d+$") ~= nil
 end
 
 local function find_powershell()
