@@ -1,12 +1,5 @@
 local keymap = vim.keymap.set
-
-function OPTS(description)
-	return {
-		noremap = true,
-		silent = true,
-		desc = description or nil,
-	}
-end
+local OPTS = require("soul.core.helpers.keymaps").opts
 
 local Output = require("soul.core.helpers.ui.output")
 local paths = require("soul.core.helpers.paths")
