@@ -6,6 +6,15 @@ M.projects = vim.env.PROJECTS_DIR
 	or (platform.is_windows and "D:/config/projects")
 	or vim.fn.expand("~/projects")
 
+local function find_executable(names)
+	for _, name in ipairs(names) do
+		local executable = vim.fn.exepath(name)
+		if executable ~= "" then
+			return executable
+		end
+	end
+end
+
 local function find_powershell()
 	if vim.env.PWSH and vim.fn.executable(vim.env.PWSH) == 1 then
 		return vim.env.PWSH
@@ -40,5 +49,18 @@ M.pwsh = find_powershell()
 M.lldb_dap = vim.env.LLDB_DAP
 	or (platform.is_windows and "C:/Program Files/LLVM/bin/lldb-dap.exe")
 	or "lldb-dap"
+
+-- Windows clipboard tools are only resolved when Neovim itself runs in WSL.
+if platform.is_wsl then
+	local copy = find_executable({ "clip.exe" })
+	local paste = find_executable({ "powershell.exe", "pwsh.exe" })
+
+	if copy and paste then
+		M.wsl_clipboard = {
+			copy = copy,
+			paste = paste,
+		}
+	end
+end
 
 return M
