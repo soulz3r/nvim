@@ -29,6 +29,7 @@ function M.config()
 		return
 	end
 
+	local original_msg_show
 	local ok, err = pcall(function()
 		vim.o.cmdheight = 0
 
@@ -82,6 +83,7 @@ function M.config()
 			end)
 		end
 
+		original_msg_show = ui2.msg.msg_show
 		ui2.msg.msg_show = notify_message
 
 		local tiny_cmdline = require("tiny-cmdline")
@@ -97,6 +99,9 @@ function M.config()
 	end)
 
 	if not ok then
+		if type(ui2.msg) == "table" then
+			ui2.msg.msg_show = original_msg_show
+		end
 		vim.o.cmdheight = 1
 		vim.notify(
 			"tiny-cmdline/UI2 is unavailable; using Neovim's native command line.\n" .. tostring(err),
