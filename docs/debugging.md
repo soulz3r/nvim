@@ -42,16 +42,20 @@ The argument prompt supports quoted arguments, spaces, and empty quoted argument
 
 ## Registry storage
 
-Project roots and executable paths are saved outside the repository at:
+DAP project metadata is stored in YAP's shared runtime registry:
 
 ```text
-stdpath("state")/soul/dap-projects.json
+stdpath("state")/yap/projects.json
 ```
 
-The registry writer uses a temporary file and rename so an interrupted write is less likely to corrupt the saved state.
+The registry stores the project marker and selected debugger executable alongside YAP's project metadata. This avoids maintaining two separate registries for the same projects.
 
-Older configurations stored the registry at `stdpath("config")/lsp/dap-projects.json`. If upgrading from that layout, back up the old file before switching to a branch that removes it from Git. Restore the backup to the old location once after updating; the configuration will migrate it automatically.
+On startup, older DAP-only registries are imported from:
 
+- `stdpath("config")/lsp/dap-projects.json`
+- `stdpath("state")/soul/dap-projects.json`
+
+After a successful import, the old file is renamed with a `.migrated` suffix. If that backup already exists, a timestamp is appended. The original settings remain available in that backup. If migration fails, the old file is left in place and an error is shown.
 ## Useful controls
 
 - `<leader>du` toggles the DAP UI.
