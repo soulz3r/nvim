@@ -210,7 +210,7 @@ Run the repository's static checks with:
 bash scripts/check.sh
 ```
 
-The script validates JSON configuration and repository hygiene, and runs optional Lua syntax and Neovim module smoke tests when those tools are installed. The separate `.github/workflows/lua-syntax.yml` workflow parses every Lua file with Lua 5.1. These checks do not replace a real Neovim startup test or testing on both Windows and Linux.
+The script validates JSON configuration, plugin lockfile revisions, deprecated/private API usage, Lua syntax, and core/plugin-spec imports. GitHub Actions runs the checks against the latest Neovim stable release and nightly build. The headless smoke test does not install or execute third-party plugin configurations, so test those features after plugin updates and on the operating systems you use.
 
 ## Troubleshooting
 
