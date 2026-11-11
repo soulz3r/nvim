@@ -1,3 +1,7 @@
+if vim.fn.has("nvim-0.12") ~= 1 then
+	error("soulz3r/nvim requires Neovim 0.12 or newer")
+end
+
 require("soul.launch")
 require("soul.core.helpers.paths")
 require("soul.core.options")
