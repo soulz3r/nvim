@@ -1,6 +1,6 @@
 local M = {}
 
-local floats = require("soul.ui.floats")
+local floats = require("soul.core.helpers.ui.floats")
 
 local function dimensions(opts)
 	local width = math.max(1, math.min(vim.o.columns - 4, opts.width or math.floor(vim.o.columns * 0.80)))
