@@ -47,7 +47,7 @@ if grep -nF 'pattern = { "!vim" }' lua/soul/core/autocmds.lua; then
   exit 1
 fi
 
-if grep -RInE --include='*.lua' '^[[:space:]]*function[[:space:]]+OPTS[[:space:]]*\(' lua; then
+if grep -RInE --include='*.lua' '^[[:space:]]*function[[:space:]]+OPTS[[:space:]]*[(]' lua; then
   echo "OPTS must remain a local/shared helper, not a global function." >&2
   exit 1
 fi
