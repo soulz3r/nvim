@@ -8,15 +8,13 @@ Project run records and argument history are stored under `stdpath("data")/yap`.
 
 ## C tools
 
-YAP provides the C/C++ helpers:
+YAP keeps the C/C++ helper functionality available without assigning default keymaps:
 
-| Mapping | Action |
+| Command | Action |
 |---|---|
-| `<leader>ch` | Switch between matching source and header files |
-| `<leader>ci` | Insert an include directive |
-| `<leader>pi` | Show project root, compile metadata, and attached LSP clients |
-
-Commands: `:CProjectInfo` and `:CSwitchHeader`.
+| `:CSwitchHeader` | Switch between matching source and header files |
+| `:CInsertInclude` | Insert an include directive |
+| `:CProjectInfo` | Show project root, compile metadata, and attached LSP clients |
 
 clangd still owns semantic navigation, references, rename, and diagnostics. These helpers intentionally avoid duplicating those features.
 
