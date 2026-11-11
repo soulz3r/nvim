@@ -12,6 +12,29 @@ fi
 python3 -m json.tool lazy-lock.json >/dev/null
 python3 -m json.tool .luarc.json >/dev/null
 
+python3 - <<'PY'
+import json
+import re
+import sys
+
+with open("lazy-lock.json", encoding="utf-8") as lock_file:
+    lock = json.load(lock_file)
+
+if not isinstance(lock, dict) or not lock:
+    sys.exit("lazy-lock.json must contain a non-empty plugin map")
+
+for plugin, metadata in lock.items():
+    if not isinstance(metadata, dict):
+        sys.exit(f"Invalid lock entry for {plugin}")
+    if not isinstance(metadata.get("branch"), str) or not metadata["branch"]:
+        sys.exit(f"Missing branch for locked plugin {plugin}")
+    commit = metadata.get("commit", "")
+    if not re.fullmatch(r"[0-9a-f]{40}", commit):
+        sys.exit(f"Invalid commit SHA for locked plugin {plugin}")
+
+print(f"Validated {len(lock)} locked plugin revisions.")
+PY
+
 if [[ -e lsp/dap-projects.json ]]; then
   echo "lsp/dap-projects.json is local DAP state and must not be committed." >&2
   exit 1
