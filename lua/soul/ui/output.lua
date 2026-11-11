@@ -108,6 +108,9 @@ function M.terminal(title, command, opts)
 	local win = vim.api.nvim_open_win(buf, true, window_config(title or "Terminal", opts))
 	floats.apply(win)
 
+	-- Show the floating terminal before starting the child process.
+	vim.cmd("redraw!")
+
 	vim.wo[win].wrap = false
 	vim.wo[win].cursorline = false
 	vim.wo[win].number = false
