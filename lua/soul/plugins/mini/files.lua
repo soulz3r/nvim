@@ -70,7 +70,7 @@ function M.config()
 		local directory = vim.fn.isdirectory(path) == 1 and path or vim.fs.dirname(path)
 
 		vim.cmd.cd(vim.fn.fnameescape(directory))
-		vim.notify("Working directory: " .. vim.fn.fnamemodify(directory, ":~"))
+		vim.notify("Working directory: " .. vim.fn.fnamemodify(directory, ":~"), vim.log.levels.INFO, { title = "Working Directory" })
 	end
 
 	local function open_entry()
