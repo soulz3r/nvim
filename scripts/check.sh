@@ -47,6 +47,11 @@ if grep -nF 'pattern = { "!vim" }' lua/soul/core/autocmds.lua; then
   exit 1
 fi
 
+if grep -RInE --include='*.lua' '^[[:space:]]*function[[:space:]]+OPTS[[:space:]]*\(' lua; then
+  echo "OPTS must remain a local/shared helper, not a global function." >&2
+  exit 1
+fi
+
 # Private Neovim APIs are not allowed in the core configuration. UI2 is the
 # sole exception and must remain isolated in the optional tiny-cmdline module.
 if grep -RInE --include='*.lua' --exclude='tiny_cmdline.lua' --exclude-dir='.git' 'vim\._' .; then
