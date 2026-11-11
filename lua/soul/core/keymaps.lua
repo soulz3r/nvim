@@ -96,24 +96,35 @@ end
 keymap("n", "<leader>nm", show_messages, OPTS("Show messages in floating window"))
 
 local function compile_and_run_c()
+	local function show_error(message)
+		Output.open("C Build / Run", {
+			"ERROR",
+			"",
+			tostring(message),
+		}, {
+			filetype = "compiler",
+			wrap = true,
+		})
+	end
+
 	local file = vim.api.nvim_buf_get_name(0)
 
 	if file == "" then
-		return vim.notify("Current buffer has no file", vim.log.levels.WARN, { title = "C Build" })
+		return show_error("Current buffer has no file")
 	end
 
 	if vim.bo.filetype ~= "c" then
-		return vim.notify("Current buffer is not a C file", vim.log.levels.WARN, { title = "C Build" })
+		return show_error("Current buffer is not a C file")
 	end
 
 	local saved, save_error = pcall(vim.cmd, "silent update")
 	if not saved then
-		return vim.notify(save_error, vim.log.levels.ERROR, { title = "C Build" })
+		return show_error(save_error)
 	end
 
 	local clang = vim.fn.exepath("clang")
 	if clang == "" then
-		return vim.notify("clang was not found in PATH", vim.log.levels.ERROR, { title = "C Build" })
+		return show_error("clang was not found in PATH")
 	end
 
 	local directory = vim.fn.fnamemodify(file, ":h")
