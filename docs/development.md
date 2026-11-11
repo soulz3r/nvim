@@ -28,7 +28,7 @@ The plugin configuration in `lua/soul/plugins/yap.lua` declares both UI librarie
 
 ## UI helpers
 
-`lua/soul/ui/init.lua` provides shared floating-window geometry, text-buffer windows, and highlight links. New custom windows should use these helpers rather than reimplementing sizing and close mappings. YAP owns its runner presentation and its `Yap*` highlight namespace.
+`lua/soul/core/helpers/ui/init.lua` provides shared floating-window geometry, text-buffer windows, and highlight links. New custom windows should use these helpers rather than reimplementing sizing and close mappings. YAP owns its runner presentation and its `Yap*` highlight namespace.
 
 ## Checks
 
