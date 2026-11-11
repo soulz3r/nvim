@@ -98,7 +98,7 @@ keymap("n", "<leader>nm", show_messages, OPTS("Show messages in floating window"
 local function compile_and_run_c()
 	local function show_error(message)
 		Output.open("C Build / Run", {
-			"ERROR",
+			"COMPILATION / EXECUTION ERROR",
 			"",
 			tostring(message),
 		}, {
@@ -133,27 +133,6 @@ local function compile_and_run_c()
 		executable = executable .. ".exe"
 	end
 
-	local output = Output.create("C Build / Run", {
-		"Source: " .. vim.fn.fnamemodify(file, ":~:."),
-		"",
-		"Compiling...",
-	}, {
-		filetype = "compiler",
-		wrap = false,
-	})
-
-	local function show_compile_error(message, compiler_output)
-		if not output.is_open() then
-			return
-		end
-
-		output.append("\n" .. message .. "\n")
-		if compiler_output ~= "" then
-			output.append(compiler_output .. "\n")
-		end
-		output.set_title("C Build / Run · failed")
-	end
-
 	vim.system({
 		clang,
 		"-std=c23",
@@ -167,28 +146,26 @@ local function compile_and_run_c()
 		text = true,
 	}, function(result)
 		vim.schedule(function()
-			if not output.is_open() then
-				return
-			end
-
 			local compiler_output = vim.trim(table.concat({
 				result.stdout or "",
 				result.stderr or "",
 			}, "\n"))
 
 			if result.code ~= 0 then
-				show_compile_error(("Compilation failed (exit %d)"):format(result.code), compiler_output)
+				local message = ("Compilation failed (exit %d)"):format(result.code)
+				if compiler_output ~= "" then
+					message = message .. "\n\n" .. compiler_output
+				end
+				show_error(message)
 				return
 			end
 
-			output.set_title("C Build / Run · running")
-
-			local _, terminal_error = output.open_terminal({ executable }, {
+			local terminal, terminal_error = Output.terminal("C Run", { executable }, {
 				cwd = directory,
 			})
 
-			if terminal_error then
-				show_compile_error("Could not start program terminal:", terminal_error)
+			if not terminal then
+				show_error("Could not start the floating terminal:\n" .. tostring(terminal_error))
 			end
 		end)
 	end)
