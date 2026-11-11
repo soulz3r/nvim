@@ -12,11 +12,12 @@ The entry point is `init.lua`. It loads core settings, registers plugin imports 
 | `lua/soul/core/neovide.lua` | Neovide-only settings |
 | `lua/soul/core/keymaps.lua` | Global keymaps and helper options |
 | `lua/soul/core/autocmds.lua` | Core autocmds |
-| `lua/soul/core/paths.lua` | Platform detection and external tool paths |
-| `lua/soul/ui/init.lua` | UI initialization, shared floating-window geometry, and text windows |
-| `lua/soul/ui/colors.lua` | Everforest palette and centralized editor/plugin highlight definitions |
-| `lua/soul/ui/highlights.lua` | Shared semantic highlight links |
-| `lua/soul/ui/floats.lua` | Shared border style, Telescope border glyphs, and float window highlights |
+| `lua/soul/core/platform.lua` | Centralized operating-system and WSL detection |
+| `lua/soul/core/helpers/paths.lua` | Project directory and external tool paths |
+| `lua/soul/core/helpers/ui/init.lua` | UI initialization, shared floating-window geometry, and text windows |
+| `lua/soul/core/helpers/ui/colors.lua` | Everforest palette and centralized editor/plugin highlight definitions |
+| `lua/soul/core/helpers/ui/highlights.lua` | Shared semantic highlight links |
+| `lua/soul/core/helpers/ui/floats.lua` | Shared border style, Telescope border glyphs, and float window highlights |
 
 ## Plugins
 
@@ -27,7 +28,7 @@ Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 - `soulz3r/yap.nvim` owns C project detection, build/clean/run execution, executable selection, argument history, persistent project metadata, compiler diagnostics, C helpers, and the NuiComponents project switcher.
 - YAP's project switcher and runner use `nui-components.nvim` on top of `nui.nvim`. The switcher provides project search, selection, an optional README preview, and contextual keymap hints. The runner keeps its live operation summary separate from the read-only ANSI-colored process output.
 - `lua/soul/plugins/lualine.lua` reads the current project label from `yap.project_registry`; the registry itself is owned by YAP.
-- `lua/soul/ui/` owns the editor's palette, highlight groups, shared float borders, and custom floating-window helpers. YAP uses its own `Yap*` highlight namespace and receives the palette through its plugin setup.
+- `lua/soul/core/helpers/ui/` owns the editor's palette, highlight groups, shared float borders, output windows, and custom floating-window helpers. YAP uses its own `Yap*` highlight namespace and receives the palette through its plugin setup.
 
 YAP's build workflow is intentionally script-based:
 
@@ -57,4 +58,24 @@ The DAP registry is stored in Neovim's state directory, not in the repository. M
 
 ## Platform handling
 
-`lua/soul/core/paths.lua` centralizes Windows/Linux detection and the paths for PowerShell, LLDB, and the projects directory. Keep OS-specific decisions there rather than scattering hard-coded paths throughout plugin files.
+`lua/soul/core/platform.lua` is the single source of truth for platform detection. It exposes:
+
+- `platform.is_windows`
+- `platform.is_linux`
+- `platform.is_wsl`
+- `platform.is_termux`
+- `platform.is_macos`
+- `platform.name`
+
+WSL detection checks the WSL environment variables and Linux kernel release instead of relying on a Neovim feature flag. WSL is classified separately from native Linux.
+
+Platform behavior:
+
+| Platform | Behavior |
+|---|---|
+| Windows | PowerShell, Windows executable paths, and `.exe` binaries |
+| Linux | POSIX shell commands, native Linux binaries, and Neovim's normal clipboard provider |
+| WSL | Linux/POSIX build and run commands, with Windows clipboard interoperability through `clip.exe` and PowerShell |
+| macOS | POSIX build and run commands |
+
+Use `platform.is_*` for OS decisions. Do not repeat raw `vim.fn.has()` checks in feature modules. Keep machine-specific paths and tool lookup in `lua/soul/core/helpers/paths.lua`, not in the platform detector. When Windows and Linux share behavior, keep the implementation shared while making the platform branch explicit.
