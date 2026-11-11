@@ -154,6 +154,7 @@ local function compile_and_run_c()
 			[build_marker] = "SoulBuildSeparator",
 			[execution_marker] = "SoulExecutionSeparator",
 			["Compilation successful."] = "SoulSuccess",
+			["Compilation failed."] = "SoulError",
 		},
 	}
 
@@ -230,7 +231,8 @@ local function compile_and_run_c()
 		table.insert(lines, "& " .. compile_command)
 		table.insert(lines, "$compileExitCode = $LASTEXITCODE")
 		table.insert(lines, "if ($compileExitCode -ne 0) {")
-		table.insert(lines, "\tWrite-Output ('Compilation failed (exit code ' + $compileExitCode + ').')")
+		table.insert(lines, "\tWrite-Output 'Compilation failed.'")
+		table.insert(lines, "\tWrite-Output ('Exit code: ' + $compileExitCode)")
 		table.insert(lines, "\texit $compileExitCode")
 		table.insert(lines, "}")
 		table.insert(lines, "Write-Output 'Compilation successful.'")
@@ -276,7 +278,7 @@ local function compile_and_run_c()
 			"printf '%s\\n' " .. vim.fn.shellescape("> " .. compile_command),
 			compile_command,
 			"compile_exit_code=$?",
-			"if [ \"$compile_exit_code\" -ne 0 ]; then printf 'Compilation failed (exit code %s).\\n' \"$compile_exit_code\"; exit \"$compile_exit_code\"; fi",
+			"if [ \"$compile_exit_code\" -ne 0 ]; then printf 'Compilation failed.\\nExit code: %s\\n' \"$compile_exit_code\"; exit \"$compile_exit_code\"; fi",
 			"printf '%s\\n' 'Compilation successful.'",
 			"printf '\\n%s\\n' " .. vim.fn.shellescape(execution_marker),
 			"exec " .. vim.fn.shellescape(executable),
