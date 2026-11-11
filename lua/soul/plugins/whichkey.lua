@@ -45,19 +45,9 @@ function M.config()
         icon = icons.ui.Folder,
       },
       {
-        "<leader>q",
-        group = "Exit",
-        icon = icons.which_key.Exit,
-      },
-      {
         "<leader>s",
         group = "Sessions",
         icon = icons.ui.History,
-      },
-      {
-        "<leader>w",
-        group = "Save",
-        icon = icons.which_key.Save,
       },
 
       {
@@ -129,21 +119,6 @@ function M.config()
         "<leader>flt",
         desc = "Type Definition",
         icon = icons.kind.TypeParameter,
-      },
-      {
-        "<leader>wa",
-        desc = "Force Save",
-        icon = icons.ui.Files,
-      },
-      {
-        "<leader>qq",
-        desc = "Quit",
-        icon = icons.ui.Close,
-      },
-      {
-        "<leader>qa",
-        desc = "Quit without saving",
-        icon = icons.ui.BoldClose,
       },
     },
 
