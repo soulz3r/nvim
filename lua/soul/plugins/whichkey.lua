@@ -142,7 +142,7 @@ function M.config()
       },
       {
         "<leader>wa",
-        desc = "Save All",
+        desc = "Force Save",
         icon = icons.ui.Files,
       },
       {
@@ -152,7 +152,7 @@ function M.config()
       },
       {
         "<leader>qa",
-        desc = "Quit All",
+        desc = "Quit without saving",
         icon = icons.ui.BoldClose,
       },
     },
