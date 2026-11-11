@@ -93,9 +93,9 @@ These mappings are buffer-local and appear when an LSP client attaches.
 
 | Mapping | Action |
 |---|---|
-| `<leader>ch` | Switch between source and header |
-| `<leader>ci` | Insert an include directive |
-| `<leader>cp` | Show C/C++ project and compile metadata in a focused float (`q` or `Esc` closes it) |
+| `<leader>pch` | Switch between source and header |
+| `<leader>pci` | Insert an include directive |
+| `<leader>pcI` | Show C/C++ project and compile metadata in a focused float (`q` or `Esc` closes it) |
 
 ## Editing
 
