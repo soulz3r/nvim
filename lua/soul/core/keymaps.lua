@@ -130,9 +130,8 @@ local function compile_and_run_c()
 
 	local directory = vim.fn.fnamemodify(file, ":h")
 	local executable = vim.fn.fnamemodify(file, ":r")
-	local is_windows = platform.is_windows
 
-	if is_windows then
+	if platform.is_windows then
 		executable = executable .. ".exe"
 	end
 
@@ -261,7 +260,7 @@ local function compile_and_run_c()
 				vim.fn.delete(script)
 			end)
 		end
-	else
+	elseif platform.is_linux or platform.is_wsl or platform.is_macos then
 		local compile_args = {
 			vim.fn.shellescape(clang),
 			"-std=c23",
@@ -284,6 +283,8 @@ local function compile_and_run_c()
 		}, "; ")
 
 		terminal_command = { "/bin/sh", "-c", command }
+	else
+		return show_error("The C runner does not support this platform: " .. platform.name)
 	end
 
 	local terminal, terminal_error = Output.terminal("C Run", terminal_command, terminal_opts)
