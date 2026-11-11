@@ -3,6 +3,7 @@ local M = {
 	dependencies = {
 		"nvim-neotest/nvim-nio",
 		"rcarriga/nvim-dap-ui",
+		"soulz3r/yap.nvim",
 	},
 }
 
