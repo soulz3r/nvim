@@ -193,6 +193,14 @@ The configuration can migrate the previous file at `stdpath("config")/lsp/dap-pr
 
 See [docs/architecture.md](docs/architecture.md) for the module map and [docs/development.md](docs/development.md) for project metadata, C helpers, and UI conventions.
 
+## Compatibility
+
+This configuration targets **Neovim 0.12 or newer**. The compatibility workflow checks the latest Neovim stable release and nightly build on every push and pull request.
+
+The main configuration uses public Neovim APIs. The only private API dependency is the optional tiny-cmdline integration, which uses experimental UI2. If UI2 is unavailable or its setup fails, the configuration keeps Neovim's native command line enabled. See [docs/compatibility.md](docs/compatibility.md) for the support policy and update procedure.
+
+Neovide settings are kept in one module and use documented Neovide options. The CI workflow cannot exercise the graphical frontend, so verify the Neovide UI after upgrading Neovide itself.
+
 ## Checks
 
 Run the repository's static checks with:
