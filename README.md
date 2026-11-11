@@ -4,7 +4,7 @@ A personal Neovim configuration for **Windows 11**, **WSL**, and **Linux** (incl
 
 The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Telescope, Mini Files, Treesitter, custom LLDB debugging, and an Everforest-oriented UI.
 
-> **Target:** Neovim 0.12.x. This configuration uses modern Neovim APIs such as `vim.lsp.config`, `vim.lsp.enable`, and the current Treesitter setup API. Older versions are not a supported target.
+> **Target:** Neovim 0.12 or newer. This configuration uses modern Neovim APIs such as `vim.lsp.config`, `vim.lsp.enable`, and the current Treesitter setup API. Older versions are not a supported target.
 
 ## Features
 
