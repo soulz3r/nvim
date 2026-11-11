@@ -85,6 +85,7 @@ keymap("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make e
 keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart Neovim" })
 keymap("n", "<leader>ni", "<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>", { desc = "Open config" })
 local Output = require("soul.core.helpers.ui.output")
+local paths = require("soul.core.helpers.paths")
 local platform = require("soul.core.platform")
 
 local function show_messages()
@@ -123,8 +124,8 @@ local function compile_and_run_c()
 		return show_error(save_error)
 	end
 
-	local clang = vim.fn.exepath("clang")
-	if clang == "" then
+	local clang = paths.clang
+	if vim.fn.executable(clang) ~= 1 then
 		return show_error("clang was not found in PATH")
 	end
 
@@ -159,12 +160,9 @@ local function compile_and_run_c()
 	}
 
 	if platform.is_windows then
-		local powershell = vim.fn.exepath("pwsh")
-		if powershell == "" then
-			powershell = vim.fn.exepath("powershell")
-		end
+		local powershell = paths.pwsh
 
-		if powershell == "" then
+		if vim.fn.executable(powershell) ~= 1 then
 			return show_error("PowerShell was not found in PATH")
 		end
 
