@@ -10,7 +10,10 @@ function M.config()
 	-- Enable Neovim's new UI2 system
 	require("vim._core.ui2").enable({})
 
-	require("tiny-cmdline").setup({
+	local tiny_cmdline = require("tiny-cmdline")
+
+	tiny_cmdline.setup({
+		on_reposition = tiny_cmdline.adapters.blink,
 		width = {
 			value = "60%",
 			min = 40,
