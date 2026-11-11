@@ -41,6 +41,12 @@ if [[ -e lsp/dap-projects.json ]]; then
   exit 1
 fi
 
+# Autocmd file patterns do not support a leading "!" as a negative match.
+if grep -nE 'pattern[[:space:]]*=[[:space:]]*\{[[:space:]]*"!vim"' lua/soul/core/autocmds.lua; then
+  echo "Invalid negative autocmd pattern detected." >&2
+  exit 1
+fi
+
 # Private Neovim APIs are not allowed in the core configuration. UI2 is the
 # sole exception and must remain isolated in the optional tiny-cmdline module.
 if grep -RInE --include='*.lua' --exclude='tiny_cmdline.lua' --exclude-dir='.git' 'vim\._' .; then
