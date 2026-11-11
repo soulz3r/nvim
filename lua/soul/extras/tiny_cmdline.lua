@@ -7,13 +7,12 @@ local M = {
 function M.config()
 	vim.o.cmdheight = 0
 
-	-- Enable Neovim's new UI2 system
+	-- Enable Neovim's new UI2 system.
 	require("vim._core.ui2").enable({
 		msg = {
-			-- The mini.notify UI attachment consumes passive messages and
-			-- forwards only warnings and errors. Keep UI2 as a fallback target
-			-- for interactive/native UI behavior, not a second message popup.
-			targets = "cmd",
+			-- Never route passive messages to the command area. The dedicated
+			-- message target allows the notification handler to consume them.
+			targets = "msg",
 		},
 	})
 
