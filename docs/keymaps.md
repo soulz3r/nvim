@@ -12,9 +12,7 @@ The leader key is Space. This is a compact reference for the most-used mappings;
 | `n` / `N` | Next / previous search result, centered |
 | `Alt-j` / `Alt-k` | Move line or selection down / up |
 | `<leader>qw` | Save current file |
-| `<leader>qW` | Force-save current file |
 | `<leader>qq` | Quit all Neovim windows |
-| `<leader>qQ` | Force-quit Neovim without saving |
 | `<leader>ne` | Restart Neovim |
 | `<leader>ni` | Open the config's `init.lua` |
 | `<leader>nm` | Show all messages in a floating window |
