@@ -71,6 +71,17 @@ git clone https://github.com/soulz3r/nvim.git ~/.config/nvim
 nvim
 ```
 
+### WSL
+
+Install Neovim inside the WSL distribution, then clone the same repository into that distribution's `~/.config/nvim`:
+
+```sh
+git clone https://github.com/soulz3r/nvim.git ~/.config/nvim
+nvim
+```
+
+WSL Neovim uses Linux binaries and POSIX build/run commands. To share a Windows project directory, set `PROJECTS_DIR` to its mounted path, for example `/mnt/d/config/projects`. Windows clipboard integration is enabled when `clip.exe` and PowerShell are available in WSL's `PATH`.
+
 ### Windows
 
 The standard Neovim config directory is usually `%LOCALAPPDATA%\nvim`.
