@@ -11,7 +11,7 @@ M.config = function()
 	local dapui = require("dapui")
 	local dap_widgets = require("dap.ui.widgets")
 	local fn = vim.fn
-	local paths = require("soul.core.paths")
+	local paths = require("soul.core.helpers.paths")
 	local project_registry = require("yap.project_registry")
 
 	-- =========================================================
