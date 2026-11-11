@@ -127,6 +127,11 @@ local function compile_and_run_c()
 		return vim.notify("Current buffer is not a C file", vim.log.levels.WARN)
 	end
 
+	local saved, save_error = pcall(vim.cmd, "silent update")
+	if not saved then
+		return vim.notify(save_error, vim.log.levels.ERROR)
+	end
+
 	local clang = vim.fn.exepath("clang")
 	if clang == "" then
 		return vim.notify("clang was not found in PATH", vim.log.levels.ERROR)
