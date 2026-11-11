@@ -35,9 +35,10 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 
 ### Core
 
-- Neovim 0.12.x
+- Neovim 0.12 or newer
 - Git
 - A Nerd Font
+- Neovide 0.16+ (optional; required for all configured GUI options)
 - `ripgrep` (`rg`) for live grep
 - `fd` for file discovery
 - `make` and a C compiler for `telescope-fzf-native.nvim`
