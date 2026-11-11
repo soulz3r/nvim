@@ -157,7 +157,7 @@ local function compile_and_run_c()
 		},
 	}
 
-	if is_windows then
+	if platform.is_windows then
 		local powershell = vim.fn.exepath("pwsh")
 		if powershell == "" then
 			powershell = vim.fn.exepath("powershell")
