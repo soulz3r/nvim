@@ -162,9 +162,10 @@ local function compile_and_run_c()
 			"exit /b %errorlevel%",
 		}
 
-		local written, write_error = pcall(vim.fn.writefile, lines, script)
-		if not written then
-			return show_error("Could not create build script:\n" .. tostring(write_error))
+		local ok, result = pcall(vim.fn.writefile, lines, script)
+		if not ok or result ~= 0 then
+			vim.fn.delete(script)
+			return show_error("Could not create build script:\n" .. tostring(result))
 		end
 
 		terminal_command = {
