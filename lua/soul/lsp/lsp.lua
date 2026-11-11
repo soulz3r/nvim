@@ -99,7 +99,7 @@ function M.setup_keymaps(bufnr)
 			timeout_ms = 3000,
 			filter = function(client)
 				return client:supports_method("textDocument/formatting")
-					and (client.name == "clangd" or client.name == "stylua")
+					and (client.name == "clangd" or client.name == "stylua" or client.name == "fish_ls")
 			end,
 		})
 	end, "Format")
