@@ -1,6 +1,6 @@
 local keymap = vim.keymap.set
 
-local function OPTS(description)
+function OPTS(description)
 	return {
 		noremap = true,
 		silent = true,
