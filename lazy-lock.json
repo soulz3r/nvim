@@ -87,6 +87,10 @@
     "branch": "master",
     "commit": "993d048db0d83d8e8ba3f9cb376456321acdcce3"
   },
+  "nvim-navic": {
+    "branch": "master",
+    "commit": "455808fd0fae06e6d70fadfd61432275db8f34ce"
+  },
   "nvim-nio": {
     "branch": "master",
     "commit": "edcc181a875301dd21840189aa2f2f9ad69fc172"
