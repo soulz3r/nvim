@@ -15,7 +15,7 @@ local M = {
 
 function M.config()
 	local MiniFiles = require("mini.files")
-	local floats = require("soul.ui.floats")
+	local floats = require("soul.core.helpers.ui.floats")
 
 	require("mini.icons").setup()
 	require("mini.pairs").setup()
