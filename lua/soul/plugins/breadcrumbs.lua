@@ -7,15 +7,6 @@ local M = {
 }
 
 function M.config()
-  require("nvim-navic").setup({
-    lsp = {
-      auto_attach = false,
-    },
-    highlight = true,
-    separator = " ",
-    safe_output = true,
-  })
-
   local breadcrumbs = require("breadcrumbs")
 
   table.insert(breadcrumbs.winbar_filetype_exclude, "minifiles")
