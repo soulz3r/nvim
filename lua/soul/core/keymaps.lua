@@ -162,12 +162,12 @@ local function compile_and_run_c()
 	}, function(result)
 		vim.schedule(function()
 			if result.code ~= 0 then
-				output.append(("\\nCompilation failed. Exit code: %d\\n"):format(result.code))
+				output.append(("\nCompilation failed. Exit code: %d\n"):format(result.code))
 				output.set_title(("C Build / Run · compile failed (%d)"):format(result.code))
 				return
 			end
 
-			output.append("\\nCompilation successful.\\nStarting program...\\n")
+			output.append("\nCompilation successful.\nStarting program...\n")
 			output.set_title("C Build / Run · running")
 
 			output.open_terminal({ executable }, {
