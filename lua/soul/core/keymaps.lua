@@ -56,7 +56,7 @@ keymap("n", "<leader>cd", function()
 
 	local directory = vim.fn.fnamemodify(file, ":h")
 	vim.cmd.cd(vim.fn.fnameescape(directory))
-	vim.notify("Working directory: " .. vim.fn.fnamemodify(directory, ":~"))
+	vim.notify("Working directory: " .. vim.fn.fnamemodify(directory, ":~"), vim.log.levels.INFO, { title = "Working Directory" })
 end, OPTS("Set cwd to current file directory"))
 keymap("n", "<leader>q", "<cmd>quit<CR>", OPTS("Quit window"))
 
@@ -88,7 +88,7 @@ keymap("n", "<leader>x", function()
 	end
 
 	if not platform.is_posix then
-		return vim.notify("Windows does not use Unix executable permissions", vim.log.levels.INFO)
+		return vim.notify("Windows does not use Unix executable permissions", vim.log.levels.WARN)
 	end
 
 	local result = vim.system({ "chmod", "+x", file }, { text = true }):wait()
@@ -97,7 +97,7 @@ keymap("n", "<leader>x", function()
 		return vim.notify(vim.trim(result.stderr or "chmod failed"), vim.log.levels.ERROR)
 	end
 
-	vim.notify("Made executable: " .. vim.fn.fnamemodify(file, ":t"))
+	vim.notify("Made executable: " .. vim.fn.fnamemodify(file, ":t"), vim.log.levels.INFO, { title = "File Permissions" })
 end, { desc = "Make executable" })
 
 keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart Neovim" })
