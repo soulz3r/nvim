@@ -18,14 +18,18 @@ return {
 			local seen = {}
 
 			return vim.tbl_filter(function(notif)
-				if not (notif.data and notif.data.source == "lsp_progress") then
+				local is_lsp_progress = notif.hl_group == "MiniNotifyLspProgress"
+					or (notif.data and notif.data.source == "lsp_progress")
+
+				if not is_lsp_progress then
 					return true
 				end
 
+				local message = vim.trim(tostring(notif.msg or "")):gsub("%s+", " ")
 				local key = table.concat({
-					tostring(notif.data.client_name or ""),
-					tostring(notif.msg or ""),
-				}, "\0")
+					tostring(notif.data and notif.data.client_name or ""),
+					message,
+				}, "\\0")
 
 				if seen[key] then
 					return false
