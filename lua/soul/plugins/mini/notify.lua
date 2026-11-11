@@ -18,7 +18,7 @@ return {
 				format = format_notification,
 				sort = MiniNotify.default_sort,
 			},
-			-- Progress is handled below, once per client instead of once per token.
+			-- Progress is handled below, once per server instead of once per token.
 			lsp_progress = {
 				enable = false,
 			},
@@ -71,7 +71,7 @@ return {
 		end
 
 		-- LuaLS can report the same workspace operation under multiple progress
-		-- tokens. Track those tokens, but render only one notification per client.
+		-- tokens. Track those tokens, but render only one notification per server.
 		local progress_by_client = {}
 		local progress_by_server = {}
 		local progress_group = vim.api.nvim_create_augroup("SoulLspProgress", {
