@@ -230,9 +230,6 @@ function M.terminal(title, command, opts)
 		close()
 	end
 
-	map_close_keys(buf, close)
-	vim.keymap.set("t", "<C-q>", close, { buffer = buf, silent = true, nowait = true })
-
 	vim.api.nvim_create_autocmd("BufHidden", {
 		buffer = buf,
 		once = true,
