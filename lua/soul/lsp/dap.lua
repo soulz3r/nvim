@@ -12,6 +12,7 @@ M.config = function()
 	local dap_widgets = require("dap.ui.widgets")
 	local fn = vim.fn
 	local paths = require("soul.core.helpers.paths")
+	local platform = require("soul.core.platform")
 	local project_registry = require("yap.project_registry")
 
 	-- =========================================================
@@ -42,7 +43,7 @@ M.config = function()
 			return nil
 		end
 
-		return paths.is_windows and root:lower() or root
+		return platform.is_windows and root:lower() or root
 	end
 
 	local function read_json(path)
@@ -176,7 +177,7 @@ M.config = function()
 			return false
 		end
 
-		if paths.is_windows then
+		if platform.is_windows then
 			return path:lower():match("%.exe$") ~= nil and fn.filereadable(path) == 1
 		end
 
@@ -191,7 +192,7 @@ M.config = function()
 			return false
 		end
 
-		if paths.is_windows then
+		if platform.is_windows then
 			path = path:lower()
 			root = root:lower()
 		end
@@ -355,7 +356,7 @@ M.config = function()
 				return
 			end
 
-			local key = paths.is_windows and executable:lower() or executable
+			local key = platform.is_windows and executable:lower() or executable
 
 			if seen[key] then
 				return
@@ -562,7 +563,7 @@ M.config = function()
 			elseif char == "\\" and quote ~= "'" then
 				local next_char = input:sub(i + 1, i + 1)
 
-				if not paths.is_windows
+				if not platform.is_windows
 					or next_char == '"'
 					or next_char == "\\"
 					or next_char:match("%s")
