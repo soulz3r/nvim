@@ -69,7 +69,7 @@ keymap("v", "<A-k>", ":m '<-2<CR>gv=gv", OPTS("Move selection up"))
 keymap({ "i", "x" }, ",,", "<ESC>", OPTS())
 keymap("n", ",,", "<CMD>nohl<CR>", OPTS("Clear highlight"))
 
-vim.api.nvim_set_keymap("t", "<C-;>", "<C-\\><C-n>", OPTS())
+keymap("t", "<C-;>", "<C-\\><C-n>", OPTS("Terminal Normal Mode"))
 
 vim.cmd([[
   :amenu 10.100 mousemenu.Goto\ Definition <cmd>lua vim.lsp.buf.definition()<CR>
