@@ -15,6 +15,7 @@ The entry point is `init.lua`. It loads the core modules, registers plugin group
 |---|---|
 | `lua/soul/core/platform.lua` | Centralized Windows, WSL, Linux, macOS, and Termux detection |
 | `lua/soul/core/helpers/paths.lua` | Project directory and external tool path resolution |
+| `lua/soul/core/helpers/keymaps.lua` | Shared options for keymap definitions |
 | `lua/soul/core/options.lua` | Editor options, shell, clipboard, and UI defaults |
 | `lua/soul/core/keymaps.lua` | Global keymaps and shared keymap helpers |
 | `lua/soul/core/autocmds.lua` | Core autocmds |
