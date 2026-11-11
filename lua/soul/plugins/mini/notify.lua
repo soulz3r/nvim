@@ -70,59 +70,6 @@ return {
 			return mini_notify(message, level, opts)
 		end
 
-		local message_ns = vim.api.nvim_create_namespace("soul.message_notifications")
-		if vim.ui_detach then
-			pcall(vim.ui_detach, message_ns)
-		end
-
-		if vim.ui_attach then
-			vim.ui_attach(message_ns, { ext_messages = true }, function(event, kind, chunks)
-				if event ~= "msg_show" then
-					return false
-				end
-
-				-- Prompts require native input handling, so do not consume them.
-				if kind == "return_prompt" then
-					return false
-				end
-
-				local levels = {
-					emsg = vim.log.levels.ERROR,
-					echoerr = vim.log.levels.ERROR,
-					rpc_error = vim.log.levels.ERROR,
-					shell_err = vim.log.levels.WARN,
-					wmsg = vim.log.levels.WARN,
-				}
-
-				-- Every passive native message enters the same vim.notify pipeline.
-				-- The filter above drops INFO/DEBUG and MiniNotify displays WARN/ERROR.
-				local level = levels[kind] or vim.log.levels.INFO
-				local message = table.concat(vim.tbl_map(function(chunk)
-					return type(chunk) == "table" and tostring(chunk[2] or "") or tostring(chunk)
-				end, chunks or {}))
-				message = vim.trim(message)
-
-				if message ~= "" then
-					if message:find("W10", 1, true)
-						or message:find("Changing a readonly file", 1, true)
-					then
-						message = "This buffer is read-only. Changes are disabled."
-						level = vim.log.levels.WARN
-					end
-
-					vim.schedule(function()
-						vim.notify(message, level, {
-							title = level == vim.log.levels.ERROR and "NEOVIM ERROR"
-								or level == vim.log.levels.WARN and "WARNING"
-								or "MESSAGE",
-						})
-					end)
-				end
-
-				-- Consume all passive messages so none leak into the command area.
-				return true
-			end)
-		end
 
 		vim.keymap.set("n", "<leader>nc", MiniNotify.clear, {
 			desc = "Clear notifications",
