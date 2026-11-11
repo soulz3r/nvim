@@ -120,6 +120,22 @@ function M.terminal(title, command, opts)
 	local job_opts = vim.tbl_extend("force", {}, opts)
 	job_opts.highlight_markers = nil
 
+	local on_exit = job_opts.on_exit
+	job_opts.on_exit = function(job_id, exit_code, event)
+		if on_exit then
+			on_exit(job_id, exit_code, event)
+		end
+
+		vim.schedule(function()
+			if vim.api.nvim_buf_is_valid(buf)
+				and vim.api.nvim_get_current_buf() == buf
+				and vim.fn.mode(1):sub(1, 1) == "t"
+			then
+				vim.cmd.stopinsert()
+			end
+		end)
+	end
+
 	if type(markers) == "table" and next(markers) ~= nil then
 		local namespace = vim.api.nvim_create_namespace("SoulOutputTerminal")
 		vim.api.nvim_buf_attach(buf, false, {
