@@ -122,9 +122,26 @@ local function compile_and_run_c()
 		executable = executable .. ".exe"
 	end
 
-	vim.notify("Compiling " .. vim.fn.fnamemodify(file, ":t"), vim.log.levels.INFO, {
-		title = "C Build",
+	local output = Output.create("C Build / Run", {
+		"Source: " .. vim.fn.fnamemodify(file, ":~:."),
+		"",
+		"Compiling...",
+	}, {
+		filetype = "compiler",
+		wrap = false,
 	})
+
+	local function show_compile_error(message, compiler_output)
+		if not output.is_open() then
+			return
+		end
+
+		output.append("\n" .. message .. "\n")
+		if compiler_output ~= "" then
+			output.append(compiler_output .. "\n")
+		end
+		output.set_title("C Build / Run · failed")
+	end
 
 	vim.system({
 		clang,
@@ -139,43 +156,29 @@ local function compile_and_run_c()
 		text = true,
 	}, function(result)
 		vim.schedule(function()
+			if not output.is_open() then
+				return
+			end
+
 			local compiler_output = vim.trim(table.concat({
 				result.stdout or "",
 				result.stderr or "",
 			}, "\n"))
 
 			if result.code ~= 0 then
-				local message = ("Compilation failed (exit %d)"):format(result.code)
-				if compiler_output ~= "" then
-					message = message .. "\n" .. compiler_output
-				end
-
-				vim.notify(message, vim.log.levels.ERROR, {
-					title = "C Build",
-				})
+				show_compile_error(("Compilation failed (exit %d)"):format(result.code), compiler_output)
 				return
 			end
 
-			if compiler_output ~= "" then
-				vim.notify("Build successful.\n" .. compiler_output, vim.log.levels.WARN, {
-					title = "C Build",
-				})
-			else
-				vim.notify("Build successful. Starting program.", vim.log.levels.INFO, {
-					title = "C Build",
-				})
-			end
+			output.set_title("C Build / Run · running")
 
-			local output = Output.create("C Run", {
-				"Starting " .. vim.fn.fnamemodify(file, ":t"),
-			}, {
-				filetype = "terminal",
-				wrap = false,
-			})
-
-			output.open_terminal({ executable }, {
+			local _, terminal_error = output.open_terminal({ executable }, {
 				cwd = directory,
 			})
+
+			if terminal_error then
+				show_compile_error("Could not start program terminal:", terminal_error)
+			end
 		end)
 	end)
 end
