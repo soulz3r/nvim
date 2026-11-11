@@ -116,6 +116,32 @@ function M.terminal(title, command, opts)
 	vim.wo[win].signcolumn = "no"
 	vim.wo[win].foldcolumn = "0"
 
+	local markers = opts.highlight_markers
+	if type(markers) == "table" and next(markers) ~= nil then
+		local namespace = vim.api.nvim_create_namespace("SoulOutputTerminal")
+		vim.api.nvim_buf_attach(buf, false, {
+			on_lines = function(_, changed_buf, _, firstline, _, new_lastline)
+				if not vim.api.nvim_buf_is_valid(changed_buf) then
+					return true
+				end
+
+				local lines = vim.api.nvim_buf_get_lines(changed_buf, firstline, new_lastline, false)
+				for offset, line in ipairs(lines) do
+					local group = markers[line:gsub("\\r$", "")]
+					if group then
+						local row = firstline + offset - 1
+						vim.api.nvim_buf_set_extmark(changed_buf, namespace, row, 0, {
+							end_row = row,
+							end_col = #line,
+							hl_group = group,
+							priority = 200,
+						})
+					end
+				end
+			end,
+		})
+	end
+
 	local job
 
 	local function stop()
