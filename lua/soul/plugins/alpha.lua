@@ -101,11 +101,11 @@ function M.config()
 	dashboard.section.buttons.val = {
 		button("f", button_icons.files .. " Find file", "<cmd>Telescope find_files<CR>"),
 
-		button("e", button_icons.explorer .. " Open Explorer", "<cmd>lua require('soul.plugins.mini').open()<CR>"),
+		button("e", button_icons.explorer .. " Open Explorer", "<cmd>lua require('mini.files').open(vim.fn.getcwd())<CR>"),
 
 		button("n", button_icons.new_file .. " New file", "<cmd>ene | startinsert<CR>"),
 
-		button("p", button_icons.project .. "Projects", "<cmd>Telescope project<CR>"),
+		button("p", button_icons.project .. " Projects", "<cmd>lua require('yap').project_picker.open(require('yap').config)<CR>"),
 
 		button("r", button_icons.recent .. " Recent files", "<cmd>Telescope oldfiles<CR>"),
 
