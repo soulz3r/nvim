@@ -91,11 +91,11 @@ These mappings are buffer-local and appear when an LSP client attaches.
 
 ## C and C++ (clangd)
 
-| Mapping | Action |
-|---|---|
-| `<leader>ch` | Switch between source and header |
-| `<leader>ci` | Insert an include directive |
-| `<leader>pi` | Show C/C++ project and compile metadata in a focused float (`q` or `Esc` closes it) |
+YAP keeps its C helper functionality available as commands, without assigning default keymaps:
+
+- `:CSwitchHeader` — switch between matching source and header files.
+- `:CInsertInclude` — insert an include directive.
+- `:CProjectInfo` — show C/C++ project and compile metadata in a focused float.
 
 ## Editing
 
