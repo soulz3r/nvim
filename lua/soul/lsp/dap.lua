@@ -113,8 +113,10 @@ M.config = function()
 		end
 
 		local backup = path .. ".migrated"
-		if fn.filereadable(backup) == 1 then
-			backup = backup .. "." .. os.time()
+		local suffix = 0
+		while fn.filereadable(backup) == 1 do
+			suffix = suffix + 1
+			backup = path .. ".migrated." .. os.time() .. "." .. suffix
 		end
 
 		local moved, move_error = vim.uv.fs_rename(path, backup)
@@ -242,6 +244,10 @@ M.config = function()
 		if not path then
 			return nil
 		end
+
+		-- Refresh from the shared registry so projects added by YAP or another
+		-- Neovim instance are visible without restarting this session.
+		projects = load_projects()
 
 		local best_root
 		local best_length = -1
