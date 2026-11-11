@@ -19,7 +19,6 @@ return {
 				sort = MiniNotify.default_sort,
 			},
 			lsp_progress = {
-				-- Progress is informational, not an error or warning.
 				enable = false,
 			},
 			window = {
@@ -59,9 +58,8 @@ return {
 			WARN = { duration = 7000, hl_group = "DiagnosticWarn" },
 		})
 
-		-- Keep MiniNotify as the notification backend, but reject everything
-		-- except warnings and errors. This also filters plugin-generated
-		-- vim.notify() calls, not only Neovim's native message events.
+		-- All vim.notify() calls pass through this gate. MiniNotify receives
+		-- warnings and errors only; informational noise is deliberately dropped.
 		vim.notify = function(message, level, opts)
 			level = level or vim.log.levels.INFO
 
@@ -83,55 +81,45 @@ return {
 					return false
 				end
 
-				-- Interactive prompts must remain interactive. Neovim 0.11+
-				-- normally routes these through cmdline events instead.
+				-- Prompts require native input handling, so do not consume them.
 				if kind == "return_prompt" then
 					return false
 				end
 
-				local severities = {
-					emsg = { level = vim.log.levels.ERROR, title = "NEOVIM ERROR" },
-					echoerr = { level = vim.log.levels.ERROR, title = "ERROR" },
-					rpc_error = { level = vim.log.levels.ERROR, title = "RPC ERROR" },
-					shell_err = { level = vim.log.levels.WARN, title = "SHELL WARNING" },
-					wmsg = { level = vim.log.levels.WARN, title = "WARNING" },
+				local levels = {
+					emsg = vim.log.levels.ERROR,
+					echoerr = vim.log.levels.ERROR,
+					rpc_error = vim.log.levels.ERROR,
+					shell_err = vim.log.levels.WARN,
+					wmsg = vim.log.levels.WARN,
 				}
 
-				local severity = severities[kind]
-				if not severity then
-					-- Consume every non-error/non-warning message so routine
-					-- output never falls through to the command area or UI2.
-					return true
-				end
-
+				-- Every passive native message enters the same vim.notify pipeline.
+				-- The filter above drops INFO/DEBUG and MiniNotify displays WARN/ERROR.
+				local level = levels[kind] or vim.log.levels.INFO
 				local message = table.concat(vim.tbl_map(function(chunk)
 					return type(chunk) == "table" and tostring(chunk[2] or "") or tostring(chunk)
 				end, chunks or {}))
 				message = vim.trim(message)
 
-				if message == "" then
-					return true
+				if message ~= "" then
+					if message:find("W10", 1, true)
+						or message:find("Changing a readonly file", 1, true)
+					then
+						message = "This buffer is read-only. Changes are disabled."
+						level = vim.log.levels.WARN
+					end
+
+					vim.schedule(function()
+						vim.notify(message, level, {
+							title = level == vim.log.levels.ERROR and "NEOVIM ERROR"
+								or level == vim.log.levels.WARN and "WARNING"
+								or "MESSAGE",
+						})
+					end)
 				end
 
-				if message:find("W10", 1, true)
-					or message:find("Changing a readonly file", 1, true)
-				then
-					message = "This buffer is read-only. Changes are disabled."
-					severity = {
-						level = vim.log.levels.WARN,
-						title = "READ-ONLY",
-					}
-				end
-
-				-- msg_show callbacks may run in api-fast context. Schedule the
-				-- notification before calling MiniNotify.
-				vim.schedule(function()
-					vim.notify(message, severity.level, {
-						title = severity.title,
-					})
-				end)
-
-				-- The message has been handled; don't let another UI display it.
+				-- Consume all passive messages so none leak into the command area.
 				return true
 			end)
 		end
