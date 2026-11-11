@@ -80,7 +80,25 @@ keymap("n", "<Tab>", "<cmd>:popup mousemenu<CR>")
 
 keymap("n", "<leader>c", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Replace word under cursor" })
 
-keymap("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make executable" })
+keymap("n", "<leader>x", function()
+	local file = vim.api.nvim_buf_get_name(0)
+
+	if file == "" then
+		return vim.notify("Current buffer has no file", vim.log.levels.WARN)
+	end
+
+	if not platform.is_posix then
+		return vim.notify("Windows does not use Unix executable permissions", vim.log.levels.INFO)
+	end
+
+	local result = vim.system({ "chmod", "+x", file }, { text = true }):wait()
+
+	if result.code ~= 0 then
+		return vim.notify(vim.trim(result.stderr or "chmod failed"), vim.log.levels.ERROR)
+	end
+
+	vim.notify("Made executable: " .. vim.fn.fnamemodify(file, ":t"))
+end, { desc = "Make executable" })
 
 keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart Neovim" })
 keymap("n", "<leader>ni", "<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>", { desc = "Open config" })
