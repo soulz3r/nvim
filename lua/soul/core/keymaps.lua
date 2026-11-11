@@ -153,6 +153,7 @@ local function compile_and_run_c()
 		highlight_markers = {
 			[build_marker] = "SoulBuildSeparator",
 			[execution_marker] = "SoulExecutionSeparator",
+			["Compilation successful."] = "SoulSuccess",
 		},
 	}
 
