@@ -42,7 +42,6 @@ keymap({ "n", "x" }, "j", "gj", OPTS())
 keymap({ "n", "x" }, "k", "gk", OPTS())
 
 keymap("n", "<leader>qw", "<cmd>write<CR>", OPTS("Save"))
-keymap("n", "<leader>qW", "<cmd>write!<CR>", OPTS("Force save"))
 
 keymap("n", "<leader>cd", function()
 	local file = vim.api.nvim_buf_get_name(0)
@@ -56,7 +55,6 @@ keymap("n", "<leader>cd", function()
 	vim.notify("Working directory: " .. vim.fn.fnamemodify(directory, ":~"))
 end, OPTS("Set cwd to current file directory"))
 keymap("n", "<leader>qq", "<cmd>quitall<CR>", OPTS("Quit Neovim"))
-keymap("n", "<leader>qQ", "<cmd>quitall!<CR>", OPTS("Force quit Neovim"))
 
 keymap("n", "<A-j>", ":m .+1<CR>==", OPTS("Move line down"))
 keymap("n", "<A-k>", ":m .-2<CR>==", OPTS("Move line up"))
