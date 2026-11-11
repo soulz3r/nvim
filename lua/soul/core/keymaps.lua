@@ -274,7 +274,7 @@ local function compile_and_run_c()
 				vim.fn.delete(script)
 			end)
 		end
-	elseif platform.is_linux or platform.is_wsl or platform.is_macos then
+	elseif platform.is_linux or platform.is_wsl or platform.is_macos or platform.is_termux then
 		local compile_args = {
 			vim.fn.shellescape(clang),
 			"-std=c23",
@@ -296,7 +296,19 @@ local function compile_and_run_c()
 			"exec " .. vim.fn.shellescape(executable),
 		}, "; ")
 
-		terminal_command = { "/bin/sh", "-c", command }
+		local shell = "/bin/sh"
+		if platform.is_termux then
+			shell = vim.fn.exepath("sh")
+			if shell == "" then
+				shell = "/system/bin/sh"
+			end
+		end
+
+		if vim.fn.executable(shell) ~= 1 then
+			return show_error("POSIX shell was not found")
+		end
+
+		terminal_command = { shell, "-c", command }
 	else
 		return show_error("The C runner does not support this platform: " .. platform.name)
 	end
