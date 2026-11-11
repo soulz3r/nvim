@@ -44,6 +44,10 @@ local function find_powershell()
 	return "pwsh"
 end
 
+M.clang = vim.env.CLANG and vim.fn.executable(vim.env.CLANG) == 1 and vim.env.CLANG
+	or find_executable({ "clang" })
+	or "clang"
+
 M.pwsh = find_powershell()
 
 M.lldb_dap = vim.env.LLDB_DAP
