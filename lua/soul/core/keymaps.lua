@@ -137,11 +137,13 @@ local function compile_and_run_c()
 
 	-- cmd.exe does not understand the single-quote escaping used by shellescape().
 	-- Use a temporary batch file so paths containing spaces are handled correctly.
-	local execution_marker = "==================== EXECUTION ===================="
+	local build_marker = "==================== COMPILATION ===================="
+	local execution_marker = "===================== EXECUTION ====================="
 	local terminal_command
 	local terminal_opts = {
 		cwd = directory,
 		highlight_markers = {
+			[build_marker] = "SoulBuildSeparator",
 			[execution_marker] = "SoulExecutionSeparator",
 		},
 	}
@@ -155,6 +157,7 @@ local function compile_and_run_c()
 		local lines = {
 			"@echo off",
 			"setlocal DisableDelayedExpansion",
+			"echo " .. build_marker,
 			table.concat({
 				batch_quote(clang),
 				"-std=c23 -g -O0 -o",
@@ -189,6 +192,8 @@ local function compile_and_run_c()
 		end
 	else
 		local command = table.concat({
+			"printf '%s\\n' " .. vim.fn.shellescape(build_marker),
+			"&&",
 			vim.fn.shellescape(clang),
 			"-std=c23 -g -O0 -o",
 			vim.fn.shellescape(executable),
