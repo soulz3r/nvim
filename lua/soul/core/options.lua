@@ -74,7 +74,9 @@ vim.g.netrw_mouse = 2
 
 vim.opt.clipboard = "unnamedplus"
 
-if vim.fn.has("wsl") == 1 then
+local platform = require("soul.core.platform")
+
+if platform.is_wsl then
 	vim.g.clipboard = {
 		name = "WslClipboard",
 		copy = {
@@ -90,7 +92,7 @@ if vim.fn.has("wsl") == 1 then
 end
 
 local paths = require("soul.core.helpers.paths")
-if paths.is_windows then
+if platform.is_windows then
 	vim.opt.shell = paths.pwsh
 	vim.opt.shellcmdflag = "-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command"
 	vim.opt.shellquote = ""
