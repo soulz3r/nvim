@@ -260,19 +260,29 @@ local function compile_and_run_c()
 			end)
 		end
 	else
-		local command = table.concat({
-			"printf '%s\\n' " .. vim.fn.shellescape(build_marker),
-			"&&",
+		local compile_args = {
 			vim.fn.shellescape(clang),
-			"-std=c23 -g -O0 -o",
+			"-std=c23",
+			"-g",
+			"-O0",
+			"-o",
 			vim.fn.shellescape(executable),
 			vim.fn.shellescape(file),
-			"&&",
+		}
+		local compile_command = table.concat(compile_args, " ")
+		local command = table.concat({
+			"printf '%s\\n' " .. vim.fn.shellescape(build_marker),
+			"printf '%s\\n' " .. vim.fn.shellescape("> " .. compile_command),
+			compile_command,
+			"compile_exit_code=$?",
+			"if [ \"$compile_exit_code\" -ne 0 ]; then",
+			"printf 'Compilation failed (exit code %s).\\n' \"$compile_exit_code\"",
+			"exit \"$compile_exit_code\"",
+			"fi",
+			"printf '%s\\n' 'Compilation successful.'",
 			"printf '\\n%s\\n' " .. vim.fn.shellescape(execution_marker),
-			"&&",
-			"exec",
-			vim.fn.shellescape(executable),
-		}, " ")
+			"exec " .. vim.fn.shellescape(executable),
+		}, "; ")
 
 		terminal_command = { "/bin/sh", "-c", command }
 	end
