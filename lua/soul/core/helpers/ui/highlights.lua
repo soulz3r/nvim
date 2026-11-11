@@ -1,8 +1,10 @@
 local M = {}
 
+local palette = require("soul.core.helpers.ui.colors").palette
+
 local groups = {
   SoulSectionTitle = { link = "Title" },
-  SoulMuted = { link = "Comment" },
+  SoulMuted = { fg = palette.muted },
   SoulSuccess = { link = "DiagnosticOk" },
   SoulBuildSeparator = { link = "SoulSectionTitle", bold = true },
   SoulExecutionSeparator = { link = "SoulSuccess", bold = true },
