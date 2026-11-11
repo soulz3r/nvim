@@ -9,7 +9,7 @@ local groups = {
   SoulBuildSeparator = { link = "SoulSectionTitle", bold = true },
   SoulExecutionSeparator = { link = "SoulSuccess", bold = true },
   SoulWarning = { link = "DiagnosticWarn" },
-  SoulError = { link = "DiagnosticError" },
+  SoulError = { fg = palette.red, bold = true },
 }
 
 function M.apply()

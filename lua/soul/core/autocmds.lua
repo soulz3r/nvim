@@ -14,9 +14,14 @@ local function update_float_statusline()
 			if config.relative ~= "" then
 				local buf = vim.api.nvim_win_get_buf(win)
 
-				if vim.api.nvim_buf_is_valid(buf) and not vim.bo[buf].modifiable then
-					has_readonly_float = true
-					break
+				if vim.api.nvim_buf_is_valid(buf) then
+					local is_minifiles = vim.bo[buf].filetype == "minifiles"
+					local is_readonly = not vim.bo[buf].modifiable
+
+					if is_minifiles or is_readonly then
+						has_readonly_float = true
+						break
+					end
 				end
 			end
 		end
@@ -58,6 +63,11 @@ vim.api.nvim_create_autocmd("OptionSet", {
 	callback = schedule_float_statusline_update,
 })
 
+vim.api.nvim_create_autocmd("User", {
+	pattern = { "MiniFilesExplorerOpen", "MiniFilesExplorerClose" },
+	callback = schedule_float_statusline_update,
+})
+
 vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
   callback = function()
     vim.opt_local.formatoptions:remove({ "c", "r", "o" })
@@ -95,11 +105,6 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
-vim.api.nvim_create_autocmd("CmdWinEnter", {
-  callback = function()
-    vim.cmd("quit")
-  end,
-})
 
 vim.api.nvim_create_autocmd({ "VimResized" }, {
   callback = function()
@@ -107,11 +112,14 @@ vim.api.nvim_create_autocmd({ "VimResized" }, {
   end,
 })
 
-vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
-  pattern = { "!vim" },
-  callback = function()
-    vim.cmd("checktime")
-  end,
+vim.api.nvim_create_autocmd("BufWinEnter", {
+	callback = function(args)
+		-- Only check ordinary file buffers; special/plugin buffers have no
+		-- external file timestamp to refresh.
+		if vim.bo[args.buf].buftype == "" then
+			vim.cmd.checktime()
+		end
+	end,
 })
 
 vim.api.nvim_create_autocmd({ "TextYankPost" }, {

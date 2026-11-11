@@ -3,6 +3,7 @@ local M = {
 	dependencies = {
 		"nvim-neotest/nvim-nio",
 		"rcarriga/nvim-dap-ui",
+		"soulz3r/yap.nvim",
 	},
 }
 
@@ -19,9 +20,10 @@ M.config = function()
 	-- Project registry
 	-- =========================================================
 
-	local state_file = fn.stdpath("state") .. "/soul/dap-projects.json"
-	local legacy_state_file = fn.stdpath("config") .. "/lsp/dap-projects.json"
-	fn.mkdir(fn.fnamemodify(state_file, ":h"), "p")
+	local legacy_state_files = {
+		fn.stdpath("config") .. "/lsp/dap-projects.json",
+		fn.stdpath("state") .. "/soul/dap-projects.json",
+	}
 
 	local function normalize(path)
 		if type(path) ~= "string" or path == "" then
@@ -36,9 +38,9 @@ M.config = function()
 
 		return (normalized:gsub("/+$", ""))
 	end
+
 	local function project_key(path)
 		local root = normalize(path)
-
 		if not root then
 			return nil
 		end
@@ -46,187 +48,187 @@ M.config = function()
 		return platform.is_windows and root:lower() or root
 	end
 
+	local function is_executable(path)
+		return type(path) == "string"
+			and path ~= ""
+			and fn.executable(path) == 1
+	end
+
+	local function is_within(path, root)
+		path = project_key(path)
+		root = project_key(root)
+
+		if not path or not root then
+			return false
+		end
+
+		if path == root then
+			return true
+		end
+
+		local prefix = root:sub(-1) == "/" and root or (root .. "/")
+		return path:sub(1, #prefix) == prefix
+	end
+
 	local function read_json(path)
 		local file = io.open(path, "r")
-
 		if not file then
-			return nil
+			return nil, "could not open file"
 		end
 
 		local content = file:read("*a")
 		file:close()
 
 		local ok, data = pcall(fn.json_decode, content)
-
 		if not ok or type(data) ~= "table" then
-			vim.notify(
-				"Could not parse DAP project registry:\n" .. path,
-				vim.log.levels.ERROR
-			)
-			return nil
+			return nil, "invalid JSON"
 		end
 
 		return data
 	end
 
-	local function write_json(data)
-		local temp_file = state_file .. ".tmp"
-		local file = io.open(temp_file, "w")
+	-- Merge older DAP-only registries into YAP's registry. Keep a backup
+	-- after a successful migration rather than deleting the user's old data.
+	local function migrate_registry_file(path)
+		if fn.filereadable(path) ~= 1 then
+			return
+		end
 
-		if not file then
+		local raw_data, read_error = read_json(path)
+		if not raw_data then
 			vim.notify(
-				"Could not write temporary DAP registry:\n" .. temp_file,
+				"Could not migrate DAP registry (" .. read_error .. "):\n" .. path,
 				vim.log.levels.ERROR
 			)
-			return false
+			return
 		end
 
-		local ok, err = file:write(fn.json_encode(data))
+		local entries = type(raw_data.projects) == "table" and raw_data.projects or raw_data
+		local failed = false
 
-		if not ok then
-			file:close()
-			os.remove(temp_file)
-			vim.notify("Could not write DAP registry: " .. tostring(err), vim.log.levels.ERROR)
-			return false
-		end
-
-		local flushed, flush_err = file:flush()
-		file:close()
-
-		if not flushed then
-			os.remove(temp_file)
-			vim.notify("Could not flush DAP registry: " .. tostring(flush_err), vim.log.levels.ERROR)
-			return false
-		end
-
-		local renamed, rename_err = vim.uv.fs_rename(temp_file, state_file)
-
-		if not renamed then
-			os.remove(temp_file)
-			vim.notify("Could not replace DAP registry: " .. tostring(rename_err), vim.log.levels.ERROR)
-			return false
-		end
-
-		return true
-	end
-
-	-- Preserve the original flat registry format while also reading
-	-- the wrapper format used by the earlier version.
-	local migrated_legacy = false
-	local raw_data
-
-	if fn.filereadable(state_file) == 1 then
-		raw_data = read_json(state_file) or {}
-	elseif fn.filereadable(legacy_state_file) == 1 then
-		raw_data = read_json(legacy_state_file)
-		migrated_legacy = raw_data ~= nil
-		raw_data = raw_data or {}
-	else
-		raw_data = {}
-	end
-
-	local projects = {}
-	local active_root
-
-	if type(raw_data.projects) == "table" then
-		active_root = raw_data.active_root
-
-		for key, entry in pairs(raw_data.projects) do
+		for key, entry in pairs(entries) do
 			if type(entry) == "table" then
 				local root = normalize(entry.root or key)
-				local k = project_key(root)
+				if root then
+					local fields = { dap_enabled = true }
+					local executable = normalize(entry.executable)
 
-				if k then
-					projects[k] = {
+					if executable then
+						fields.debug_executable = executable
+						fields.last_executable = executable
+					end
+
+					local ok, saved = pcall(project_registry.update, root, fields)
+					if not ok or saved ~= true then
+						failed = true
+						vim.notify(
+							"Could not migrate DAP project metadata for:\n" .. root,
+							vim.log.levels.ERROR
+						)
+					end
+				end
+			end
+		end
+
+		if failed then
+			return
+		end
+
+		local backup = path .. ".migrated"
+		local suffix = 0
+		while fn.filereadable(backup) == 1 do
+			suffix = suffix + 1
+			backup = path .. ".migrated." .. os.time() .. "." .. suffix
+		end
+
+		local moved, move_error = vim.uv.fs_rename(path, backup)
+		if not moved then
+			vim.notify(
+				"Imported DAP settings, but could not move the old registry to a backup:\n"
+					.. tostring(move_error),
+				vim.log.levels.WARN
+			)
+			return
+		end
+
+		vim.notify(
+			"Migrated DAP project settings into the YAP project registry. Backup:\n" .. backup,
+			vim.log.levels.INFO,
+			{ title = "DAP Registry" }
+		)
+	end
+
+	for _, legacy_path in ipairs(legacy_state_files) do
+		migrate_registry_file(legacy_path)
+	end
+
+	local function load_projects()
+		local ok, entries = pcall(project_registry.list)
+		if not ok or type(entries) ~= "table" then
+			vim.notify(
+				"Could not read the YAP project registry: " .. tostring(entries),
+				vim.log.levels.ERROR
+			)
+			return {}
+		end
+
+		local projects = {}
+		for _, entry in ipairs(entries) do
+			if type(entry) == "table" and type(entry.root) == "string" then
+				local root = normalize(entry.root)
+				local executable = entry.debug_executable or entry.last_executable
+				local key = project_key(root)
+
+				if key and (entry.dap_enabled or executable) then
+					projects[key] = {
 						root = root,
-						executable = entry.executable,
+						executable = normalize(executable),
 					}
 				end
 			end
 		end
-	else
-		for key, entry in pairs(raw_data) do
-			if type(entry) == "table" then
-				local root = normalize(entry.root or key)
-				local k = project_key(root)
 
-				if k then
-					projects[k] = {
-						root = root,
-						executable = entry.executable,
-					}
-				end
-			end
-		end
+		return projects
 	end
 
-	local function save_projects()
-		return write_json({
-			version = 1,
-			active_root = active_root,
-			projects = projects,
-		})
-	end
-
-	if migrated_legacy and save_projects() then
-		vim.notify("Migrated DAP project registry to:\n" .. state_file, vim.log.levels.INFO)
-	end
-
-	local function is_executable(path)
-		if type(path) ~= "string" or path == "" then
-			return false
-		end
-
-		if platform.is_windows then
-			return path:lower():match("%.exe$") ~= nil and fn.filereadable(path) == 1
-		end
-
-		return fn.executable(path) == 1
-	end
-
-	local function is_within(path, root)
-		path = normalize(path)
-		root = normalize(root)
-
-		if not path or not root then
-			return false
-		end
-
-		if platform.is_windows then
-			path = path:lower()
-			root = root:lower()
-		end
-
-		return path == root
-			or path:sub(1, #root + 1) == root .. "/"
-			or path:sub(1, #root + 1) == root .. "\\"
-	end
+	local projects = load_projects()
 
 	local function save_project(root, executable)
 		root = normalize(root)
 		local key = project_key(root)
-
 		if not key then
 			return nil
 		end
 
-		local entry = projects[key] or {
-			root = root,
-		}
-
-		entry.root = root
+		local fields = { dap_enabled = true }
+		local normalized_executable
 
 		if executable ~= nil then
-			entry.executable = normalize(executable)
+			normalized_executable = normalize(executable)
+			if not normalized_executable then
+				return nil
+			end
+
+			fields.debug_executable = normalized_executable
+			fields.last_executable = normalized_executable
 		end
 
+		local ok, saved = pcall(project_registry.update, root, fields)
+		if not ok or saved ~= true then
+			vim.notify(
+				"Could not save DAP project metadata for:\n" .. root
+					.. (not ok and ("\n" .. tostring(saved)) or ""),
+				vim.log.levels.ERROR
+			)
+			return nil
+		end
+
+		local entry = projects[key] or { root = root }
+		entry.root = root
+		if normalized_executable then
+			entry.executable = normalized_executable
+		end
 		projects[key] = entry
-		active_root = key
-		project_registry.update(root, {
-			debug_executable = entry.executable,
-			last_executable = entry.executable,
-		})
-		save_projects()
 
 		return entry
 	end
@@ -264,6 +266,10 @@ M.config = function()
 		if not path then
 			return nil
 		end
+
+		-- Refresh from the shared registry so projects added by YAP or another
+		-- Neovim instance are visible without restarting this session.
+		projects = load_projects()
 
 		local best_root
 		local best_length = -1
@@ -318,20 +324,17 @@ M.config = function()
 
 		local key = project_key(root)
 		local entry = key and projects[key] or nil
+		local ok, shared = pcall(project_registry.get, root)
 
-		if not entry then
-			local shared = project_registry.get(root)
-			if shared and (shared.debug_executable or shared.last_executable) then
-				entry = {
-					root = root,
-					executable = shared.debug_executable or shared.last_executable,
-				}
-				projects[key] = entry
-			end
+		if ok and type(shared) == "table"
+			and (shared.dap_enabled or shared.debug_executable or shared.last_executable)
+		then
+			entry = entry or { root = root }
+			entry.executable = shared.debug_executable or shared.last_executable or entry.executable
+			projects[key] = entry
 		end
 
 		if entry then
-			active_root = key
 			return entry, root
 		end
 
@@ -366,24 +369,46 @@ M.config = function()
 			table.insert(found, executable)
 		end
 
-		local directories = {
-			root .. "/bin",
-			root .. "/build",
-			root .. "/build/Debug",
-			root .. "/build/Release",
-			root .. "/Debug",
-			root .. "/Release",
-			root,
+		local ignored_directories = {
+			[".git"] = true,
+			["node_modules"] = true,
+			[".venv"] = true,
+			["venv"] = true,
 		}
 
-		for _, directory in ipairs(directories) do
-			if fn.isdirectory(directory) == 1 then
-				for name, kind in vim.fs.dir(directory) do
-					if kind == "file" then
-						add(directory .. "/" .. name)
-					end
+		local function scan(directory, depth, recursive)
+			if fn.isdirectory(directory) ~= 1 then
+				return
+			end
+
+			local ok, entries = pcall(vim.fs.dir, directory)
+			if not ok then
+				return
+			end
+
+			for name, kind in entries do
+				local path = directory .. "/" .. name
+
+				if kind == "file" then
+					add(path)
+				elseif recursive and kind == "directory"
+					and depth < 3 and not ignored_directories[name]
+				then
+					scan(path, depth + 1, true)
 				end
 			end
+		end
+
+		-- Root-level files are cheap to inspect. Search output directories
+		-- recursively, but keep traversal bounded and avoid dependency trees.
+		scan(root, 0, false)
+		for _, directory in ipairs({
+			root .. "/bin",
+			root .. "/build",
+			root .. "/Debug",
+			root .. "/Release",
+		}) do
+			scan(directory, 0, true)
 		end
 
 		table.sort(found, function(a, b)
@@ -420,6 +445,8 @@ M.config = function()
 	-- =========================================================
 
 	local function select_project()
+		local current_key = project_key(resolve_project_root())
+		projects = load_projects()
 		local entries = {}
 
 		for key, entry in pairs(projects) do
@@ -438,7 +465,7 @@ M.config = function()
 
 		if #entries == 0 then
 			vim.notify(
-				"No saved projects in:\n" .. state_file,
+				"No saved DAP projects were found in the YAP project registry.",
 				vim.log.levels.WARN
 			)
 			return
@@ -447,7 +474,7 @@ M.config = function()
 		local choices = {}
 
 		for _, entry in ipairs(entries) do
-			local marker = entry.key == active_root and " [active]" or ""
+			local marker = entry.key == current_key and " [active]" or ""
 			table.insert(choices, entry.root .. marker)
 		end
 
@@ -468,15 +495,22 @@ M.config = function()
 				return
 			end
 
-			active_root = entry.key
-			save_projects()
-			vim.cmd.cd(entry.root)
+			vim.api.nvim_set_current_dir(entry.root)
+
+			local touched, saved = pcall(project_registry.touch, entry.root)
+			if not touched or saved ~= true then
+				vim.notify(
+					"Changed project directory, but could not update its last-opened metadata.",
+					vim.log.levels.WARN
+				)
+			end
 
 			vim.notify(
 				"Selected project:\n" .. entry.root
 					.. "\nExecutable: "
-					.. (entry.executable ~= "" and entry.executable or "Not configured"),
-				vim.log.levels.INFO
+					.. (entry.executable and entry.executable ~= "" and entry.executable or "Not configured"),
+				vim.log.levels.INFO,
+				{ title = "DAP" }
 			)
 		end)
 	end
@@ -514,11 +548,14 @@ M.config = function()
 				return
 			end
 
-			save_project(root, executable)
+			if not save_project(root, executable) then
+				return
+			end
 
 			vim.notify(
 				"Executable saved for:\n" .. root .. "\n" .. executable,
-				vim.log.levels.INFO
+				vim.log.levels.INFO,
+				{ title = "DAP" }
 			)
 		end)
 	end

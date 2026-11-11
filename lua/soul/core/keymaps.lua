@@ -1,12 +1,11 @@
-keymap = vim.keymap.set
+local keymap = vim.keymap.set
+local OPTS = require("soul.core.helpers.keymaps").opts
 
-function OPTS(description)
-	return {
-		noremap = true,
-		silent = true,
-		desc = description or nil,
-	}
-end
+local Output = require("soul.core.helpers.ui.output")
+local paths = require("soul.core.helpers.paths")
+local platform = require("soul.core.platform")
+
+local compilation_error_namespace = vim.api.nvim_create_namespace("SoulCompilationError")
 
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
@@ -41,8 +40,7 @@ keymap("n", "<C-u>", "<C-u>zz", { desc = "Half page up" })
 keymap({ "n", "x" }, "j", "gj", OPTS())
 keymap({ "n", "x" }, "k", "gk", OPTS())
 
-keymap("n", "<leader>ww", ":w<CR>", OPTS("Save"))
-keymap("n", "<leader>wa", ":w!<CR>", OPTS("Save force"))
+keymap("n", "<leader>w", "<cmd>write<CR>", OPTS("Save"))
 
 keymap("n", "<leader>cd", function()
 	local file = vim.api.nvim_buf_get_name(0)
@@ -53,10 +51,13 @@ keymap("n", "<leader>cd", function()
 
 	local directory = vim.fn.fnamemodify(file, ":h")
 	vim.cmd.cd(vim.fn.fnameescape(directory))
-	vim.notify("Working directory: " .. vim.fn.fnamemodify(directory, ":~"))
+	vim.notify(
+		"Working directory: " .. vim.fn.fnamemodify(directory, ":~"),
+		vim.log.levels.INFO,
+		{ title = "Working Directory" }
+	)
 end, OPTS("Set cwd to current file directory"))
-keymap("n", "<leader>qq", ":q<CR>", OPTS("Quit"))
-keymap("n", "<leader>qa", ":q!<CR>", OPTS("Quit without saving"))
+keymap("n", "<leader>q", "<cmd>quit<CR>", OPTS("Quit window"))
 
 keymap("n", "<A-j>", ":m .+1<CR>==", OPTS("Move line down"))
 keymap("n", "<A-k>", ":m .-2<CR>==", OPTS("Move line up"))
@@ -67,7 +68,7 @@ keymap("v", "<A-k>", ":m '<-2<CR>gv=gv", OPTS("Move selection up"))
 keymap({ "i", "x" }, ",,", "<ESC>", OPTS())
 keymap("n", ",,", "<CMD>nohl<CR>", OPTS("Clear highlight"))
 
-vim.api.nvim_set_keymap("t", "<C-;>", "<C-\\><C-n>", OPTS())
+keymap("t", "<C-;>", "<C-\\><C-n>", OPTS("Terminal Normal Mode"))
 
 vim.cmd([[
   :amenu 10.100 mousemenu.Goto\ Definition <cmd>lua vim.lsp.buf.definition()<CR>
@@ -78,15 +79,32 @@ vim.cmd([[
 keymap("n", "<RightMouse>", "<cmd>:popup mousemenu<CR>")
 keymap("n", "<Tab>", "<cmd>:popup mousemenu<CR>")
 
-keymap("n", "<leader>c", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Replace word under cursor" })
+keymap("n", "<leader>x", function()
+	local file = vim.api.nvim_buf_get_name(0)
 
-keymap("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make executable" })
+	if file == "" then
+		return vim.notify("Current buffer has no file", vim.log.levels.WARN)
+	end
+
+	if not platform.is_posix then
+		return vim.notify("Windows does not use Unix executable permissions", vim.log.levels.WARN)
+	end
+
+	local result = vim.system({ "chmod", "+x", file }, { text = true }):wait()
+
+	if result.code ~= 0 then
+		return vim.notify(vim.trim(result.stderr or "chmod failed"), vim.log.levels.ERROR)
+	end
+
+	vim.notify(
+		"Made executable: " .. vim.fn.fnamemodify(file, ":t"),
+		vim.log.levels.INFO,
+		{ title = "File Permissions" }
+	)
+end, { desc = "Make executable" })
 
 keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart Neovim" })
 keymap("n", "<leader>ni", "<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>", { desc = "Open config" })
-local Output = require("soul.core.helpers.ui.output")
-local platform = require("soul.core.platform")
-
 local function show_messages()
 	local messages = vim.api.nvim_exec2("messages", { output = true }).output
 	Output.open("Messages", messages, {
@@ -98,7 +116,7 @@ keymap("n", "<leader>nm", show_messages, OPTS("Show messages in floating window"
 
 local function compile_and_run_c()
 	local function show_error(message)
-		Output.open("C Build / Run", {
+		local output = Output.open("C Build / Run", {
 			"COMPILATION ERROR",
 			"",
 			tostring(message),
@@ -106,6 +124,15 @@ local function compile_and_run_c()
 			filetype = "compiler",
 			wrap = true,
 		})
+
+		if output and vim.api.nvim_buf_is_valid(output.buf) then
+			vim.api.nvim_buf_set_extmark(output.buf, compilation_error_namespace, 0, 0, {
+				end_row = 0,
+				end_col = #"COMPILATION ERROR",
+				hl_group = "SoulError",
+				priority = 200,
+			})
+		end
 	end
 
 	local file = vim.api.nvim_buf_get_name(0)
@@ -123,8 +150,8 @@ local function compile_and_run_c()
 		return show_error(save_error)
 	end
 
-	local clang = vim.fn.exepath("clang")
-	if clang == "" then
+	local clang = paths.clang
+	if vim.fn.executable(clang) ~= 1 then
 		return show_error("clang was not found in PATH")
 	end
 
@@ -159,13 +186,13 @@ local function compile_and_run_c()
 	}
 
 	if platform.is_windows then
-		local powershell = vim.fn.exepath("pwsh")
-		if powershell == "" then
-			powershell = vim.fn.exepath("powershell")
-		end
+		local powershell = paths.pwsh
 
-		if powershell == "" then
-			return show_error("PowerShell was not found in PATH")
+		if not powershell or powershell == "pwsh" then
+			return show_error(
+				"PowerShell 7 could not be resolved. Set PWSH to the full path of pwsh.exe or add its install directory to PATH.\nResolved candidate: "
+					.. tostring(powershell)
+			)
 		end
 
 		local function ps_quote(value)
@@ -262,7 +289,7 @@ local function compile_and_run_c()
 				vim.fn.delete(script)
 			end)
 		end
-	elseif platform.is_linux or platform.is_wsl or platform.is_macos then
+	elseif platform.is_linux or platform.is_wsl or platform.is_macos or platform.is_termux then
 		local compile_args = {
 			vim.fn.shellescape(clang),
 			"-std=c23",
@@ -278,13 +305,25 @@ local function compile_and_run_c()
 			"printf '%s\\n' " .. vim.fn.shellescape("> " .. compile_command),
 			compile_command,
 			"compile_exit_code=$?",
-			"if [ \"$compile_exit_code\" -ne 0 ]; then printf 'Compilation failed.\\nExit code: %s\\n' \"$compile_exit_code\"; exit \"$compile_exit_code\"; fi",
+			'if [ "$compile_exit_code" -ne 0 ]; then printf \'Compilation failed.\\nExit code: %s\\n\' "$compile_exit_code"; exit "$compile_exit_code"; fi',
 			"printf '%s\\n' 'Compilation successful.'",
 			"printf '\\n%s\\n' " .. vim.fn.shellescape(execution_marker),
 			"exec " .. vim.fn.shellescape(executable),
 		}, "; ")
 
-		terminal_command = { "/bin/sh", "-c", command }
+		local shell = "/bin/sh"
+		if platform.is_termux then
+			shell = vim.fn.exepath("sh")
+			if shell == "" then
+				shell = "/system/bin/sh"
+			end
+		end
+
+		if vim.fn.executable(shell) ~= 1 then
+			return show_error("POSIX shell was not found")
+		end
+
+		terminal_command = { shell, "-c", command }
 	else
 		return show_error("The C runner does not support this platform: " .. platform.name)
 	end
@@ -304,3 +343,6 @@ keymap("n", "<leader>u", function()
 end, { desc = "Undotree" })
 
 keymap("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
+vim.keymap.set("t", ",,", [[<C-\><C-n>]], {
+	desc = "Terminal Normal Mode",
+})

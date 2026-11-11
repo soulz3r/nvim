@@ -23,6 +23,26 @@ local function window_config(title, opts)
 	}
 end
 
+local function normalize_lines(lines)
+	local normalized = {}
+
+	for _, value in ipairs(lines or {}) do
+		local parts = vim.split(tostring(value or ""):gsub("\r\n", "\n"):gsub("\r", "\n"), "\n", {
+			plain = true,
+		})
+
+		for _, line in ipairs(parts) do
+			table.insert(normalized, line)
+		end
+	end
+
+	if #normalized == 0 then
+		return { "" }
+	end
+
+	return normalized
+end
+
 local function map_close_keys(buf, close)
 	vim.keymap.set("n", "q", close, { buffer = buf, silent = true, nowait = true })
 	vim.keymap.set("n", "<Esc>", close, { buffer = buf, silent = true, nowait = true })
@@ -32,7 +52,7 @@ function M.create(title, initial, opts)
 	opts = opts or {}
 
 	local buf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.deepcopy(initial or { "" }))
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, normalize_lines(vim.deepcopy(initial or { "" })))
 	vim.bo[buf].buftype = "nofile"
 	vim.bo[buf].bufhidden = "wipe"
 	vim.bo[buf].swapfile = false

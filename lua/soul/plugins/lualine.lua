@@ -1,6 +1,7 @@
 local M = {
 	"nvim-lualine/lualine.nvim",
 	event = "VeryLazy",
+	dependencies = { "soulz3r/yap.nvim" },
 }
 
 function M.config()

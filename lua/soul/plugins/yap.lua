@@ -1,6 +1,6 @@
 local M = {
 	"soulz3r/yap.nvim",
-	branch = "feat/nui-components-ui",
+	branch = "main",
 	dependencies = {
 		"MunifTanjim/nui.nvim",
 		"grapp-dev/nui-components.nvim",

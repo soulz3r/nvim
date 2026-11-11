@@ -8,15 +8,14 @@ Project run records and argument history are stored under `stdpath("data")/yap`.
 
 ## C tools
 
-YAP provides the C/C++ helpers:
+YAP keeps the C/C++ helper functionality available with only one default mapping:
 
-| Mapping | Action |
+| Mapping / Command | Action |
 |---|---|
-| `<leader>ch` | Switch between matching source and header files |
-| `<leader>ci` | Insert an include directive |
-| `<leader>cp` | Show project root, compile metadata, and attached LSP clients |
-
-Commands: `:CProjectInfo` and `:CSwitchHeader`.
+| `<leader>pi` | Show project root, compile metadata, and attached LSP clients in a float that closes on focus loss (C/C++ buffers only) |
+| `:CSwitchHeader` | Switch between matching source and header files |
+| `:CInsertInclude` | Insert an include directive |
+| `:CProjectInfo` | Show project root, compile metadata, and attached LSP clients |
 
 clangd still owns semantic navigation, references, rename, and diagnostics. These helpers intentionally avoid duplicating those features.
 
@@ -28,8 +27,8 @@ The plugin configuration in `lua/soul/plugins/yap.lua` declares both UI librarie
 
 ## UI helpers
 
-`lua/soul/ui/init.lua` provides shared floating-window geometry, text-buffer windows, and highlight links. New custom windows should use these helpers rather than reimplementing sizing and close mappings. YAP owns its runner presentation and its `Yap*` highlight namespace.
+`lua/soul/core/helpers/ui/init.lua` provides shared floating-window geometry, text-buffer windows, and highlight links. New custom windows should use these helpers rather than reimplementing sizing and close mappings. YAP owns its runner presentation and its `Yap*` highlight namespace.
 
 ## Checks
 
-Run `bash scripts/check.sh` for JSON and repository hygiene checks. When Lua 5.1 is installed, the script also parses every Lua file. When Neovim is installed, it runs a headless startup smoke test with plugins disabled.
+Run `bash scripts/check.sh` for JSON validation, deprecated/private API scans, Lua syntax checks, and a headless core/plugin-spec smoke test. GitHub Actions runs these checks against the latest Neovim stable release and nightly build. The smoke test does not install or execute third-party plugin configurations.

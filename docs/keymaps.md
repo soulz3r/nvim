@@ -11,10 +11,8 @@ The leader key is Space. This is a compact reference for the most-used mappings;
 | `,,` | Exit insert/visual mode; clear search highlighting in normal mode |
 | `n` / `N` | Next / previous search result, centered |
 | `Alt-j` / `Alt-k` | Move line or selection down / up |
-| `<leader>ww` | Save |
-| `<leader>wa` | Force save |
-| `<leader>qq` | Quit |
-| `<leader>qa` | Quit without saving |
+| `<leader>w` | Save current file |
+| `<leader>q` | Quit the current window; Neovim prompts if the buffer has unsaved changes |
 | `<leader>ne` | Restart Neovim |
 | `<leader>ni` | Open the config's `init.lua` |
 | `<leader>nm` | Show all messages in a floating window |
@@ -93,11 +91,14 @@ These mappings are buffer-local and appear when an LSP client attaches.
 
 ## C and C++ (clangd)
 
-| Mapping | Action |
+YAP keeps its C helper functionality available without assigning default mappings, except for the project information view:
+
+| Mapping / Command | Action |
 |---|---|
-| `<leader>ch` | Switch between source and header |
-| `<leader>ci` | Insert an include directive |
-| `<leader>cp` | Show C/C++ project and compile metadata |
+| `<leader>pi` | Show C/C++ project and compile metadata in a focused float that closes on focus loss (C/C++ buffers only) |
+| `:CSwitchHeader` | Switch between matching source and header files |
+| `:CInsertInclude` | Insert an include directive |
+| `:CProjectInfo` | Show C/C++ project and compile metadata |
 
 ## Editing
 
@@ -139,6 +140,8 @@ Mini.ai provides additional built-in text objects for arguments, function calls,
 
 | Mapping | Action |
 |---|---|
+| `<leader>X` | Compile and run the current C file in an interactive floating terminal |
+| `<leader>x` | Add executable permission on POSIX systems; explain the Windows limitation on Windows |
 | `Ctrl-\\` | Toggle the default terminal |
 | `Alt-1` | Horizontal terminal |
 | `Alt-2` | Vertical terminal |

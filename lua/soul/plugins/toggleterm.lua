@@ -5,6 +5,17 @@ local M = {
 
 function M.config()
 	local floats = require("soul.core.helpers.ui.floats")
+	local platform = require("soul.core.platform")
+	local paths = require("soul.core.helpers.paths")
+	local terminal_shell = vim.o.shell
+
+	if platform.is_windows then
+		-- ToggleTerm passes cmd as a PowerShell command string to termopen().
+		-- Invoke the resolved executable explicitly so Store paths containing
+		-- spaces are not split into separate command tokens.
+		local quoted_powershell = "'" .. paths.pwsh:gsub("'", "''") .. "'"
+		terminal_shell = "& " .. quoted_powershell .. " -NoLogo -NoExit"
+	end
 	local execs = {
 		{ nil, "<M-1>", "Horizontal Terminal", "horizontal", 0.3 },
 		{ nil, "<M-2>", "Vertical Terminal", "vertical", 0.4 },
@@ -69,7 +80,7 @@ function M.config()
 		local direction = exec[4]
 
 		local opts = {
-			cmd = exec[1] or vim.o.shell,
+			cmd = exec[1] or terminal_shell,
 			keymap = exec[2],
 			label = exec[3],
 			count = i + 100,
@@ -94,7 +105,7 @@ function M.config()
 		persist_size = true,
 		direction = "float",
 		close_on_exit = true,
-		shell = vim.o.shell,
+		shell = terminal_shell,
 
 		float_opts = {
 			border = floats.border,
@@ -121,24 +132,22 @@ function M.config()
     augroup END
   ]])
 
-	local function set_terminal_keymaps(bufnr)
-		local opts = {
-			buffer = bufnr,
-			noremap = true,
-			silent = true,
-		}
-
-		vim.keymap.set("t", "<M-h>", [[<C-\><C-n><C-W>h]], opts)
-		vim.keymap.set("t", "<M-j>", [[<C-\><C-n><C-W>j]], opts)
-		vim.keymap.set("t", "<M-k>", [[<C-\><C-n><C-W>k]], opts)
-		vim.keymap.set("t", "<M-l>", [[<C-\><C-n><C-W>l]], opts)
-	end
-
 	vim.api.nvim_create_autocmd("TermEnter", {
-		pattern = "*",
-		callback = function(args)
-			set_terminal_keymaps(args.buf)
-			vim.cmd("startinsert")
+		callback = function()
+			vim.cmd.startinsert()
+		end,
+	})
+	vim.api.nvim_create_autocmd("TermOpen", {
+		callback = function(ev)
+			if vim.bo[ev.buf].filetype ~= "toggleterm" then
+				return
+			end
+
+			vim.keymap.set("n", "q", "<cmd>close<CR>", {
+				buffer = ev.buf,
+				silent = true,
+				desc = "Close terminal",
+			})
 		end,
 	})
 end

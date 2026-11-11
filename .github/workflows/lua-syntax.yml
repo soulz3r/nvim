@@ -1,28 +1,69 @@
-name: Lua syntax
+name: Neovim compatibility
 
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  syntax:
-    name: Check Lua syntax
-    runs-on: ubuntu-latest
+  compatibility:
+    name: Neovim ${{ matrix.channel }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        channel: [stable, nightly]
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Lua
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Set up Lua 5.1
+        if: runner.os == 'Linux'
         uses: leafo/gh-actions-lua@v10
         with:
           luaVersion: "5.1"
 
-      - name: Parse Lua files
+      - name: Install Neovim on Linux (${{ matrix.channel }})
+        if: runner.os == 'Linux'
         shell: bash
         run: |
-          find . -type f -name '*.lua' -not -path './.git/*' -print0 \
-            | xargs -0 -r -n1 luac -p
+          curl --fail --location --retry 3 \
+            "https://github.com/neovim/neovim/releases/download/${{ matrix.channel }}/nvim-linux-x86_64.tar.gz" \
+            --output /tmp/neovim.tar.gz
+          tar -xzf /tmp/neovim.tar.gz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+
+      - name: Install Neovim on Windows (${{ matrix.channel }})
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP "neovim.zip"
+          $url = "https://github.com/neovim/neovim/releases/download/${{ matrix.channel }}/nvim-win64.zip"
+          Invoke-WebRequest -Uri $url -OutFile $archive
+          Expand-Archive -Path $archive -DestinationPath $env:RUNNER_TEMP -Force
+          "$env:RUNNER_TEMP\nvim-win64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Show tool versions
+        shell: bash
+        run: |
+          nvim --version
+          python --version
+          if command -v luac >/dev/null 2>&1; then luac -v; fi
+
+      - name: Run repository checks
+        shell: bash
+        env:
+          REQUIRE_LUA: ${{ runner.os == 'Linux' && '1' || '0' }}
+          REQUIRE_NVIM: "1"
+        run: bash scripts/check.sh

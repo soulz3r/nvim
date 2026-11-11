@@ -6,6 +6,7 @@ local M = {
 
 function M.config()
   local treesitter = require("nvim-treesitter")
+  local started = {}
 
   local filetypes = {
     "c",
@@ -45,16 +46,53 @@ function M.config()
     "typescript",
   })
 
+  local function set_window_folds(buf)
+    if not started[buf] or not vim.api.nvim_buf_is_valid(buf) then
+      return
+    end
+
+    for _, win in ipairs(vim.fn.win_findbuf(buf)) do
+      if vim.api.nvim_win_is_valid(win) then
+        vim.wo[win].foldmethod = "expr"
+        vim.wo[win].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+      end
+    end
+  end
+
+  local group = vim.api.nvim_create_augroup("SoulTreesitterFolds", {
+    clear = true,
+  })
+
   vim.api.nvim_create_autocmd("FileType", {
+    group = group,
     pattern = filetypes,
     callback = function(args)
       local ok = pcall(vim.treesitter.start, args.buf)
 
-      if ok then
-        local win = vim.api.nvim_get_current_win()
-        vim.wo[win].foldmethod = "expr"
-        vim.wo[win].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+      if not ok then
+        started[args.buf] = nil
+        return
       end
+
+      started[args.buf] = true
+      set_window_folds(args.buf)
+    end,
+  })
+
+  vim.api.nvim_create_autocmd({ "BufWinEnter", "WinEnter" }, {
+    group = group,
+    callback = function(args)
+      local buf = args.buf
+      if buf and vim.api.nvim_buf_is_valid(buf) then
+        set_window_folds(buf)
+      end
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("BufWipeout", {
+    group = group,
+    callback = function(args)
+      started[args.buf] = nil
     end,
   })
 end

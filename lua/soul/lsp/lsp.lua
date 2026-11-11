@@ -11,8 +11,62 @@ function M.capabilities()
 	return capabilities
 end
 
+local clangd_filetypes = {
+	c = true,
+	cpp = true,
+	objc = true,
+	objcpp = true,
+	cuda = true,
+}
+
+local function formatter_for(bufnr)
+	local filetype = vim.bo[bufnr].filetype
+	if filetype == "lua" then
+		return "stylua"
+	end
+	if clangd_filetypes[filetype] then
+		return "clangd"
+	end
+	return nil
+end
+
+function M.format_buffer(bufnr)
+	local formatter = formatter_for(bufnr)
+	if not formatter then
+		return false, "No formatter is configured for this filetype."
+	end
+
+	local has_formatter = false
+	for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr, name = formatter })) do
+		if client:supports_method("textDocument/formatting", bufnr) then
+			has_formatter = true
+			break
+		end
+	end
+
+	if not has_formatter then
+		return false, ("No attached %s formatter supports this buffer."):format(formatter)
+	end
+
+	local ok, err = pcall(vim.lsp.buf.format, {
+		bufnr = bufnr,
+		async = true,
+		timeout_ms = 3000,
+		filter = function(active_client)
+			return active_client.name == formatter
+				and active_client:supports_method("textDocument/formatting", bufnr)
+		end,
+	})
+
+	if not ok then
+		return false, tostring(err)
+	end
+	return true
+end
+
 function M.setup_format_on_save(client, bufnr)
-	if client.name ~= "clangd" and client.name ~= "stylua" then
+	local formatter = formatter_for(bufnr)
+	if client.name ~= formatter then
 		return
 	end
 
@@ -34,8 +88,6 @@ function M.setup_format_on_save(client, bufnr)
 		group = group,
 		buffer = bufnr,
 		callback = function()
-			local formatter = vim.bo[bufnr].filetype == "lua" and "stylua" or "clangd"
-
 			vim.lsp.buf.format({
 				bufnr = bufnr,
 				async = false,
@@ -50,6 +102,12 @@ function M.setup_format_on_save(client, bufnr)
 end
 
 function M.on_attach(client, bufnr)
+	local navic_ok, navic = pcall(require, "nvim-navic")
+
+	if navic_ok and client.server_capabilities.documentSymbolProvider and not navic.is_available(bufnr) then
+		navic.attach(client, bufnr)
+	end
+
 	if client.name == "lua_ls" then
 		client.server_capabilities.documentFormattingProvider = false
 	end
@@ -87,15 +145,10 @@ function M.setup_keymaps(bufnr)
 
 	-- Formatting: only use an attached client that supports it
 	map("<leader>lf", function()
-		vim.lsp.buf.format({
-			bufnr = bufnr,
-			async = true,
-			timeout_ms = 3000,
-			filter = function(client)
-				return client:supports_method("textDocument/formatting")
-					and (client.name == "clangd" or client.name == "stylua")
-			end,
-		})
+		local ok, err = M.format_buffer(bufnr)
+		if not ok then
+			vim.notify("Formatting failed: " .. tostring(err), vim.log.levels.WARN)
+		end
 	end, "Format")
 
 	-- Diagnostics
@@ -134,12 +187,26 @@ return {
 	{
 		"neovim/nvim-lspconfig",
 
+		dependencies = {
+			"SmiteshP/nvim-navic",
+			"saghen/blink.cmp",
+		},
+
 		event = {
 			"BufReadPre",
 			"BufNewFile",
 		},
 
 		config = function()
+			require("nvim-navic").setup({
+				lsp = {
+					auto_attach = false,
+				},
+				highlight = true,
+				separator = " ",
+				safe_output = true,
+			})
+
 			vim.lsp.config("*", {
 				capabilities = M.capabilities(),
 			})
@@ -159,33 +226,18 @@ return {
 				end,
 			})
 
-			vim.lsp.config("stylua", {
+			-- Enable each server independently so one removed or broken config
+			-- cannot prevent every other language server from starting.
+			for _, server in ipairs({ "lua_ls", "stylua", "clangd", "bashls", "fish_lsp" }) do
+				local ok, err = pcall(vim.lsp.enable, server)
+				if not ok then
+					vim.notify(
+						("Could not enable LSP '%s': %s"):format(server, tostring(err)),
+						vim.log.levels.WARN
+					)
+				end
+			end
 
-				cmd = {
-					"stylua",
-					"--lsp",
-				},
-
-				filetypes = {
-					"lua",
-					"luau",
-				},
-
-				root_markers = {
-					".stylua.toml",
-					"stylua.toml",
-					".git",
-				},
-
-				workspace_required = false,
-			})
-
-			vim.lsp.enable({
-				"lua_ls",
-				"stylua",
-				"clangd",
-				"bashls",
-			})
 
 			vim.diagnostic.config({
 

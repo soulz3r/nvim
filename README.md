@@ -1,10 +1,10 @@
 # soulz3r/nvim
 
-A personal Neovim configuration for **Windows 11** and **Arch Linux** (including Hyprland).
+A personal Neovim configuration for **Windows 11**, **WSL**, and **Linux** (including Arch Linux and Hyprland).
 
 The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Telescope, Mini Files, Treesitter, custom LLDB debugging, and an Everforest-oriented UI.
 
-> **Target:** Neovim 0.12.x. This configuration uses modern Neovim APIs such as `vim.lsp.config`, `vim.lsp.enable`, and the current Treesitter setup API. Older versions are not a supported target.
+> **Target:** Neovim 0.12 or newer. This configuration uses modern Neovim APIs such as `vim.lsp.config`, `vim.lsp.enable`, and the current Treesitter setup API. Older versions are not a supported target.
 
 ## Features
 
@@ -16,26 +16,29 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Shared project metadata for last executable, arguments, and project activity
 - Project actions hub for build, run, clean, and executable selection
 - C/C++ helpers for source-header switching, include insertion, and compile metadata
-- Per-user DAP project registry stored outside the repository
+- DAP project metadata stored in YAP's shared runtime project registry
 - Telescope pickers with project-root search and Mini Files with preview and hidden-file controls
 - Mini sessions for project session save, restore, and automatic persistence
 - Mini.ai text objects, Mini.surround editing, and Mini.notify notifications
 - Treesitter highlighting and folding integration
+- A floating single-file C23 compile/run terminal across Windows, WSL, and Linux
 - YAP project workflows with a component-based runner, live build/run summary, and ANSI-colored process output
 - ToggleTerm with persistent horizontal, vertical, and floating terminals
 - Alpha dashboard with recent files, recent projects, quick actions, and an animated header
+- LSP-aware breadcrumbs in the winbar
 - Minimal context-aware Lualine statusline with project and LSP indicators
 - Shared floating-window helpers and centralized Everforest palette/highlights
 - Consistent rounded borders and transparent float backgrounds across editor and plugin UI
-- Windows and Linux path, shell, clipboard, and debugger handling
+- Windows, WSL, and Linux path, shell, clipboard, compiler, and debugger handling
 
 ## Requirements
 
 ### Core
 
-- Neovim 0.12.x
+- Neovim 0.12 or newer
 - Git
 - A Nerd Font
+- Neovide 0.16+ (optional; required for all configured GUI options)
 - `ripgrep` (`rg`) for live grep
 - `fd` for file discovery
 - `make` and a C compiler for `telescope-fzf-native.nvim`
@@ -70,6 +73,17 @@ The default Neovim config directory is usually `~/.config/nvim`.
 git clone https://github.com/soulz3r/nvim.git ~/.config/nvim
 nvim
 ```
+
+### WSL
+
+Install Neovim inside the WSL distribution, then clone the same repository into that distribution's `~/.config/nvim`:
+
+```sh
+git clone https://github.com/soulz3r/nvim.git ~/.config/nvim
+nvim
+```
+
+WSL Neovim uses Linux binaries and POSIX build/run commands. To share a Windows project directory, set `PROJECTS_DIR` to its mounted path, for example `/mnt/d/config/projects`. Windows clipboard integration is enabled when `clip.exe` and PowerShell are available in WSL's `PATH`.
 
 ### Windows
 
@@ -138,7 +152,8 @@ See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry det
 |---|---|---|
 | `PROJECTS_DIR` | Base directory for YAP project picker and project discovery | Windows: `D:/config/projects`; Linux: `~/projects` |
 | `LLDB_DAP` | Full path or command name for `lldb-dap` | Windows LLVM path; Linux `lldb-dap` |
-| `PWSH` | PowerShell executable used by the configured shell | `pwsh` or `pwsh.exe` |
+| `PWSH` | PowerShell executable used by the configured shell and C runner | `pwsh` or `pwsh.exe` |
+| `CLANG` | Clang executable used by the C compile/run keymap | `clang` from `PATH` |
 
 ## Projects
 
@@ -163,21 +178,33 @@ The runner opens a component-based floating window with a live operation summary
 
 YAP's direct UI dependencies are `nui.nvim` and `nui-components.nvim`, declared in `lua/soul/plugins/yap.lua`.
 
-## Local DAP state
+## Local project state
 
-The DAP registry is runtime state and is not committed to Git. It is stored under:
+YAP's project registry is runtime state and is not committed to Git. It is stored under:
 
 ```text
-stdpath("state")/soul/dap-projects.json
+stdpath("state")/yap/projects.json
 ```
 
-The configuration can migrate the previous file at `stdpath("config")/lsp/dap-projects.json` when that file is present.
+DAP stores its project marker and selected executable in the same registry, so the project picker, YAP runner, statusline, and debugger share one source of truth.
 
-**When upgrading from an older checkout:** back up the old `lsp/dap-projects.json` before switching branches or pulling changes that remove it. Restore the backup at the old path once, start Neovim, and the configuration will migrate it.
+On startup, the configuration imports older DAP-only registries from:
 
+- `stdpath("config")/lsp/dap-projects.json`
+- `stdpath("state")/soul/dap-projects.json`
+
+After a successful import, each old file is renamed with a `.migrated` suffix (or a timestamped suffix if that backup already exists). The original data is preserved as a backup.
 ## Repository layout
 
 See [docs/architecture.md](docs/architecture.md) for the module map and [docs/development.md](docs/development.md) for project metadata, C helpers, and UI conventions.
+
+## Compatibility
+
+This configuration targets **Neovim 0.12 or newer**. The compatibility workflow checks the latest Neovim stable release and nightly build on every push and pull request.
+
+The main configuration uses public Neovim APIs. The only private API dependency is the optional tiny-cmdline integration, which uses experimental UI2. If UI2 is unavailable or its setup fails, the configuration keeps Neovim's native command line enabled. See [docs/compatibility.md](docs/compatibility.md) for the support policy and update procedure.
+
+Neovide settings are kept in one module and use documented Neovide options. The CI workflow cannot exercise the graphical frontend, so verify the Neovide UI after upgrading Neovide itself.
 
 ## Checks
 
@@ -187,7 +214,7 @@ Run the repository's static checks with:
 bash scripts/check.sh
 ```
 
-The script validates JSON configuration and repository hygiene, and runs optional Lua syntax and Neovim module smoke tests when those tools are installed. The separate `.github/workflows/lua-syntax.yml` workflow parses every Lua file with Lua 5.1. These checks do not replace a real Neovim startup test or testing on both Windows and Linux.
+The script validates JSON configuration, plugin lockfile revisions, deprecated/private API usage, Lua syntax, and core/plugin-spec imports. GitHub Actions runs the checks against the latest Neovim stable release and nightly build. The headless smoke test does not install or execute third-party plugin configurations, so test those features after plugin updates and on the operating systems you use.
 
 ## Troubleshooting
 
