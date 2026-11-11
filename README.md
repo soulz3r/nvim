@@ -24,6 +24,7 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - YAP project workflows with a component-based runner, live build/run summary, and ANSI-colored process output
 - ToggleTerm with persistent horizontal, vertical, and floating terminals
 - Alpha dashboard with recent files, recent projects, quick actions, and an animated header
+- LSP-aware breadcrumbs in the winbar
 - Minimal context-aware Lualine statusline with project and LSP indicators
 - Shared floating-window helpers and centralized Everforest palette/highlights
 - Consistent rounded borders and transparent float backgrounds across editor and plugin UI
