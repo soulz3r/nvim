@@ -85,6 +85,7 @@ keymap("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make e
 keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart Neovim" })
 keymap("n", "<leader>ni", "<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>", { desc = "Open config" })
 local Output = require("soul.core.helpers.ui.output")
+local platform = require("soul.core.platform")
 
 local function show_messages()
 	local messages = vim.api.nvim_exec2("messages", { output = true }).output
@@ -129,7 +130,7 @@ local function compile_and_run_c()
 
 	local directory = vim.fn.fnamemodify(file, ":h")
 	local executable = vim.fn.fnamemodify(file, ":r")
-	local is_windows = vim.fn.has("win32") == 1
+	local is_windows = platform.is_windows
 
 	if is_windows then
 		executable = executable .. ".exe"
