@@ -26,9 +26,12 @@ if command -v nvim >/dev/null 2>&1; then
   nvim --headless --clean -u NONE \
     --cmd "set rtp+=." \
     --cmd "lua package.path = './lua/?.lua;./lua/?/init.lua;' .. package.path" \
-    -c "lua assert(require('soul.core.project_registry'))" \
-    -c "lua assert(require('soul.ui'))" \
-    -c "lua assert(require('soul.c'))" \
+    -c "lua require('soul.launch')" \
+    -c "lua assert(require('soul.core.platform').name)" \
+    -c "lua assert(require('soul.core.helpers.paths'))" \
+    -c "lua assert(require('soul.core.helpers.ui'))" \
+    -c "lua assert(require('soul.core.helpers.ui.output'))" \
+    -c "lua assert(type(require('soul.plugins.mini')) == 'table')" \
     -c "qa!"
   echo "Neovim module smoke tests passed."
 fi
