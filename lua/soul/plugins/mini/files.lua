@@ -45,8 +45,8 @@ function M.config()
 			synchronize = "<leader>w",
 		},
 		options = {
-			use_as_default_explorer = false,
-			permanent_delete = false,
+			use_as_default_explorer = true,
+			permanent_delete = true,
 		},
 		windows = {
 			preview = true,
