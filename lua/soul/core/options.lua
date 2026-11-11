@@ -1,5 +1,6 @@
 vim.opt.backup = false
 vim.opt.cmdheight = 0
+vim.opt.report = 9999
 vim.opt.completeopt = { "menu", "menuone", "noselect" }
 vim.opt.conceallevel = 0
 -- vim.opt.fileencoding = "utf-8" -- the encoding written to a file
