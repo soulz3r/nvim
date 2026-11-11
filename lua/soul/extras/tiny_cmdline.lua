@@ -1,6 +1,7 @@
 local M = {
 	"rachartier/tiny-cmdline.nvim",
 	event = "VeryLazy",
+	cond = vim.fn.has("nvim-0.12") == 1,
 }
 
 function M.config()
