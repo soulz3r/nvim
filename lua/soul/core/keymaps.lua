@@ -149,40 +149,54 @@ local function compile_and_run_c()
 	}
 
 	if is_windows then
-		local function batch_quote(path)
-			return '"' .. path:gsub("%%", "%%%%") .. '"'
+		local powershell = vim.fn.exepath("pwsh")
+		if powershell == "" then
+			powershell = vim.fn.exepath("powershell")
 		end
 
-		local script = vim.fn.tempname() .. ".cmd"
+		if powershell == "" then
+			return show_error("PowerShell was not found in PATH")
+		end
+
+		local function ps_quote(value)
+			return "'" .. value:gsub("'", "''") .. "'"
+		end
+
+		local script = vim.fn.tempname() .. ".ps1"
 		local lines = {
-			"@echo off",
-			"setlocal DisableDelayedExpansion",
-			"echo " .. build_marker,
+			"Write-Output " .. ps_quote(build_marker),
 			table.concat({
-				batch_quote(clang),
-				"-std=c23 -g -O0 -o",
-				batch_quote(executable),
-				batch_quote(file),
+				"&",
+				ps_quote(clang),
+				"'-std=c23'",
+				"'-g'",
+				"'-O0'",
+				"'-o'",
+				ps_quote(executable),
+				ps_quote(file),
 			}, " "),
-			"if errorlevel 1 exit /b %errorlevel%",
-			"echo.",
-			"echo " .. execution_marker,
-			batch_quote(executable),
-			"exit /b %errorlevel%",
+			"$compileExitCode = $LASTEXITCODE",
+			"if ($compileExitCode -ne 0) { exit $compileExitCode }",
+			"Write-Output ''",
+			"Write-Output " .. ps_quote(execution_marker),
+			"& " .. ps_quote(executable),
+			"exit $LASTEXITCODE",
 		}
 
 		local ok, result = pcall(vim.fn.writefile, lines, script)
 		if not ok or result ~= 0 then
 			vim.fn.delete(script)
-			return show_error("Could not create build script:\n" .. tostring(result))
+			return show_error("Could not create PowerShell script:\n" .. tostring(result))
 		end
 
 		terminal_command = {
-			"cmd.exe",
-			"/d",
-			"/q",
-			"/c",
-			'call "' .. script .. '"',
+			powershell,
+			"-NoLogo",
+			"-NoProfile",
+			"-ExecutionPolicy",
+			"Bypass",
+			"-File",
+			script,
 		}
 
 		terminal_opts.on_exit = function()
