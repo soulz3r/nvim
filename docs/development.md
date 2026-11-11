@@ -22,7 +22,7 @@ clangd still owns semantic navigation, references, rename, and diagnostics. Thes
 
 ## Project runner UI
 
-The runner is implemented in YAP and rendered with `nui-components.nvim` over `nui.nvim`. It presents a live operation summary above a separate process-output pane. The output buffer remains read-only while retaining ANSI colors and compiler diagnostic extraction.
+The project switcher and runner are implemented in YAP and rendered with `nui-components.nvim` over `nui.nvim`. The switcher composes reusable input, panel, selectable-list, description, and keymap-hint components. It starts in Normal mode, supports filtering in Insert mode, and shows a README preview only when the selected C project has `README.md` or `readme.md`. Selecting a project changes the global working directory. The runner presents a live operation summary above a separate process-output pane. The output buffer remains read-only while retaining ANSI colors and compiler diagnostic extraction.
 
 The plugin configuration in `lua/soul/plugins/yap.lua` declares both UI libraries directly. Keep the dependency list and `lazy-lock.json` in sync when changing the runner UI dependencies.
 

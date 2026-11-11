@@ -1,9 +1,9 @@
 require("soul.launch")
-require("soul.core.paths")
+require("soul.core.helpers.paths")
 require("soul.core.options")
 require("soul.core.keymaps")
 require("soul.core.autocmds")
-require("soul.ui")
+require("soul.core.helpers.ui")
 require("soul.core.neovide")
 
 GET("soul.plugins.alpha")

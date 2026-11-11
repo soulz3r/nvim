@@ -1,5 +1,6 @@
 local M = {
 	"soulz3r/yap.nvim",
+	branch = "feat/nui-components-ui",
 	dependencies = {
 		"MunifTanjim/nui.nvim",
 		"grapp-dev/nui-components.nvim",
@@ -9,11 +10,10 @@ local M = {
 }
 
 function M.config()
-	local palette = require("soul.ui.colors").palette
+	local palette = require("soul.core.helpers.ui.colors").palette
 
 	require("yap").setup({
-		projects_dir = require("soul.core.paths").projects,
-		telescope = true,
+		projects_dir = require("soul.core.helpers.paths").projects,
 		keymaps = true,
 		highlights = {
 			normal = { fg = palette.foreground, bg = "NONE" },

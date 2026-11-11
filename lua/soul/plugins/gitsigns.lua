@@ -4,7 +4,7 @@ local M = {
   cmd = "Gitsigns",
 }
 M.config = function()
-  local icons = require "soul.icons"
+  local icons = require("soul.core.helpers.icons")
 
   local gitsigns = require("gitsigns")
 

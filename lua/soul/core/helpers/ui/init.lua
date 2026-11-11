@@ -3,11 +3,11 @@ local M = {}
 local hidden_statusline_windows = {}
 local previous_laststatus
 
-local floats = require("soul.ui.floats")
+local floats = require("soul.core.helpers.ui.floats")
 
 function M.setup()
-  require("soul.ui.highlights").setup()
-  require("soul.ui.colors").setup()
+  require("soul.core.helpers.ui.highlights").setup()
+  require("soul.core.helpers.ui.colors").setup()
 end
 
 function M.hide_statusline(win)

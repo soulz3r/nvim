@@ -19,7 +19,7 @@ function M.config()
   local actions = require("telescope.actions")
   local actions_layout = require("telescope.actions.layout")
 
-  local ok, icons = pcall(require, "soul.icons")
+  local ok, icons = pcall(require, "soul.core.helpers.icons")
 
   if not ok then
     icons = {
@@ -38,7 +38,7 @@ function M.config()
       },
 
       winblend = 0,
-      borderchars = require("soul.ui.floats").telescope_borderchars,
+      borderchars = require("soul.core.helpers.ui.floats").telescope_borderchars,
 
       prompt_prefix = icons.ui.Telescope .. " ",
       selection_caret = icons.ui.Forward .. " ",

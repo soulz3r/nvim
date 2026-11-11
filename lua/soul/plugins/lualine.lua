@@ -4,7 +4,7 @@ local M = {
 }
 
 function M.config()
-	local palette = require("soul.ui.colors").palette
+	local palette = require("soul.core.helpers.ui.colors").palette
 
 	require("lualine").setup({
 		options = {

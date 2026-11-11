@@ -142,13 +142,13 @@ See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry det
 
 ## Projects
 
-YAP owns the project workflow and its NuiComponents interface. Use `<leader>pp` to open the project picker. Choose a project to open its action menu.
+YAP owns the C project workflow and its NuiComponents interface. Use `<leader>pp` to open the C project switcher. Select a project to change Neovim's working directory to that project and close the picker.
 
-The picker discovers projects from the YAP registry and immediate subdirectories of `PROJECTS_DIR`. It does not use Telescope. Telescope remains installed for the other pickers in this Neovim configuration.
+The picker discovers C projects from the YAP registry and immediate subdirectories of `PROJECTS_DIR`. It uses a NuiComponents input, selectable project list, optional README preview, and contextual keymap hints. Telescope remains installed for the other pickers in this Neovim configuration.
 
 | Key | Action |
 |---|---|
-| `<leader>pp` | Open YAP project picker and action menu |
+| `<leader>pp` | Open YAP C project switcher |
 | `<leader>pr` | Build and run the current project, then enter arguments |
 | `<leader>pb` | Build the current project |
 | `<leader>pc` | Clean the current project |

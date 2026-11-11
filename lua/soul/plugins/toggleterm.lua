@@ -4,7 +4,7 @@ local M = {
 }
 
 function M.config()
-	local floats = require("soul.ui.floats")
+	local floats = require("soul.core.helpers.ui.floats")
 	local execs = {
 		{ nil, "<M-1>", "Horizontal Terminal", "horizontal", 0.3 },
 		{ nil, "<M-2>", "Vertical Terminal", "vertical", 0.4 },
