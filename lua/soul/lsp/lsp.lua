@@ -28,17 +28,17 @@ local function format_lua(bufnr)
 		input = input .. "\n"
 	end
 
-	local ok, result = pcall(function()
-		return vim.system({ stylua, "--stdin-filepath", filename }, {
-			stdin = input,
-			text = true,
-		}):wait(3000)
-	end)
-
+	local ok, process = pcall(vim.system, { stylua, "--stdin-filepath", filename }, {
+		stdin = input,
+		text = true,
+	})
 	if not ok then
-		return false, tostring(result)
+		return false, tostring(process)
 	end
+
+	local result = process:wait(3000)
 	if not result then
+		pcall(process.kill, process, 15)
 		return false, "Stylua timed out after 3 seconds."
 	end
 	if result.code ~= 0 then
