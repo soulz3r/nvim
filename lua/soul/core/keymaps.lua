@@ -1,12 +1,16 @@
-keymap = vim.keymap.set
+local keymap = vim.keymap.set
 
-function OPTS(description)
+local function OPTS(description)
 	return {
 		noremap = true,
 		silent = true,
 		desc = description or nil,
 	}
 end
+
+local Output = require("soul.core.helpers.ui.output")
+local paths = require("soul.core.helpers.paths")
+local platform = require("soul.core.platform")
 
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
@@ -41,7 +45,7 @@ keymap("n", "<C-u>", "<C-u>zz", { desc = "Half page up" })
 keymap({ "n", "x" }, "j", "gj", OPTS())
 keymap({ "n", "x" }, "k", "gk", OPTS())
 
-keymap("n", "<leader>qw", "<cmd>write<CR>", OPTS("Save"))
+keymap("n", "<leader>w", "<cmd>write<CR>", OPTS("Save"))
 
 keymap("n", "<leader>cd", function()
 	local file = vim.api.nvim_buf_get_name(0)
@@ -54,7 +58,7 @@ keymap("n", "<leader>cd", function()
 	vim.cmd.cd(vim.fn.fnameescape(directory))
 	vim.notify("Working directory: " .. vim.fn.fnamemodify(directory, ":~"))
 end, OPTS("Set cwd to current file directory"))
-keymap("n", "<leader>qq", "<cmd>quitall<CR>", OPTS("Quit Neovim"))
+keymap("n", "<leader>q", "<cmd>quit<CR>", OPTS("Quit window"))
 
 keymap("n", "<A-j>", ":m .+1<CR>==", OPTS("Move line down"))
 keymap("n", "<A-k>", ":m .-2<CR>==", OPTS("Move line up"))
@@ -98,10 +102,6 @@ end, { desc = "Make executable" })
 
 keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart Neovim" })
 keymap("n", "<leader>ni", "<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>", { desc = "Open config" })
-local Output = require("soul.core.helpers.ui.output")
-local paths = require("soul.core.helpers.paths")
-local platform = require("soul.core.platform")
-
 local function show_messages()
 	local messages = vim.api.nvim_exec2("messages", { output = true }).output
 	Output.open("Messages", messages, {
