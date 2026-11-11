@@ -11,8 +11,95 @@ function M.capabilities()
 	return capabilities
 end
 
+local function format_lua(bufnr)
+	local filename = vim.api.nvim_buf_get_name(bufnr)
+	if filename == "" then
+		return false, "The Lua buffer has no file path."
+	end
+
+	local stylua = vim.fn.exepath("stylua")
+	if stylua == "" then
+		return false, "Stylua is not installed or is not available on PATH."
+	end
+
+	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+	local input = table.concat(lines, "\n")
+	if vim.bo[bufnr].endofline then
+		input = input .. "\n"
+	end
+
+	local ok, result = pcall(function()
+		return vim.system({ stylua, "--stdin-filepath", filename }, {
+			stdin = input,
+			text = true,
+		}):wait(3000)
+	end)
+
+	if not ok then
+		return false, tostring(result)
+	end
+	if not result then
+		return false, "Stylua timed out after 3 seconds."
+	end
+	if result.code ~= 0 then
+		return false, vim.trim(result.stderr or "Stylua failed.")
+	end
+
+	local output = result.stdout or ""
+	local formatted = vim.split(output, "\n", { plain = true })
+	if output:sub(-1) == "\n" then
+		table.remove(formatted)
+	end
+	if #formatted == 0 then
+		formatted = { "" }
+	end
+
+	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, formatted)
+	return true
+end
+
+function M.format_buffer(bufnr)
+	if vim.bo[bufnr].filetype == "lua" then
+		return format_lua(bufnr)
+	end
+
+	local ok, err = pcall(vim.lsp.buf.format, {
+		bufnr = bufnr,
+		async = true,
+		timeout_ms = 3000,
+		filter = function(active_client)
+			return active_client.name == "clangd"
+				and active_client:supports_method("textDocument/formatting", bufnr)
+		end,
+	})
+
+	if not ok then
+		return false, tostring(err)
+	end
+	return true
+end
+
+function M.setup_stylua_on_save()
+	local group = vim.api.nvim_create_augroup("SoulStyluaFormat", { clear = true })
+
+	vim.api.nvim_create_autocmd("BufWritePre", {
+		group = group,
+		pattern = "*.lua",
+		callback = function(args)
+			if vim.fn.executable("stylua") ~= 1 then
+				return
+			end
+
+			local ok, err = format_lua(args.buf)
+			if not ok then
+				vim.notify("Stylua formatting failed: " .. err, vim.log.levels.WARN)
+			end
+		end,
+	})
+end
+
 function M.setup_format_on_save(client, bufnr)
-	if client.name ~= "clangd" and client.name ~= "stylua" then
+	if client.name ~= "clangd" then
 		return
 	end
 
@@ -34,14 +121,12 @@ function M.setup_format_on_save(client, bufnr)
 		group = group,
 		buffer = bufnr,
 		callback = function()
-			local formatter = vim.bo[bufnr].filetype == "lua" and "stylua" or "clangd"
-
 			vim.lsp.buf.format({
 				bufnr = bufnr,
 				async = false,
 				timeout_ms = 3000,
 				filter = function(active_client)
-					return active_client.name == formatter
+					return active_client.name == "clangd"
 						and active_client:supports_method("textDocument/formatting", bufnr)
 				end,
 			})
@@ -93,15 +178,10 @@ function M.setup_keymaps(bufnr)
 
 	-- Formatting: only use an attached client that supports it
 	map("<leader>lf", function()
-		vim.lsp.buf.format({
-			bufnr = bufnr,
-			async = true,
-			timeout_ms = 3000,
-			filter = function(client)
-				return client:supports_method("textDocument/formatting")
-					and (client.name == "clangd" or client.name == "stylua" or client.name == "fish_ls")
-			end,
-		})
+		local ok, err = M.format_buffer(bufnr)
+		if not ok then
+			vim.notify("Formatting failed: " .. tostring(err), vim.log.levels.WARN)
+		end
 	end, "Format")
 
 	-- Diagnostics
@@ -178,13 +258,19 @@ return {
 				end,
 			})
 
-			vim.lsp.enable({
-				"lua_ls",
-				"stylua",
-				"clangd",
-				"bashls",
-				"fish_ls",
-			})
+			-- Enable each server independently so one removed or broken config
+			-- cannot prevent every other language server from starting.
+			for _, server in ipairs({ "lua_ls", "clangd", "bashls", "fish_lsp" }) do
+				local ok, err = pcall(vim.lsp.enable, server)
+				if not ok then
+					vim.notify(
+						("Could not enable LSP '%s': %s"):format(server, tostring(err)),
+						vim.log.levels.WARN
+					)
+				end
+			end
+
+			M.setup_stylua_on_save()
 
 			vim.diagnostic.config({
 
