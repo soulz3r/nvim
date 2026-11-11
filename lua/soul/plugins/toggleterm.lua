@@ -136,6 +136,19 @@ function M.config()
 			vim.cmd("startinsert")
 		end,
 	})
+	vim.api.nvim_create_autocmd("TermOpen", {
+		callback = function(ev)
+			if vim.bo[ev.buf].filetype ~= "toggleterm" then
+				return
+			end
+
+			vim.keymap.set("n", "q", "<cmd>close<CR>", {
+				buffer = ev.buf,
+				silent = true,
+				desc = "Close terminal",
+			})
+		end,
+	})
 end
 
 return M
