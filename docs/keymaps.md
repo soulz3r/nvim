@@ -95,7 +95,7 @@ YAP keeps its C helper functionality available without assigning default mapping
 
 | Mapping / Command | Action |
 |---|---|
-| `<leader>pi` | Show C/C++ project and compile metadata in a focused float (C/C++ buffers only) |
+| `<leader>pi` | Show C/C++ project and compile metadata in a focused float that closes on focus loss (C/C++ buffers only) |
 | `:CSwitchHeader` | Switch between matching source and header files |
 | `:CInsertInclude` | Insert an include directive |
 | `:CProjectInfo` | Show C/C++ project and compile metadata |
