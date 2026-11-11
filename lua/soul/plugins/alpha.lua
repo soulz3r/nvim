@@ -5,7 +5,7 @@ local M = {
 
 function M.config()
 	local dashboard = require("alpha.themes.dashboard")
-	local icons = require("soul.icons")
+	local icons = require("soul.core.helpers.icons")
 	local utils = require("alpha.utils")
 
 	local function button(sc, txt, keybind, keybind_opts)
