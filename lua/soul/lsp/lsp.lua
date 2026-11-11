@@ -222,6 +222,7 @@ return {
 
 		dependencies = {
 			"SmiteshP/nvim-navic",
+			"saghen/blink.cmp",
 		},
 
 		event = {
