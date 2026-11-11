@@ -109,7 +109,9 @@ function M.terminal(title, command, opts)
 	floats.apply(win)
 	vim.cmd("redraw!")
 
-	vim.wo[win].wrap = false
+	vim.wo[win].wrap = opts.wrap ~= false
+	vim.wo[win].linebreak = true
+	vim.wo[win].breakindent = true
 	vim.wo[win].cursorline = false
 	vim.wo[win].number = false
 	vim.wo[win].relativenumber = false
