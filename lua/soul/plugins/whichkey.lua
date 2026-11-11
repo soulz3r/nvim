@@ -25,11 +25,6 @@ function M.config()
         group = "Git",
       },
       {
-        "<leader>h",
-        group = "Mark Harpoon",
-        icon = icons.which_key.Mark,
-      },
-      {
         "<leader>l",
         group = "Code",
         icon = icons.which_key.Code,
