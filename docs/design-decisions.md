@@ -12,7 +12,17 @@ The configuration targets the current native LSP model, including `vim.lsp.confi
 
 ## YAP owns project workflows
 
-YAP is the shared project layer for project discovery, build/run/clean actions, executable selection, argument history, compiler diagnostics, and project metadata. Telescope provides the picker UI, while YAP owns the project behavior. DAP stores its selected executable and launch arguments in YAP's project registry, avoiding separate competing registries for the same project.
+YAP owns the interactive project workflow: project discovery and switching, build/run/clean actions, executable selection, argument history, compiler diagnostics, C helpers, and its Telescope project picker. Its registry stores YAP project metadata. Other parts of the configuration may integrate with YAP, but they must not depend on it unless they are specifically part of the YAP project workflow.
+
+## DAP owns debugger state
+
+DAP has its own project registry at `stdpath("state")/soul/dap/projects.json`. It independently resolves project roots, selects debug executables, and persists launch arguments. DAP does not depend on YAP's Lua modules or registry, so debugging remains available if YAP is disabled or replaced.
+
+A one-time importer copies only existing DAP-specific executable and argument fields from the former YAP registry into the DAP registry. It leaves YAP's project data untouched and does not create a runtime dependency.
+
+## Optional statusline integrations
+
+Lualine may display YAP's current project label when YAP is available. That display is optional: Lualine itself does not declare YAP as a dependency, and the statusline remains functional without the project component.
 
 ## LLDB DAP without an adapter installer
 
