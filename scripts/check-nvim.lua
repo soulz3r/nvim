@@ -67,6 +67,18 @@ local buttons_by_key = {}
 for _, item in ipairs(dashboard_buttons) do
 	buttons_by_key[item.key] = item
 end
+local icon_registry = require("soul.core.helpers.icons")
+for _, item in ipairs(dashboard_buttons) do
+	assert(
+		icon_registry[item.icon_group] and icon_registry[item.icon_group][item.icon],
+		("Dashboard button '%s' references a missing icon: %s.%s"):format(
+			item.key,
+			item.icon_group,
+			item.icon
+		)
+	)
+end
+
 assert(
 	buttons_by_key.e.command:find("require('lazy').load", 1, true),
 	"Dashboard Explorer button must load lazy Mini Files before requiring it"
