@@ -17,6 +17,7 @@ function M.new(on_update)
 		end
 
 		local process
+		local completed = false
 		local ok
 		ok, process = pcall(vim.system, {
 			"git",
@@ -27,6 +28,7 @@ function M.new(on_update)
 		}, {
 			text = true,
 		}, function(result)
+			completed = true
 			vim.schedule(function()
 				-- Ignore a callback from a process that already hit its timeout.
 				if git_branch_pending[cwd] ~= process then
@@ -56,7 +58,7 @@ function M.new(on_update)
 			git_branch_pending[cwd] = process
 
 			vim.defer_fn(function()
-				if git_branch_pending[cwd] ~= process then
+				if completed or git_branch_pending[cwd] ~= process then
 					return
 				end
 

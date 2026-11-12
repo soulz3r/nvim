@@ -101,6 +101,15 @@ local function find_powershell()
 			return
 		end
 
+		-- Resolve command names such as PWSH=pwsh to their actual executable.
+		-- The C runner and termopen need a concrete path, not a PATH token.
+		if not path:find("[/\\\\]") then
+			local resolved = fn.exepath(path)
+			if resolved ~= "" then
+				path = resolved
+			end
+		end
+
 		local key = platform.is_windows and path:lower() or path
 		if not seen[key] then
 			seen[key] = true
@@ -193,8 +202,25 @@ local function find_powershell()
 		if remaining_probe_time(deadline) <= 0 then
 			break
 		end
+
 		if is_runnable_powershell(candidate, deadline) then
-			return candidate
+			local normalized = candidate:gsub("\\\\", "/"):lower()
+			local is_store_alias = platform.is_windows
+				and normalized:find("/windowsapps/", 1, true) ~= nil
+
+			if is_store_alias then
+				-- Store execution aliases can be spawned but are not reliable
+				-- termopen shells. Resolve the package's real pwsh.exe instead.
+				local home = powershell_home(candidate, deadline)
+				if home then
+					local executable = home .. "/pwsh.exe"
+					if is_runnable_powershell(executable, deadline) then
+						return executable
+					end
+				end
+			else
+				return candidate
+			end
 		end
 	end
 

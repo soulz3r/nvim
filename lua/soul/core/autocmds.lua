@@ -1,6 +1,10 @@
 local M = {}
 
-local statusline_laststatus
+local statusline_state = vim.g.soul_statusline_state
+if type(statusline_state) ~= "table" then
+	statusline_state = { active = false }
+end
+
 local statusline_update_pending = false
 
 local function update_float_statusline()
@@ -32,12 +36,15 @@ local function update_float_statusline()
 		end
 	end
 
-	if has_readonly_float and statusline_laststatus == nil then
-		statusline_laststatus = vim.o.laststatus
+	if has_readonly_float and not statusline_state.active then
+		statusline_state.laststatus = vim.o.laststatus
+		statusline_state.active = true
+		vim.g.soul_statusline_state = statusline_state
 		vim.o.laststatus = 0
-	elseif not has_readonly_float and statusline_laststatus ~= nil then
-		vim.o.laststatus = statusline_laststatus
-		statusline_laststatus = nil
+	elseif not has_readonly_float and statusline_state.active then
+		vim.o.laststatus = statusline_state.laststatus
+		vim.g.soul_statusline_state = nil
+		statusline_state = { active = false }
 	end
 end
 
@@ -112,14 +119,10 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
-vim.api.nvim_create_autocmd("BufWinEnter", {
+vim.api.nvim_create_autocmd({ "FocusGained", "TermLeave" }, {
 	group = group,
-	callback = function(args)
-		-- Only check ordinary file buffers; special/plugin buffers have no
-		-- external file timestamp to refresh.
-		if vim.bo[args.buf].buftype == "" then
-			vim.cmd.checktime()
-		end
+	callback = function()
+		vim.cmd.checktime()
 	end,
 })
 

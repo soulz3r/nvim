@@ -18,7 +18,7 @@ function M.config()
     clear = true,
   })
 
-  local centered = {}
+  local state_key = "soul_breadcrumbs_centered"
 
   local function center_winbar(win)
     if not vim.api.nvim_win_is_valid(win) then
@@ -26,20 +26,24 @@ function M.config()
     end
 
     local current = vim.api.nvim_get_option_value("winbar", { win = win })
+    local ok, state = pcall(vim.api.nvim_win_get_var, win, state_key)
+
     if current == "" then
-      centered[win] = nil
+      pcall(vim.api.nvim_win_del_var, win, state_key)
       return
     end
 
-    local state = centered[win]
+    if not ok then
+      state = nil
+    end
+
     local base = state and current == state.value and state.base or current
     local value = "%=" .. base .. "%="
 
-    centered[win] = {
+    pcall(vim.api.nvim_win_set_var, win, state_key, {
       base = base,
       value = value,
-    }
-
+    })
     vim.api.nvim_set_option_value("winbar", value, { win = win })
   end
 
@@ -76,12 +80,6 @@ function M.config()
     end,
   })
 
-  vim.api.nvim_create_autocmd("WinClosed", {
-    group = group,
-    callback = function(args)
-      centered[tonumber(args.match)] = nil
-    end,
-  })
 end
 
 return M
