@@ -14,6 +14,7 @@ M.config = function()
 	local fn = vim.fn
 	local paths = require("soul.core.helpers.paths")
 	local platform = require("soul.core.platform")
+	local dap_args = require("soul.core.helpers.dap.args")
 	local project_registry = require("yap.project_registry")
 
 	-- =========================================================
@@ -620,86 +621,13 @@ M.config = function()
 	-- Launch arguments
 	-- =========================================================
 
-	local function format_args(args)
-		local formatted = {}
-
-		for _, arg in ipairs(args) do
-			if arg == "" then
-				table.insert(formatted, '""')
-			elseif arg:find('[%s"\\]') then
-				local escaped = arg:gsub("\\", "\\\\"):gsub('"', '\\"')
-				table.insert(formatted, '"' .. escaped .. '"')
-			else
-				table.insert(formatted, arg)
-			end
-		end
-
-		return table.concat(formatted, " ")
-	end
+	local format_args = dap_args.format
 
 	local function parse_args(input)
-		local args = {}
-		local current = {}
-		local quote = nil
-		local escaped = false
-		local token_started = false
-
-		for i = 1, #input do
-			local char = input:sub(i, i)
-
-			if escaped then
-				table.insert(current, char)
-				escaped = false
-				token_started = true
-			elseif char == "\\" and quote ~= "'" then
-				local next_char = input:sub(i + 1, i + 1)
-
-				if not platform.is_windows
-					or next_char == '"'
-					or next_char == "\\"
-					or next_char:match("%s")
-				then
-					escaped = true
-				else
-					table.insert(current, char)
-				end
-
-				token_started = true
-			elseif quote then
-				if char == quote then
-					quote = nil
-				else
-					table.insert(current, char)
-				end
-				token_started = true
-			elseif char == '"' or char == "'" then
-				quote = char
-				token_started = true
-			elseif char:match("%s") then
-				if token_started then
-					table.insert(args, table.concat(current))
-					current = {}
-					token_started = false
-				end
-			else
-				table.insert(current, char)
-				token_started = true
-			end
+		local args, parse_error = dap_args.parse(input, platform.is_windows)
+		if not args then
+			vim.notify(parse_error, vim.log.levels.ERROR)
 		end
-
-		if escaped then
-			table.insert(current, "\\")
-		end
-
-		if quote then
-			vim.notify("Unclosed quote in program arguments.", vim.log.levels.ERROR)
-			return nil
-		end
-
-		if token_started then
-			table.insert(args, table.concat(current))
-		end
-
 		return args
 	end
 
