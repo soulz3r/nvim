@@ -20,14 +20,20 @@ vim.notify = function(message, level, opts)
 	}
 end
 
+local registry_state = {}
 local registry = {
 	list = function()
 		return {}
 	end,
-	get = function()
-		return nil
+	get = function(root)
+		return registry_state[root]
 	end,
-	update = function()
+	update = function(root, fields)
+		local entry = registry_state[root] or { root = root }
+		for key, value in pairs(fields) do
+			entry[key] = value
+		end
+		registry_state[root] = entry
 		return true
 	end,
 	touch = function()
@@ -53,6 +59,11 @@ local dap = {
 		return nil
 	end,
 	continue = function() end,
+	launch_count = 0,
+	run = function(config)
+		dap.last_config = config
+		dap.launch_count = dap.launch_count + 1
+	end,
 }
 
 local dapui = {
@@ -103,6 +114,48 @@ assert(dap.configurations.c and #dap.configurations.c == 2, "C launch configurat
 assert(dap.configurations.cpp == dap.configurations.c, "C++ should reuse the C launch configurations")
 assert(dap.configurations.rust == dap.configurations.c, "Rust should reuse the C launch configurations")
 assert(dap.defaults.fallback.switchbuf == "useopen", "DAP must not open unrelated source buffers")
+
+-- Exercise the real DAP launch callback against a stateful in-memory registry.
+-- The test uses Neovim's own executable so it does not depend on a compiler.
+local project_root = vim.fn.fnamemodify(vim.fn.resolve(vim.fn.getcwd()), ":p"):gsub("\\", "/")
+if project_root ~= "/" and not project_root:match("^%a:/$") then
+	project_root = project_root:gsub("/+$", "")
+end
+
+local test_executable = vim.fn.fnamemodify(vim.fn.resolve(vim.v.progpath), ":p")
+assert(vim.fn.executable(test_executable) == 1, "Neovim test executable must be runnable")
+registry_state[project_root] = {
+	root = project_root,
+	dap_enabled = true,
+	debug_executable = test_executable,
+	dap_args = { "--previous" },
+}
+
+local start_mapping = find_mapping("DAP: Start / continue with arguments")
+assert(start_mapping and type(start_mapping.callback) == "function", "DAP start mapping is missing")
+local original_input = vim.ui.input
+vim.ui.input = function(opts, callback)
+	assert(opts.prompt == "Program arguments: ", "DAP launch must prompt for program arguments")
+	callback('--name "two words"')
+end
+start_mapping.callback()
+vim.ui.input = original_input
+
+assert(dap.last_config, "DAP start mapping did not launch the configured executable")
+assert(dap.last_config.program == test_executable, "DAP launch used the wrong project executable")
+assert(vim.deep_equal(dap.last_config.args, { "--name", "two words" }), "DAP launch arguments were parsed incorrectly")
+assert(
+	vim.deep_equal(registry_state[project_root].dap_args, { "--name", "two words" }),
+	"DAP launch arguments were not persisted to the shared project registry"
+)
+
+local launch_count = dap.launch_count
+vim.ui.input = function(_, callback)
+	callback(nil)
+end
+start_mapping.callback()
+vim.ui.input = original_input
+assert(dap.launch_count == launch_count, "Cancelling the DAP argument prompt must not launch a session")
 
 local function find_mapping(description)
 	for _, mapping in ipairs(vim.api.nvim_get_keymap("n")) do
