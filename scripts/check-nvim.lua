@@ -16,19 +16,28 @@ assert(vim.o.winborder ~= nil, "'winborder' option is required")
 
 require("soul.launch")
 local platform = require("soul.core.platform")
+local paths_module = "soul.core.helpers.paths"
 local original_pwsh = vim.env.PWSH
+local original_paths = package.loaded[paths_module]
 
+-- Exercise PowerShell discovery from a clean module state. This keeps the
+-- test valid even if another smoke test starts importing paths.lua earlier.
 if platform.is_windows then
 	vim.env.PWSH = "pwsh"
+	package.loaded[paths_module] = nil
 end
 
-local resolved_paths = require("soul.core.helpers.paths")
+local resolved_paths = require(paths_module)
 
 if platform.is_windows and vim.fn.exepath("pwsh") ~= "" then
-	assert(resolved_paths.pwsh ~= "pwsh", "PWSH=pwsh must resolve to a concrete Windows executable path")
+	assert(
+		resolved_paths.pwsh ~= "pwsh",
+		"PWSH=pwsh must resolve to a concrete Windows executable path"
+	)
 end
 
 vim.env.PWSH = original_pwsh
+package.loaded[paths_module] = original_paths or resolved_paths
 
 require("soul.core.options")
 require("soul.core.keymaps")
