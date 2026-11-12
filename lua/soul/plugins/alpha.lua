@@ -8,11 +8,9 @@ function M.config()
 	local icons = require("soul.core.helpers.icons")
 	local utils = require("alpha.utils")
 
-	local function button(sc, txt, keybind, keybind_opts)
-		local b = dashboard.button(sc, txt, keybind, keybind_opts)
-		b.opts.hl_shortcut = "Include"
-		return b
-	end
+	---------------------------------------------------------------------------
+	-- Header
+	---------------------------------------------------------------------------
 
 	local header_data = require("soul.core.helpers.dashboard.header")
 	local header = vim.deepcopy(header_data.lines)
@@ -41,157 +39,40 @@ function M.config()
 		hl = utils.charhl_to_bytehl(header_hl, header),
 	}
 
-	local button_icons = {
-		files = icons.ui.Files,
-		explorer = icons.ui.Folder,
-		new_file = icons.ui.NewFile,
-		project = icons.git.Repo,
-		recent = icons.ui.History,
-		text = icons.ui.Text,
-		marks = icons.ui.BookMark,
-		config = icons.ui.Gear,
-		lazy = icons.which_key.Plugins,
-		health = icons.ui.Bug,
-		quit = icons.ui.SignOut,
-	}
+	---------------------------------------------------------------------------
+	-- Buttons
+	---------------------------------------------------------------------------
 
-	dashboard.section.buttons.val = {
-		button("f", button_icons.files .. " Find file", "<cmd>Telescope find_files<CR>"),
+	local button_data = require("soul.core.helpers.dashboard.buttons")
 
-		button("e", button_icons.explorer .. " Open Explorer", "<cmd>lua require('mini.files').open(vim.fn.getcwd())<CR>"),
+	local function create_button(item)
+		local icon = icons[item.icon_group][item.icon]
+		local button = dashboard.button(
+			item.key,
+			icon .. " " .. item.label,
+			item.command
+		)
 
-		button("n", button_icons.new_file .. " New file", "<cmd>ene | startinsert<CR>"),
-
-		button("p", button_icons.project .. " Projects", "<cmd>lua require('yap').project_picker.open(require('yap').config)<CR>"),
-
-		button("r", button_icons.recent .. " Recent files", "<cmd>Telescope oldfiles<CR>"),
-
-		button("t", button_icons.text .. " Find text", "<cmd>Telescope live_grep<CR>"),
-
-		button("m", button_icons.marks .. " Marks", "<cmd>Telescope marks<CR>"),
-
-		button("c", button_icons.config .. " Config", "<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>"),
-
-		button("l", button_icons.lazy .. "Lazy", "<cmd>Lazy<CR>"),
-
-		button("h", button_icons.health .. " Health", "<cmd>checkhealth<CR>"),
-
-		button("q", button_icons.quit .. " Quit", "<cmd>qa<CR>"),
-	}
-
-	dashboard.section.buttons.opts.hl = "Include"
-
-
-	local button_icon_highlights = {
-		{ button_icons.files, "AlphaBlue" },
-		{ button_icons.explorer, "AlphaAqua" },
-		{ button_icons.new_file, "AlphaGreen" },
-		{ button_icons.project, "AlphaPurple" },
-		{ button_icons.recent, "AlphaYellow" },
-		{ button_icons.text, "AlphaOrange" },
-		{ button_icons.marks, "AlphaRed" },
-		{ button_icons.config, "AlphaTeal" },
-		{ button_icons.lazy, "AlphaBlue" },
-		{ button_icons.health, "AlphaRed" },
-		{ button_icons.quit, "AlphaMuted" },
-	}
-
-	for index, btn in ipairs(dashboard.section.buttons.val) do
-		local icon = button_icon_highlights[index][1]
-		local highlight = button_icon_highlights[index][2]
-
-		btn.opts.hl = {
+		button.opts.hl_shortcut = "Include"
+		button.opts.hl = {
 			{
-				highlight,
+				item.highlight,
 				0,
 				#icon,
 			},
 		}
+
+		return button
 	end
 
-	local git_branch_cache = {}
-	local git_branch_pending = {}
-	local update_footer
+	dashboard.section.buttons.val = vim.tbl_map(create_button, button_data.items)
+	dashboard.section.buttons.opts.hl = "Include"
 
-	local function get_git_branch(cwd)
-		local cached = git_branch_cache[cwd]
-		if cached ~= nil then
-			return cached or nil
-		end
+	---------------------------------------------------------------------------
+	-- Footer
+	---------------------------------------------------------------------------
 
-		if git_branch_pending[cwd] then
-			return nil
-		end
-
-		local ok, process = pcall(vim.system, {
-			"git",
-			"-C",
-			cwd,
-			"branch",
-			"--show-current",
-		}, {
-			text = true,
-		}, function(result)
-			vim.schedule(function()
-				git_branch_pending[cwd] = nil
-
-				local branch
-				if result and result.code == 0 then
-					branch = vim.trim(result.stdout or "")
-					if branch == "" then
-						branch = nil
-					end
-				end
-
-				-- false is cached too, so non-Git directories are not queried
-				-- repeatedly every time Alpha redraws.
-				git_branch_cache[cwd] = branch or false
-
-				if update_footer then
-					update_footer()
-					if vim.bo.filetype == "alpha" then
-						pcall(vim.cmd.AlphaRedraw)
-					end
-				end
-			end)
-		end)
-
-		if ok then
-			git_branch_pending[cwd] = process
-		else
-			git_branch_cache[cwd] = false
-		end
-
-		return nil
-	end
-
-	local function footer()
-		local stats = require("lazy").stats()
-
-		local ms = math.floor(stats.startuptime * 100 + 0.5) / 100
-		local nvim = vim.version()
-
-		local current_dir = vim.fn.getcwd()
-		local cwd = vim.fn.fnamemodify(current_dir, ":~")
-		local branch = get_git_branch(current_dir)
-
-		local line1 = " Neovim " .. nvim.major .. "." .. nvim.minor .. "." .. nvim.patch
-
-		local line2 = "󰒲 " .. stats.count .. " plugins" .. "  •  " .. ms .. "ms"
-
-		local line3 = "󰉋 " .. cwd
-
-		if branch then
-			line3 = line3 .. "  •  󰘬 " .. branch
-		end
-
-		return {
-			"",
-			line1,
-			line2,
-			line3,
-		}
-	end
+	local footer_data = require("soul.core.helpers.dashboard.footer")
 
 	dashboard.section.footer = {
 		type = "group",
@@ -232,16 +113,20 @@ function M.config()
 		},
 	}
 
-	update_footer = function()
-		local lines = footer()
+	local function set_footer(lines)
+		for index, line in ipairs(lines) do
+			dashboard.section.footer.val[index].val = line
+		end
 
-		dashboard.section.footer.val[1].val = lines[1]
-		dashboard.section.footer.val[2].val = lines[2]
-		dashboard.section.footer.val[3].val = lines[3]
-		dashboard.section.footer.val[4].val = lines[4]
+		pcall(vim.cmd.AlphaRedraw)
 	end
 
-	update_footer()
+	local footer = footer_data.new(set_footer)
+	footer.update()
+
+	---------------------------------------------------------------------------
+	-- Layout
+	---------------------------------------------------------------------------
 
 	dashboard.opts.layout = {
 		{ type = "padding", val = 1 },
@@ -260,6 +145,10 @@ function M.config()
 	dashboard.opts.opts = {
 		noautocmd = true,
 	}
+
+	---------------------------------------------------------------------------
+	-- Animation
+	---------------------------------------------------------------------------
 
 	local animation_data = header_data.animation
 	local animation_step = 1
@@ -285,55 +174,30 @@ function M.config()
 	require("alpha").setup(dashboard.opts)
 
 	---------------------------------------------------------------------------
-	-- Animation
+	-- Animation lifecycle
 	---------------------------------------------------------------------------
 
-	local animation_running = false
-	local animation_generation = 0
+	local animation = require("soul.core.helpers.dashboard.animation").new({
+		interval = animation_data.speed,
 
-	local function stop_animation()
-		animation_running = false
-		animation_generation = animation_generation + 1
-	end
+		is_active = function()
+			return vim.bo.filetype == "alpha"
+		end,
 
-	local function animate(generation)
-		if not animation_running or generation ~= animation_generation then
-			return
-		end
+		on_tick = function()
+			animation_step = animation_step + 1
 
-		if vim.bo.filetype ~= "alpha" then
-			stop_animation()
-			return
-		end
+			if animation_step > #animation_data.steps then
+				animation_step = 1
+			end
 
-		animation_step = animation_step + 1
+			apply_animation_frame()
+		end,
 
-		if animation_step > #animation_data.steps then
-			animation_step = 1
-		end
-
-		apply_animation_frame()
-		pcall(vim.cmd.AlphaRedraw)
-
-		vim.defer_fn(function()
-			animate(generation)
-		end, animation_data.speed)
-	end
-
-	local function start_animation()
-		if animation_running then
-			return
-		end
-
-		animation_running = true
-		animation_generation = animation_generation + 1
-
-		local generation = animation_generation
-
-		vim.defer_fn(function()
-			animate(generation)
-		end, animation_data.speed)
-	end
+		redraw = function()
+			pcall(vim.cmd.AlphaRedraw)
+		end,
+	})
 
 	---------------------------------------------------------------------------
 	-- Autocmds
@@ -346,22 +210,22 @@ function M.config()
 			vim.opt_local.number = false
 			vim.opt_local.relativenumber = false
 			vim.opt_local.cursorline = false
-			start_animation()
+			animation.start()
 		end,
 	})
 
 	vim.api.nvim_create_autocmd("User", {
 		pattern = "AlphaReady",
-		callback = start_animation,
+		callback = animation.start,
 	})
 
 	vim.api.nvim_create_autocmd("BufEnter", {
 		callback = function(args)
 			if vim.bo[args.buf].filetype == "alpha" then
-				git_branch_cache[vim.fn.getcwd()] = nil
-				update_footer()
+				footer.invalidate(vim.fn.getcwd())
+				footer.update()
 				pcall(vim.cmd.AlphaRedraw)
-				start_animation()
+				animation.start()
 			end
 		end,
 	})
@@ -369,7 +233,7 @@ function M.config()
 	vim.api.nvim_create_autocmd("BufLeave", {
 		callback = function(args)
 			if vim.bo[args.buf].filetype == "alpha" then
-				stop_animation()
+				animation.stop()
 			end
 		end,
 	})
@@ -377,7 +241,7 @@ function M.config()
 	vim.api.nvim_create_autocmd("User", {
 		pattern = "VeryLazy",
 		callback = function()
-			update_footer()
+			footer.update()
 			pcall(vim.cmd.AlphaRedraw)
 		end,
 	})
@@ -385,13 +249,14 @@ function M.config()
 	vim.api.nvim_create_autocmd("DirChanged", {
 		callback = function()
 			if vim.bo.filetype == "alpha" then
-				update_footer()
+				footer.update()
 				pcall(vim.cmd.AlphaRedraw)
 			end
 		end,
 	})
+
 	if vim.bo.filetype == "alpha" then
-		start_animation()
+		animation.start()
 	end
 end
 
