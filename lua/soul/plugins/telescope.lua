@@ -228,8 +228,20 @@ function M.config()
     },
   })
 
-  pcall(telescope.load_extension, "fzf")
-  pcall(telescope.load_extension, "ui-select")
+  local function load_extension(name)
+    local ok, err = pcall(telescope.load_extension, name)
+
+    if not ok then
+      vim.notify(
+        ("Telescope extension '%s' failed to load: %s"):format(name, tostring(err)),
+        vim.log.levels.WARN,
+        { title = "Telescope" }
+      )
+    end
+  end
+
+  load_extension("fzf")
+  load_extension("ui-select")
 
   local keymap = vim.keymap.set
 
