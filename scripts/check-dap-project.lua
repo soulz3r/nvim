@@ -13,10 +13,13 @@ local path = require("soul.core.helpers.dap.path")
 local temp_dir = vim.fn.tempname()
 assert(vim.fn.mkdir(temp_dir, "p") == 1, "Could not create DAP path test directory")
 
-local outer = path.normalize(temp_dir .. "/registered")
-local inner = path.normalize(outer .. "/nested")
-local source_dir = inner .. "/src"
+local outer_dir = temp_dir .. "/registered"
+local inner_dir = outer_dir .. "/nested"
+local source_dir = inner_dir .. "/src"
 assert(vim.fn.mkdir(source_dir, "p") == 1, "Could not create nested project source directory")
+local outer = path.normalize(outer_dir)
+local inner = path.normalize(inner_dir)
+source_dir = path.normalize(source_dir)
 local source_file = source_dir .. "/main.c"
 assert(vim.fn.writefile({ "int main(void) { return 0; }" }, source_file) == 0, "Could not create project source file")
 
@@ -69,8 +72,9 @@ assert(vim.deep_equal(entry.args, { "--from-registry" }), "Current project did n
 
 -- A file with no marker or registered ancestor falls back to its own directory,
 -- not whichever unrelated directory Neovim happens to use as its cwd.
-local fallback_dir = path.normalize(temp_dir .. "/unregistered/src")
+local fallback_dir = temp_dir .. "/unregistered/src"
 assert(vim.fn.mkdir(fallback_dir, "p") == 1, "Could not create fallback source directory")
+fallback_dir = path.normalize(fallback_dir)
 local fallback_file = fallback_dir .. "/standalone.c"
 assert(
 	vim.fn.writefile({ "int main(void) { return 0; }" }, fallback_file) == 0,
