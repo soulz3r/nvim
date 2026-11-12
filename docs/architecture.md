@@ -33,6 +33,7 @@ Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 - `lua/soul/plugins/mini.lua` returns the individual Mini plugin specifications. Each specification delegates setup to its matching helper under `lua/soul/core/helpers/mini/`; the main config imports the group once with `GET("soul.plugins.mini")`.
 - `lua/soul/plugins/alpha.lua` uses Telescope for file search, Mini Files for browsing, and YAP's project picker for project switching.
 - `lua/soul/plugins/telescope.lua` owns general Telescope setup and pickers.
+- `lua/soul/plugins/undotree.lua` lazily loads the Lua Undotree visualizer when `<leader>u` is pressed. Mini Files is the sole configured file manager; the unused Oil specification is intentionally absent.
 - `lua/soul/plugins/yap.lua` configures YAP, its project directory, highlights, and direct UI dependencies.
 - `soulz3r/yap.nvim` owns C project detection, build/clean/run execution, executable selection, argument history, project metadata, compiler diagnostics, C helpers, and the NuiComponents project switcher.
 - `lua/soul/plugins/lualine.lua` reads the current project label from `yap.project_registry`; YAP is declared as a dependency so the registry is available before the statusline uses it.
