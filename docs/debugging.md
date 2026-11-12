@@ -58,6 +58,12 @@ On startup, older DAP-only registries are imported from:
 - `stdpath("state")/soul/dap-projects.json`
 
 After a successful import, the old file is renamed with a `.migrated` suffix. If that backup already exists, a timestamp is appended. The original settings remain available in that backup. If migration fails, the old file is left in place and an error is shown.
+
+### Migration recovery
+
+Do not delete a legacy registry or its `.migrated` backup until the imported projects have been checked in the YAP project picker.
+
+If migration fails, the original legacy file is intentionally left untouched. Fix the reported registry write problem and restart Neovim to retry. If a successful migration needs to be reversed, first close Neovim and make a separate backup of `stdpath("state")/yap/projects.json`. Restore the desired legacy backup to its original path only after preserving the current YAP registry; the next startup will attempt the import again. Do not overwrite the YAP registry with the legacy file.
 ## Useful controls
 
 - `<leader>du` toggles the DAP UI.
