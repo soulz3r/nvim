@@ -119,6 +119,17 @@ for _, server in ipairs(lsp_servers) do
 	)
 end
 
+-- Load two real server definitions through Neovim's native LSP config API.
+-- This catches malformed server modules and config-registration regressions
+-- without requiring clangd or lua-language-server binaries on the CI runner.
+for _, server in ipairs({ "clangd", "lua_ls" }) do
+	local config = require("lsp." .. server)
+	assert(type(config) == "table", server .. " did not return an LSP config")
+	vim.lsp.config(server, config)
+	vim.lsp.enable(server)
+	assert(type(vim.lsp.config[server]) == "table", server .. " was not registered with vim.lsp.config")
+end
+
 local dap_args = require("soul.core.helpers.dap.args")
 local argument_cases = {
 	{},
