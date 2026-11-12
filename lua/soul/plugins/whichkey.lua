@@ -104,8 +104,9 @@ function M.config()
 		{ "<leader>pe", desc = "Select executable and run", icon = ui.Forward },
 		{ "<leader>ps", desc = "Stop project process", icon = ui.BoldClose },
 		{ "<leader>pR", desc = "Rerun last project", icon = ui.Refresh },
-		{ "<leader>pq", desc = "Load compiler diagnostics", icon = diagnostics.Error },
-		{ "<leader>pi", desc = "Project information", icon = ui.Note },
+		{ "<leader>ch", desc = "C: Switch source / header", icon = ui.Files },
+		{ "<leader>ci", desc = "C: Insert include", icon = ui.Plus },
+		{ "<leader>cp", desc = "C: Project information", icon = ui.Note },
 
 		-- Sessions
 		{ "<leader>ss", desc = "Save project session", icon = ui.CloudUpload },

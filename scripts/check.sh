@@ -106,6 +106,36 @@ if ! grep -q 'dependencies = { "nvim-mini/mini.icons" }' lua/soul/plugins/mini.l
   exit 1
 fi
 
+if ! grep -q 'telescope = true' lua/soul/plugins/yap.lua; then
+  echo "YAP's Telescope project integration must be enabled for its project keymaps." >&2
+  exit 1
+fi
+
+if grep -Eq 'nui-components|nui\.nvim' lua/soul/plugins/yap.lua; then
+  echo "YAP no longer uses Nui dependencies; remove stale UI dependencies." >&2
+  exit 1
+fi
+
+if grep -q 'synchronize_without_confirmation\|vim\.fn\.confirm[[:space:]]*=' lua/soul/core/helpers/mini/files.lua; then
+  echo "Mini Files synchronization must retain its normal destructive-operation confirmation." >&2
+  exit 1
+fi
+
+if ! grep -q 'install_task:await' lua/soul/plugins/treesitter.lua; then
+  echo "Treesitter must retry buffers after asynchronous parser installation." >&2
+  exit 1
+fi
+
+if ! grep -q 'build = function(plugin)' lua/soul/plugins/telescope.lua; then
+  echo "Telescope fzf-native must use the platform-aware native build function." >&2
+  exit 1
+fi
+
+if grep -q '"<leader>pq"\|"<leader>pi"' lua/soul/plugins/whichkey.lua; then
+  echo "WhichKey must not advertise YAP mappings that do not exist." >&2
+  exit 1
+fi
+
 # Private Neovim APIs are not allowed in the core configuration. UI2 is the
 # sole exception and must remain isolated in the optional tiny-cmdline module.
 if grep -RInE --include='*.lua' --exclude='tiny_cmdline.lua' --exclude-dir='.git' 'vim\._' .; then

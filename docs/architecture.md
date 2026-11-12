@@ -34,8 +34,8 @@ Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 - `lua/soul/plugins/alpha.lua` uses Telescope for file search, Mini Files for browsing, and YAP's project picker for project switching.
 - `lua/soul/plugins/telescope.lua` owns general Telescope setup and pickers.
 - `lua/soul/plugins/undotree.lua` lazily loads the Lua Undotree visualizer when `<leader>u` is pressed. Mini Files is the sole configured file manager; the unused Oil specification is intentionally absent.
-- `lua/soul/plugins/yap.lua` configures YAP, its project directory, highlights, and direct UI dependencies.
-- `soulz3r/yap.nvim` owns C project detection, build/clean/run execution, executable selection, argument history, project metadata, compiler diagnostics, C helpers, and the NuiComponents project switcher.
+- `lua/soul/plugins/yap.lua` configures YAP, its project directory, highlights, and the Telescope project integration.
+- `soulz3r/yap.nvim` owns C project detection, build/clean/run execution, executable selection, argument history, project metadata, compiler diagnostics, C helpers, and the Telescope project picker actions.
 - `lua/soul/plugins/lualine.lua` reads the current project label from `yap.project_registry`; YAP is declared as a dependency so the registry is available before the statusline uses it.
 - `lua/soul/lsp/dap.lua` also depends on YAP because it shares project executable metadata and per-project launch arguments through `yap.project_registry`.
 - `lua/soul/plugins/gitsigns.lua` registers Git mappings with WhichKey.
@@ -44,7 +44,7 @@ Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 - Render Markdown declares Treesitter and Mini Icons as dependencies. Mini Files also declares Mini Icons as a dependency so its icon integration is ready whenever the file browser loads.
 - ToggleTerm uses the configured shell and shared float border helpers.
 
-YAP's project switcher and runner use `nui-components.nvim` on top of `nui.nvim`. Its project registry is shared by the project picker, Lualine, and DAP. The registry and other runtime state are stored outside the repository.
+YAP's project picker is provided through `telescope-project.nvim`, with runner actions supplied by YAP. Its project registry is shared by the picker, Lualine, and DAP. Runner output uses YAP's own Neovim floating-window helpers. The registry and other runtime state are stored outside the repository.
 
 ## Platform handling
 

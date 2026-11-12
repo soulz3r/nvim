@@ -11,7 +11,7 @@ The leader key is Space. This is a compact reference for the most-used mappings;
 | `,,` | Exit insert/visual mode; clear search highlighting in normal mode |
 | `n` / `N` | Next / previous search result, centered |
 | `Alt-j` / `Alt-k` | Move line or selection down / up |
-| `<leader>w` | Save current file |
+| `<leader>w` | Save current file; inside Mini Files, synchronize pending filesystem changes with confirmation |
 | `<leader>q` | Quit the current window; Neovim prompts if the buffer has unsaved changes |
 | `<leader>ne` | Restart Neovim |
 | `<leader>ni` | Open the config's `init.lua` |
@@ -26,6 +26,7 @@ The leader key is Space. This is a compact reference for the most-used mappings;
 | `g~` inside Mini Files | Set working directory to the selected file's directory or selected directory |
 | `g.` inside Mini Files | Toggle hidden files |
 | `gx` inside Mini Files | Open selected entry with the system application |
+| `<leader>w` inside Mini Files | Synchronize filesystem changes; Mini Files asks for confirmation |
 | `<leader>ss` | Save a named project session |
 | `<leader>sr` | Restore a session |
 | `<leader>sd` | Delete a session |
@@ -33,7 +34,7 @@ The leader key is Space. This is a compact reference for the most-used mappings;
 | `<leader>ft` | Live grep |
 | `<leader>fb` | Buffers |
 | `<leader>fo` | Recent files |
-| `<leader>pp` | Open the YAP C project switcher |
+| `<leader>pp` | Open the YAP Telescope project picker |
 | `<leader>fC` | Colorscheme picker |
 | `<leader>fr` | Resume last Telescope picker |
 | `<leader>fgb` | Git branches |
@@ -91,13 +92,14 @@ These mappings are buffer-local and appear when an LSP client attaches.
 
 ## C and C++ (clangd)
 
-YAP keeps its C helper functionality available without assigning default mappings, except for the project information view:
+YAP adds these buffer-local helpers in C/C++ buffers:
 
 | Mapping / Command | Action |
 |---|---|
-| `<leader>pi` | Show C/C++ project and compile metadata in a focused float that closes on focus loss (C/C++ buffers only) |
+| `<leader>ch` | Switch between matching source and header files |
+| `<leader>ci` | Insert an include directive |
+| `<leader>cp` | Show C/C++ project and compile metadata |
 | `:CSwitchHeader` | Switch between matching source and header files |
-| `:CInsertInclude` | Insert an include directive |
 | `:CProjectInfo` | Show C/C++ project and compile metadata |
 
 ## Editing
@@ -161,9 +163,8 @@ Mini.ai provides additional built-in text objects for arguments, function calls,
 | `<leader>pe` | Select an executable, enter arguments, and run without building |
 | `<leader>ps` | Stop the active project process |
 | `<leader>pR` | Rerun the most recently used saved project's executable and arguments |
-| `<leader>pq` | Extract compiler diagnostics from the runner output into quickfix |
 
-Inside the YAP C project switcher:
+Inside the YAP Telescope project picker:
 
 | Mapping | Action |
 |---|---|
@@ -173,3 +174,10 @@ Inside the YAP C project switcher:
 | `Ctrl-n` / `Ctrl-p` | Select the next / previous project in either mode |
 | `Enter` | Set the working directory to the selected project and close the picker |
 | `q` | Close the picker in Normal mode |
+| `Ctrl-g` | Build and run the selected project |
+| `Ctrl-y` | Build the selected project |
+| `Ctrl-e` | Choose an executable and run it |
+| `Ctrl-a` | Open the selected project's action menu |
+| `gR` / `gB` / `gE` | Run / build / choose executable in Normal mode |
+| `gC` / `gX` / `gS` | Clean / rebuild / choose build script in Normal mode |
+| `gA` | Open the project action menu in Normal mode |

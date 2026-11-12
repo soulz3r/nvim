@@ -15,8 +15,6 @@
   "mini.pairs": { "branch": "main", "commit": "4a014143fcb4e9df26198ccb3ecff3b9e77a048c" },
   "mini.sessions": { "branch": "main", "commit": "7cb2945ccc11323b7ca19796eb42618493e1dc12" },
   "mini.surround": { "branch": "main", "commit": "580e4cb98c5900d9fe743865fb5a5b2178b4ab18" },
-  "nui-components.nvim": { "branch": "main", "commit": "1654dd709f13874089eefc80d82e0eb667f7fdfb" },
-  "nui.nvim": { "branch": "main", "commit": "10fc361835c856ba4233ef5ea135b919bf3dce97" },
   "nvim-colorizer.lua": { "branch": "master", "commit": "72a05f62c52241bc7441c820eb53946f92b2e6a4" },
   "nvim-dap": { "branch": "master", "commit": "cfa2d58f4537aca6ca83e2de1a0d9f1491121264" },
   "nvim-dap-ui": { "branch": "master", "commit": "cc9dd33aade7f20bae414d0cba163bc60d4d4b43" },

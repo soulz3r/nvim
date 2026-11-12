@@ -12,18 +12,19 @@ YAP keeps the C/C++ helper functionality available with only one default mapping
 
 | Mapping / Command | Action |
 |---|---|
-| `<leader>pi` | Show project root, compile metadata, and attached LSP clients in a float that closes on focus loss (C/C++ buffers only) |
+| `<leader>ch` | Switch between matching source and header files |
+| `<leader>ci` | Insert an include directive |
+| `<leader>cp` | Show project root, compile metadata, and attached LSP clients |
 | `:CSwitchHeader` | Switch between matching source and header files |
-| `:CInsertInclude` | Insert an include directive |
 | `:CProjectInfo` | Show project root, compile metadata, and attached LSP clients |
 
 clangd still owns semantic navigation, references, rename, and diagnostics. These helpers intentionally avoid duplicating those features.
 
 ## Project runner UI
 
-The project switcher and runner are implemented in YAP and rendered with `nui-components.nvim` over `nui.nvim`. The switcher composes reusable input, panel, selectable-list, description, and keymap-hint components. It starts in Normal mode, supports filtering in Insert mode, and shows a README preview only when the selected C project has `README.md` or `readme.md`. Selecting a project changes the global working directory. The runner presents a live operation summary above a separate process-output pane. The output buffer remains read-only while retaining ANSI colors and compiler diagnostic extraction.
+The project picker is implemented through `telescope-project.nvim`; YAP adds project-specific actions to the picker. `<leader>pp` opens it. In Insert mode, `Ctrl-g` builds and runs, `Ctrl-y` builds, `Ctrl-e` selects an executable, and `Ctrl-a` opens the action menu. Normal-mode equivalents are `gR`, `gB`, `gE`, `gC`, `gX`, `gS`, and `gA`. Direct project actions are exposed through the `<leader>p` mappings when YAP's Telescope integration is enabled.
 
-The plugin configuration in `lua/soul/plugins/yap.lua` declares both UI libraries directly. Keep the dependency list and `lazy-lock.json` in sync when changing the runner UI dependencies.
+The runner uses YAP's own floating-window helpers and retains ANSI colors and compiler diagnostic extraction. It does not use Nui or NuiComponents. The Neovim plugin spec declares Telescope and `telescope-project.nvim` as dependencies; keep those entries and `lazy-lock.json` in sync if the picker integration changes.
 
 ## UI helpers
 
