@@ -90,8 +90,16 @@ keymap("n", "<leader>x", function()
 		return vim.notify("Windows does not use Unix executable permissions", vim.log.levels.WARN)
 	end
 
-	local result = vim.system({ "chmod", "+x", file }, { text = true }):wait()
+	if vim.fn.executable("chmod") ~= 1 then
+		return vim.notify("chmod was not found in PATH", vim.log.levels.ERROR)
+	end
 
+	local ok, process = pcall(vim.system, { "chmod", "+x", file }, { text = true })
+	if not ok then
+		return vim.notify("Could not start chmod: " .. tostring(process), vim.log.levels.ERROR)
+	end
+
+	local result = process:wait()
 	if result.code ~= 0 then
 		return vim.notify(vim.trim(result.stderr or "chmod failed"), vim.log.levels.ERROR)
 	end
