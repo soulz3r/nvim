@@ -14,10 +14,10 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - clangd support for C and C++
 - Fish shell language-server support
 - Project-aware LLDB DAP configuration and executable discovery
-- Shared project metadata for last executable, arguments, and project activity
+- Independent DAP project state for selected executables and per-project launch arguments
 - Project actions hub for build, run, clean, and executable selection
 - C/C++ helpers for source-header switching, include insertion, and compile metadata
-- DAP project metadata stored in YAP's shared runtime project registry
+- Independent DAP project registry, with optional YAP project status in Lualine
 - Telescope pickers with project-root search and Mini Files with preview and hidden-file controls
 - Mini sessions for project session save, restore, and automatic persistence
 - Mini.ai text objects, Mini.surround editing, and Mini.notify notifications
@@ -27,7 +27,7 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - ToggleTerm with persistent horizontal, vertical, and floating terminals
 - Alpha dashboard with recent files, recent projects, quick actions, and an animated header
 - LSP-aware breadcrumbs in the winbar
-- Minimal context-aware Lualine statusline with project and LSP indicators
+- Minimal context-aware Lualine statusline with optional YAP project and LSP indicators
 - Shared floating-window helpers and centralized Everforest palette/highlights
 - Consistent rounded borders and transparent float backgrounds across editor and plugin UI
 - Windows, WSL, and Linux path, shell, clipboard, compiler, and debugger handling
@@ -200,20 +200,27 @@ YAP's C/C++ helpers are buffer-local:
 The project runner and C helper windows use YAP's own Neovim floating-window helpers.
 ## Local project state
 
-YAP's project registry is runtime state and is not committed to Git. It is stored under:
+YAP's project registry stores YAP-owned project metadata and is not committed to Git:
 
 ```text
 stdpath("state")/yap/projects.json
 ```
 
-DAP stores its project marker and selected executable in the same registry, so the project picker, YAP runner, statusline, and debugger share one source of truth.
+DAP maintains a separate registry for saved debugger projects, selected executables, and launch arguments:
 
-On startup, the configuration imports older DAP-only registries from:
+```text
+stdpath("state")/soul/dap/projects.json
+```
+
+DAP does not depend on YAP's Lua modules or registry at runtime. During the first startup after this change, a one-time importer copies only DAP-specific fields from the former YAP registry into DAP's own registry. The YAP registry is left untouched, and a migration marker prevents the old values from being imported again.
+
+Older DAP-only registries are also imported from:
 
 - `stdpath("config")/lsp/dap-projects.json`
 - `stdpath("state")/soul/dap-projects.json`
 
-After a successful import, each old file is renamed with a `.migrated` suffix (or a timestamped suffix if that backup already exists). The original data is preserved as a backup.
+After a successful import, each old DAP-only file is renamed with a `.migrated` suffix (or a timestamped suffix if that backup already exists). The original data is preserved as a backup.
+
 ## Repository layout
 
 See [docs/design-decisions.md](docs/design-decisions.md) for the reasoning behind the main architectural choices. See [docs/architecture.md](docs/architecture.md) for the module map, [docs/plugin-inventory.md](docs/plugin-inventory.md) for plugin ownership, [docs/development.md](docs/development.md) for project metadata and UI conventions, and [docs/contributing.md](docs/contributing.md) for maintenance rules.
