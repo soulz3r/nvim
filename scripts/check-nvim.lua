@@ -79,6 +79,16 @@ end
 local malformed, malformed_error = dap_args.parse('"unterminated', false)
 assert(malformed == nil and malformed_error, "DAP argument parser must reject unclosed quotes")
 
+local original_notify = vim.notify
+local animation_notifications = {}
+vim.notify = function(message, level, opts)
+	animation_notifications[#animation_notifications + 1] = {
+		message = tostring(message),
+		level = level,
+		title = opts and opts.title,
+	}
+end
+
 local animation = require("soul.core.helpers.dashboard.animation").new({
 	interval = 1,
 	is_active = function()
@@ -89,11 +99,17 @@ local animation = require("soul.core.helpers.dashboard.animation").new({
 	end,
 })
 animation.start()
+local animation_stopped = vim.wait(100, function()
+	return not animation.is_running()
+end, 1)
+vim.notify = original_notify
+
+assert(animation_stopped, "Dashboard animation must stop cleanly after a callback error")
 assert(
-	vim.wait(100, function()
-		return not animation.is_running()
-	end, 1),
-	"Dashboard animation must stop cleanly after a callback error"
+	#animation_notifications == 1
+		and animation_notifications[1].message:find("Animation stopped:", 1, true)
+		and animation_notifications[1].title == "Dashboard",
+	"Dashboard animation must report callback failures through a warning notification"
 )
 
 local dashboard_buttons = require("soul.core.helpers.dashboard.buttons").items
