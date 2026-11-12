@@ -1,6 +1,15 @@
 local M = {
 	"nvim-mini/mini.nvim",
 	version = "*",
+	keys = {
+		{
+			"<leader>e",
+			function()
+				require("mini.files").open(vim.fn.getcwd())
+			end,
+			desc = "Open Mini.files",
+		},
+	},
 }
 
 function M.config()
