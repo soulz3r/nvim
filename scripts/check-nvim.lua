@@ -68,6 +68,41 @@ if platform.is_windows and (vim.env.REQUIRE_PWSH == "1" or pwsh_on_path) then
 		vim.fn.executable(resolved_paths.pwsh) == 1,
 		"PWSH resolver returned a path that is not executable: " .. tostring(resolved_paths.pwsh)
 	)
+
+	-- Invalid inherited environment hints must not prevent PATH discovery.
+	local original_pshome = vim.env.PSHOME
+	vim.env.PWSH = "C:/nvim-ci/missing/PowerShell/pwsh.exe"
+	vim.env.PSHOME = "C:/nvim-ci/missing/PowerShell"
+	package.loaded[paths_module] = nil
+	local invalid_hints = require(paths_module)
+	assert(
+		invalid_hints.pwsh ~= "pwsh" and vim.fn.executable(invalid_hints.pwsh) == 1,
+		"Invalid PWSH and PSHOME hints must fall back to a valid PowerShell 7 on PATH"
+	)
+
+	-- Windows PowerShell 5.1 may be present beside PowerShell 7, but must never
+	-- win merely because it was explicitly supplied through PWSH.
+	local windows_powershell = vim.fn.exepath("powershell.exe")
+	if windows_powershell ~= "" then
+		vim.env.PWSH = windows_powershell
+		vim.env.PSHOME = "C:/nvim-ci/missing/PowerShell"
+		package.loaded[paths_module] = nil
+		local rejects_legacy = require(paths_module)
+		assert(
+			rejects_legacy.pwsh ~= windows_powershell,
+			"Windows PowerShell 5.1 must not be selected as the configured shell"
+		)
+	end
+
+	vim.env.PWSH = resolved_paths.pwsh
+	vim.env.PSHOME = resolved_paths.pwsh:gsub("[/\\\\]pwsh%.exe$", "")
+	package.loaded[paths_module] = nil
+	local path_with_spaces = require(paths_module)
+	assert(
+		path_with_spaces.pwsh == resolved_paths.pwsh,
+		"PowerShell discovery must preserve and execute paths containing spaces"
+	)
+	vim.env.PSHOME = original_pshome
 end
 
 vim.env.PWSH = original_pwsh
