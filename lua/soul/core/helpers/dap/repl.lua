@@ -104,22 +104,22 @@ function M.setup(dap)
 			end,
 		})
 		:find()
-end
-
-local function open_or_focus_repl()
-	local repl_buf = get_repl_buffer()
-
-	if repl_buf then
-		for _, win in ipairs(vim.api.nvim_list_wins()) do
-			if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == repl_buf then
-				vim.api.nvim_set_current_win(win)
-				return
-			end
-		end
 	end
 
-	dap.repl.open()
-end
+	local function open_or_focus_repl()
+		local repl_buf = get_repl_buffer()
+
+		if repl_buf then
+			for _, win in ipairs(vim.api.nvim_list_wins()) do
+				if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == repl_buf then
+					vim.api.nvim_set_current_win(win)
+					return
+				end
+			end
+		end
+
+		dap.repl.open()
+	end
 
 
 	return {
