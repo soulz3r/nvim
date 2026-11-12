@@ -1,4 +1,6 @@
-local M = {}
+local M = {
+	servers = { "lua_ls", "stylua", "clangd", "bashls", "fish_ls" },
+}
 
 function M.capabilities()
 	local capabilities = vim.lsp.protocol.make_client_capabilities()
@@ -111,7 +113,11 @@ function M.on_attach(client, bufnr)
 		client.server_capabilities.documentFormattingProvider = false
 	end
 
-	if vim.lsp.inlay_hint and client:supports_method("textDocument/inlayHint") then
+	if vim.lsp.inlay_hint
+		and client:supports_method("textDocument/inlayHint")
+		and not vim.b[bufnr].soul_inlay_hint_initialized
+	then
+		vim.b[bufnr].soul_inlay_hint_initialized = true
 		vim.lsp.inlay_hint.enable(false, {
 			bufnr = bufnr,
 		})
@@ -231,7 +237,7 @@ return {
 
 			-- Enable each server independently so one removed or broken config
 			-- cannot prevent every other language server from starting.
-			for _, server in ipairs({ "lua_ls", "stylua", "clangd", "bashls", "fish_lsp" }) do
+			for _, server in ipairs(M.servers) do
 				local ok, err = pcall(vim.lsp.enable, server)
 				if not ok then
 					vim.notify(("Could not enable LSP '%s': %s"):format(server, tostring(err)), vim.log.levels.WARN)
