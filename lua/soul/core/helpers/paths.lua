@@ -40,10 +40,11 @@ local function is_runnable_powershell(path)
 		return completed
 	end)
 
-	return ok
-		and type(result) == "table"
+	local major = ok and type(result) == "table"
 		and result.code == 0
-		and vim.trim(result.stdout or ""):match("^%d+$") ~= nil
+		and tonumber(vim.trim(result.stdout or ""))
+
+	return major ~= nil and major >= 7
 end
 
 local function find_powershell()
@@ -75,9 +76,13 @@ local function find_powershell()
 			end
 		end
 
-		local program_files = vim.env.ProgramFiles or "C:/Program Files"
+		local program_files = vim.env.ProgramW6432 or vim.env.ProgramFiles or "C:/Program Files"
+		local local_programs = vim.env.LOCALAPPDATA
+
 		add_candidate(program_files .. "/PowerShell/7/pwsh.exe")
-		add_candidate(fn.exepath("powershell.exe"))
+		if local_programs then
+			add_candidate(local_programs .. "/Programs/PowerShell/7/pwsh.exe")
+		end
 	else
 		add_candidate(fn.exepath("powershell"))
 	end
@@ -88,9 +93,9 @@ local function find_powershell()
 		end
 	end
 
-	-- Preserve a useful command fallback so callers can report a clear launch
-	-- error if PowerShell is not installed.
-	return platform.is_windows and "powershell.exe" or "pwsh"
+	-- Never silently fall back to Windows PowerShell 5.1.
+	-- Let the shell report a clear error if PowerShell 7 is unavailable.
+	return "pwsh"
 end
 
 M.clang = vim.env.CLANG and fn.executable(vim.env.CLANG) == 1 and vim.env.CLANG
