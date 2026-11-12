@@ -53,6 +53,8 @@ local M = {
 function M.config(_, opts)
   require("blink.cmp").setup(opts)
 
+  local palette = require("soul.core.helpers.ui.colors").palette
+
   vim.api.nvim_set_hl(0, "Pmenu", { bg = "none" })
   vim.api.nvim_set_hl(0, "PmenuSel", { bg = "none" })
   vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
@@ -62,7 +64,7 @@ function M.config(_, opts)
   vim.api.nvim_set_hl(0, "BlinkCmpMenu", { bg = "none" })
   vim.api.nvim_set_hl(0, "BlinkCmpMenuBorder", { bg = "none" })
   vim.api.nvim_set_hl(0, "BlinkCmpMenuSelection", {
-    bg = "#4F5B58",
+    bg = palette.background_visual,
   })
 
   vim.api.nvim_set_hl(0, "BlinkCmpDoc", { bg = "none" })
