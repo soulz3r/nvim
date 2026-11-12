@@ -53,8 +53,7 @@ function M.format_buffer(bufnr)
 		async = true,
 		timeout_ms = 3000,
 		filter = function(active_client)
-			return active_client.name == formatter
-				and active_client:supports_method("textDocument/formatting", bufnr)
+			return active_client.name == formatter and active_client:supports_method("textDocument/formatting", bufnr)
 		end,
 	})
 
@@ -235,10 +234,7 @@ return {
 			for _, server in ipairs({ "lua_ls", "stylua", "clangd", "bashls", "fish_lsp" }) do
 				local ok, err = pcall(vim.lsp.enable, server)
 				if not ok then
-					vim.notify(
-						("Could not enable LSP '%s': %s"):format(server, tostring(err)),
-						vim.log.levels.WARN
-					)
+					vim.notify(("Could not enable LSP '%s': %s"):format(server, tostring(err)), vim.log.levels.WARN)
 				end
 			end
 
