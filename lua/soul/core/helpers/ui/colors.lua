@@ -107,12 +107,14 @@ local highlights = {
 	AlphaPurple = { fg = P.purple },
 	AlphaOrange = { fg = P.orange },
 
-	-- Alpha dashboard animation: topic, prose, and C syntax roles.
-	AlphaTopicPointers = { fg = P.green, bold = true },
-	AlphaTopicDereference = { fg = P.purple, bold = true },
-	AlphaTopicMemory = { fg = P.teal, bold = true },
-	AlphaTopicCompilation = { fg = P.orange, bold = true },
+	-- Alpha dashboard topics: colors progress from easy to difficult.
+	AlphaTopicCompilation = { fg = P.green, bold = true },
 	AlphaTopicRepresentations = { fg = P.aqua, bold = true },
+	AlphaTopicMemory = { fg = P.yellow, bold = true },
+	AlphaTopicDereference = { fg = P.orange, bold = true },
+	AlphaTopicPointers = { fg = P.red, bold = true },
+
+	-- Alpha dashboard prose and C syntax roles.
 	AlphaMessage = { fg = P.muted },
 	AlphaMessageKey = { fg = P.yellow, bold = true },
 	AlphaCodeType = { fg = P.teal },
