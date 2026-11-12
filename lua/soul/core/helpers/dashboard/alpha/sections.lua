@@ -170,24 +170,73 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 		return
 	end
 
+	-- Representation labels and values use the same role colors regardless
+	-- of whether the value is decimal, hexadecimal, or binary.
+	if line:find("decimal", 1, true)
+		or line:find("hexadecimal", 1, true)
+		or line:find("binary", 1, true)
+	then
+		add_range(ranges, "AlphaCodeText", line_number, 0, #line)
+
+		local label_start, label_end = line:find("%a+")
+		if label_start then
+			add_range(ranges, "AlphaCodeStage", line_number, label_start - 1, label_end)
+		end
+
+		local value_start, value_end = line:find("0x[%da-fA-F]+")
+		if not value_start then
+			value_start, value_end = line:find("%f[%d]%d+%f[%D]")
+		end
+		if value_start then
+			add_range(ranges, "AlphaCodeNumber", line_number, value_start - 1, value_end)
+		end
+		return
+	end
+
 	if line:find("0x", 1, true) or line:find("@", 1, true) then
 		add_range(ranges, "AlphaCodeText", line_number, 0, #line)
+
+		for _, identifier in ipairs({ "value", "ptr" }) do
+			local first = 1
+			while true do
+				local identifier_start, identifier_end = line:find(identifier, first, true)
+				if not identifier_start then
+					break
+				end
+				add_range(
+					ranges,
+					"AlphaCodeIdentifier",
+					line_number,
+					identifier_start - 1,
+					identifier_end
+				)
+				first = identifier_end + 1
+			end
+		end
+
 		local first = 1
 		while true do
-			local address_start, address_end = line:find("0x[%da-fA-F]+", first)
-			if not address_start then
+			local number_start, number_end = line:find("0x[%da-fA-F]+", first)
+			if not number_start then
 				break
 			end
-			add_range(ranges, "AlphaCodeNumber", line_number, address_start - 1, address_end)
-			first = address_end + 1
+			add_range(ranges, "AlphaCodeNumber", line_number, number_start - 1, number_end)
+			first = number_end + 1
 		end
+
 		local number_start, number_end = line:find("%f[%d]%d+%f[%D]")
 		if number_start then
 			add_range(ranges, "AlphaCodeNumber", line_number, number_start - 1, number_end)
 		end
+
 		local operator_start, operator_end = line:find("[@=*%-]+")
 		if operator_start then
 			add_range(ranges, "AlphaCodeOperator", line_number, operator_start - 1, operator_end)
+		end
+
+		local arrow_start, arrow_end = line:find("%-%>")
+		if arrow_start then
+			add_range(ranges, "AlphaCodeOperator", line_number, arrow_start - 1, arrow_end)
 		end
 		return
 	end
