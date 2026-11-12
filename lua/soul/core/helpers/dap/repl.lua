@@ -121,7 +121,6 @@ function M.setup(dap)
 		dap.repl.open()
 	end
 
-
 	return {
 		open_or_focus = open_or_focus_repl,
 		search = search_repl,
