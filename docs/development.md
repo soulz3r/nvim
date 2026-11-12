@@ -40,7 +40,7 @@ Run `bash scripts/check.sh` for JSON and lockfile validation, Python checker uni
 
 The headless integration test exercises the custom DAP plugin configuration with stubbed external plugin APIs, verifies launch argument persistence and cancellation, and tests the shared floating-output window lifecycle. Separate Mini Notify tests exercise concurrent progress from multiple clients, delayed cleanup invalidation, and client detach behavior. DAP registry migration tests verify successful imports, backup collision handling, malformed JSON preservation, failed-write preservation, and missing-file handling. DAP executable discovery tests cover root and common build directories, output ranking, ignored dependency directories, and traversal depth limits. The core smoke test also verifies child-process timeout cleanup and confirms that a completed process exit code of 124 is not mistaken for a timeout. These tests verify integration contracts without downloading plugins. They do not prove that LLDB, language servers, Telescope, Mini Files, ToggleTerm, or Neovide work on a particular machine.
 
-GitHub Actions checks Neovim stable and nightly on Windows and Linux, plus stable Neovim on macOS. Windows CI prints the PowerShell resolver duration when profiling is enabled. The resolver checks an inherited `PSHOME` executable before running slower WindowsApps and AppX discovery probes.
+GitHub Actions checks Neovim stable and nightly on Windows and Linux, plus stable Neovim on macOS. Windows CI prints the PowerShell resolver duration when profiling is enabled. Its smoke test now checks invalid inherited `PWSH` and `PSHOME` hints, rejection of Windows PowerShell 5.1 when PowerShell 7 is available, and a PowerShell 7 executable path with spaces. The resolver checks an inherited `PSHOME` executable before running slower WindowsApps and AppX discovery probes.
 
 ## DAP module boundaries
 
@@ -59,4 +59,4 @@ Headless CI cannot exercise a user's terminal emulator, external toolchain, clip
 | Termux | Platform detection; available shell/compiler; project paths and terminal behavior |
 | Neovide | GUI startup, font, transparency, borders, cursor/scroll behavior, and window lifecycle |
 
-Do not treat a platform as tested merely because its configuration module imports successfully. Record unavailable external tools as untested rather than silently counting them as passes.
+Do not treat a platform as tested merely because its configuration module imports successfully. Record unavailable external tools as untested rather than silently counting them as passes. The real-plugin and external-tool procedure is in [manual-testing.md](manual-testing.md); [plugin-inventory.md](plugin-inventory.md) records plugin purpose, and [contributing.md](contributing.md) describes the maintenance workflow.
