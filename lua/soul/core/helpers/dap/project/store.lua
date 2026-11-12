@@ -129,7 +129,9 @@ function M.setup(path, project_registry)
 		if not ok or saved ~= true then
 			local detail = not ok and saved or save_error
 			vim.notify(
-				"Could not save launch arguments for project:\n" .. root .. (detail and ("\n" .. tostring(detail)) or ""),
+				"Could not save launch arguments for project:\n"
+					.. root
+					.. (detail and ("\n" .. tostring(detail)) or ""),
 				vim.log.levels.ERROR
 			)
 			return false
@@ -171,7 +173,11 @@ function M.setup(path, project_registry)
 		local entry = key and projects[key] or nil
 		local ok, shared = pcall(project_registry.get, root)
 
-		if ok and type(shared) == "table" and (shared.dap_enabled or shared.executable or type(shared.args) == "table") then
+		if
+			ok
+			and type(shared) == "table"
+			and (shared.dap_enabled or shared.executable or type(shared.args) == "table")
+		then
 			entry = entry or { root = root }
 			entry.executable = shared.executable or entry.executable
 			if type(shared.args) == "table" then

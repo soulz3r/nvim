@@ -369,10 +369,7 @@ assert(
 )
 
 local dap_spec = require("soul.lsp.dap")
-assert(
-	not vim.tbl_contains(dap_spec.dependencies or {}, "soulz3r/yap.nvim"),
-	"DAP must not depend on YAP"
-)
+assert(not vim.tbl_contains(dap_spec.dependencies or {}, "soulz3r/yap.nvim"), "DAP must not depend on YAP")
 
 local lualine_spec = require("soul.plugins.lualine")
 assert(

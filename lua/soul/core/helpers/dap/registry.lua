@@ -38,13 +38,11 @@ local function migrate_entries(entries, project_registry, normalize, legacy_shap
 		if type(entry) == "table" then
 			local root = normalize(entry.root or key)
 			local executable = normalize(
-				legacy_shape and entry.executable or (entry.debug_executable or entry.last_executable or entry.executable)
+				legacy_shape and entry.executable
+					or (entry.debug_executable or entry.last_executable or entry.executable)
 			)
 			local args = legacy_shape and entry.args or (entry.dap_args or entry.args)
-			local has_dap_data = legacy_shape
-				or entry.dap_enabled
-				or executable
-				or type(args) == "table"
+			local has_dap_data = legacy_shape or entry.dap_enabled or executable or type(args) == "table"
 
 			if root and has_dap_data then
 				local fields = { dap_enabled = true }
@@ -135,7 +133,10 @@ function M.import_yap_file(path, project_registry, normalize, marker_path)
 	if marker_path then
 		fn.mkdir(fn.fnamemodify(marker_path, ":h"), "p")
 		if fn.writefile({ tostring(os.time()) }, marker_path) ~= 0 then
-			vim.notify("Imported DAP settings, but could not write the migration marker:\n" .. marker_path, vim.log.levels.WARN)
+			vim.notify(
+				"Imported DAP settings, but could not write the migration marker:\n" .. marker_path,
+				vim.log.levels.WARN
+			)
 			return false, "could not write migration marker"
 		end
 	end

@@ -113,12 +113,14 @@ assert(vim.fn.filereadable(yap_source) == 1, "YAP's project registry must remain
 assert(vim.fn.filereadable(migration_marker) == 1, "YAP import must write a one-time migration marker")
 
 -- The marker prevents stale YAP metadata from overwriting future DAP settings.
-vim.fn.writefile({ vim.json.encode({
-	[temp_dir .. "/new-project"] = {
-		root = temp_dir .. "/new-project",
-		dap_enabled = true,
-	},
-}) }, yap_source)
+vim.fn.writefile({
+	vim.json.encode({
+		[temp_dir .. "/new-project"] = {
+			root = temp_dir .. "/new-project",
+			dap_enabled = true,
+		},
+	}),
+}, yap_source)
 local after_first_import = #updates
 assert(
 	registry_migration.import_yap_file(yap_source, registry, normalize, migration_marker),
