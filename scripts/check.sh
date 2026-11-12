@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
+# Bash's high-resolution clock measures the entire check script.
+timestamp_us() {
+  local timestamp="$EPOCHREALTIME"
+  local seconds="${timestamp%.*}"
+  local fraction="${timestamp#*.}"
+  printf '%s' "$(( 10#$seconds * 1000000 + 10#${fraction:0:6} ))"
+}
+
+START_TIME_US="$(timestamp_us)"
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
@@ -160,36 +170,14 @@ PY
 
 # Keep the unittest report until the end so its summary reflects completed work.
 UNIT_OUTPUT="$TEMP_DIR/unittest.log"
-if "$PYTHON" - >"$UNIT_OUTPUT" 2>&1 <<'PY'
-import io
-import re
-import sys
-import time
-import unittest
-
-suite = unittest.defaultTestLoader.discover("scripts", pattern="test_*.py")
-stream = io.StringIO()
-started = time.perf_counter()
-result = unittest.TextTestRunner(stream=stream, verbosity=1).run(suite)
-elapsed = time.perf_counter() - started
-
-output = stream.getvalue()
-output = re.sub(
-    r"Ran (\d+) tests? in [0-9.]+s",
-    lambda match: f"Ran {match.group(1)} tests in {elapsed:.6f}s",
-    output,
-)
-print(output, end="")
-sys.exit(not result.wasSuccessful())
-PY
-then
+if "$PYTHON" -m unittest discover -s scripts -p 'test_*.py' >"$UNIT_OUTPUT" 2>&1; then
   print_status "Python unit tests" "PASS"
-  UNIT_SUMMARY="$(grep -E '^Ran [0-9]+ tests? in ' "$UNIT_OUTPUT" | tail -n 1 || true)"
+  UNIT_SUMMARY="$(grep -E '^Ran [0-9]+ tests? in ' "$UNIT_OUTPUT" | tail -n 1 | sed -E 's/ in [0-9.]+s$//' || true)"
   UNIT_RESULT="$(grep -E '^(OK|FAILED)( \(.*\))?$' "$UNIT_OUTPUT" | tail -n 1 || true)"
 else
   print_status "Python unit tests" "FAIL"
   sed 's/^/      /' "$UNIT_OUTPUT"
-  UNIT_SUMMARY="$(grep -E '^Ran [0-9]+ tests? in ' "$UNIT_OUTPUT" | tail -n 1 || true)"
+  UNIT_SUMMARY="$(grep -E '^Ran [0-9]+ tests? in ' "$UNIT_OUTPUT" | tail -n 1 | sed -E 's/ in [0-9.]+s$//' || true)"
   UNIT_RESULT="$(grep -E '^(OK|FAILED)( \(.*\))?$' "$UNIT_OUTPUT" | tail -n 1 || true)"
   (( FAIL_COUNT += 1 ))
 fi
@@ -396,6 +384,13 @@ if [[ -n "$UNIT_RESULT" ]]; then
   center_line "$UNIT_RESULT"
   printf '%s' "$RESET"
 fi
+
+END_TIME_US="$(timestamp_us)"
+ELAPSED_US=$(( END_TIME_US - START_TIME_US ))
+ELAPSED_SECONDS=$(( ELAPSED_US / 1000000 ))
+ELAPSED_MILLISECONDS=$(( (ELAPSED_US % 1000000) / 1000 ))
+printf '\n'
+center_line "TOTAL CHECK TIME  ${ELAPSED_SECONDS}.$(printf '%03d' "$ELAPSED_MILLISECONDS")s"
 
 if (( FAIL_COUNT == 0 )); then
   printf '\n%s' "$GREEN"
