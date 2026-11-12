@@ -1,27 +1,11 @@
 local M = {}
 
 local fn = vim.fn
+local path = require("soul.core.helpers.dap.path")
 local platform = require("soul.core.platform")
 
-local function normalize(path)
-	if type(path) ~= "string" or path == "" then
-		return nil
-	end
-
-	local normalized = fn.fnamemodify(fn.resolve(path), ":p"):gsub("\\", "/")
-	if normalized == "/" or normalized:match("^%a:/$") then
-		return normalized
-	end
-
-	return (normalized:gsub("/+$", ""))
-end
-
-local function is_executable(path)
-	return type(path) == "string" and path ~= "" and fn.executable(path) == 1
-end
-
 function M.find(root)
-	root = normalize(root)
+	root = path.normalize(root)
 	if not root then
 		return {}
 	end
@@ -29,19 +13,19 @@ function M.find(root)
 	local found = {}
 	local seen = {}
 
-	local function add(path)
-		local executable = normalize(path)
-		if not executable or not is_executable(executable) then
+	local function add(candidate)
+		local executable = path.normalize(candidate)
+		if not executable or not path.is_executable(executable) then
 			return
 		end
 
-		local key = platform.is_windows and executable:lower() or executable
+		local key = path.key(executable)
 		if seen[key] then
 			return
 		end
 
 		seen[key] = true
-		table.insert(found, executable)
+		found[#found + 1] = executable
 	end
 
 	local ignored_directories = {
@@ -62,12 +46,12 @@ function M.find(root)
 		end
 
 		for name, kind in entries do
-			local path = directory .. "/" .. name
+			local candidate = directory .. "/" .. name
 
 			if kind == "file" then
-				add(path)
+				add(candidate)
 			elseif recursive and kind == "directory" and depth < 3 and not ignored_directories[name] then
-				scan(path, depth + 1, true)
+				scan(candidate, depth + 1, true)
 			end
 		end
 	end
@@ -85,15 +69,13 @@ function M.find(root)
 	end
 
 	table.sort(found, function(a, b)
-		local function rank(path)
-			local lower = path:lower()
-
+		local function rank(candidate)
+			local lower = candidate:lower()
 			if lower:find("/bin/", 1, true) or lower:find("\\bin\\", 1, true) then
 				return 1
 			elseif lower:find("/build/", 1, true) or lower:find("\\build\\", 1, true) then
 				return 2
 			end
-
 			return 3
 		end
 
@@ -101,7 +83,6 @@ function M.find(root)
 		if rank_a ~= rank_b then
 			return rank_a < rank_b
 		end
-
 		return a:lower() < b:lower()
 	end)
 

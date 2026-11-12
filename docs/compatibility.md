@@ -18,8 +18,9 @@ The GitHub Actions workflow tests the latest Neovim stable release and nightly b
 4. A static rule that keeps private Neovim APIs out of the core configuration.
 5. A headless Neovim smoke test that loads core modules and every plugin specification without bootstrapping plugins or accessing the network.
 6. Native LSP configuration registration for both clangd and lua-language-server (lua_ls), without requiring either server binary on the CI runner.
-6. A headless integration test for the custom DAP setup and floating-output window lifecycle, using controlled stubs for external plugin APIs.
-7. A full-repository StyLua formatting check.
+7. A headless integration test for the custom DAP setup and floating-output window lifecycle, using controlled stubs for external plugin APIs.
+8. DAP path and project-resolution tests for normalization, containment, registered ancestors, and file-directory fallback.
+9. A full-repository StyLua formatting check.
 
 These checks catch syntax errors, removed core APIs, broken module imports, and regressions in the configuration's integration contracts. They cannot prove that every external plugin, language server, terminal, clipboard provider, debugger installation, or graphical Neovide session works. Those still need real-world testing on the platforms actually used.
 
