@@ -5,6 +5,8 @@ local Output = require("soul.core.helpers.ui.output")
 local paths = require("soul.core.helpers.paths")
 local platform = require("soul.core.platform")
 
+local compilation_error_namespace = vim.api.nvim_create_namespace("SoulCompilationError")
+
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
@@ -114,7 +116,7 @@ keymap("n", "<leader>nm", show_messages, OPTS("Show messages in floating window"
 
 local function compile_and_run_c()
 	local function show_error(message)
-		Output.open("C Build / Run", {
+		local output = Output.open("C Build / Run", {
 			"COMPILATION ERROR",
 			"",
 			tostring(message),
@@ -122,6 +124,15 @@ local function compile_and_run_c()
 			filetype = "compiler",
 			wrap = true,
 		})
+
+		if output and vim.api.nvim_buf_is_valid(output.buf) then
+			vim.api.nvim_buf_set_extmark(output.buf, compilation_error_namespace, 0, 0, {
+				end_row = 0,
+				end_col = #"COMPILATION ERROR",
+				hl_group = "SoulError",
+				priority = 200,
+			})
+		end
 	end
 
 	local file = vim.api.nvim_buf_get_name(0)
@@ -178,7 +189,10 @@ local function compile_and_run_c()
 		local powershell = paths.pwsh
 
 		if vim.fn.executable(powershell) ~= 1 then
-			return show_error("PowerShell was not found in PATH")
+			return show_error(
+				"PowerShell 7 could not be resolved. Set PWSH to the full path of pwsh.exe or add its install directory to PATH.\nResolved candidate: "
+					.. tostring(powershell)
+			)
 		end
 
 		local function ps_quote(value)
