@@ -83,5 +83,19 @@ assert(
 	"Executables in build/ must rank ahead of other root output directories"
 )
 
+local empty_dir = temp_dir .. "/empty"
+assert(vim.fn.mkdir(empty_dir, "p") == 1, "Could not create empty executable discovery directory")
+assert(#find_executables(empty_dir) == 0, "A project without executables must return an empty result")
+
+if not platform.is_windows then
+	local non_executable = temp_dir .. "/not-executable"
+	assert(vim.fn.writefile({ "not executable" }, non_executable) == 0, "Could not create permission test file")
+	assert(vim.fn.setfperm(non_executable, "rw-r--r--") == 1, "Could not remove executable permission")
+	assert(
+		not vim.tbl_contains(find_executables(temp_dir), vim.fn.fnamemodify(non_executable, ":p")),
+		"Executable discovery must ignore files without execute permission"
+	)
+end
+
 vim.fn.delete(temp_dir, "rf")
 print("DAP executable discovery tests passed.")
