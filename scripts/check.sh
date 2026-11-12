@@ -54,7 +54,11 @@ for path in Path(".").rglob("*.lua"):
     ):
         continue
 
-    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+    content = path.read_bytes()
+    if b"\\r" in content:
+        sys.exit(f"{path}: Lua files must use LF line endings.")
+
+    for line_number, line in enumerate(content.decode("utf-8").splitlines(), 1):
         prefix = line[: len(line) - len(line.lstrip(" " + chr(9)))]
         if " " in prefix:
             sys.exit(
@@ -207,8 +211,23 @@ else
   echo "Skipping Lua syntax checks (luac is not installed)."
 fi
 
-if command -v stylua >/dev/null 2>&1; then
-  stylua --check .
+STYLUA="$(command -v stylua || command -v stylua.exe || true)"
+if [[ -n "$STYLUA" ]]; then
+  stylua_output="$(mktemp)"
+  if "$STYLUA" --check . >"$stylua_output" 2>&1; then
+    echo "StyLua formatting checks passed."
+  else
+    echo "StyLua formatting checks failed:"
+    if grep -q '^Diff in ' "$stylua_output"; then
+      grep '^Diff in ' "$stylua_output" | sed 's/^Diff in //; s/:$//' | sort -u | sed 's/^/  /'
+      echo "Run 'stylua .' to apply formatting after resolving the line-ending policy."
+    else
+      cat "$stylua_output"
+    fi
+    rm -f "$stylua_output"
+    exit 1
+  fi
+  rm -f "$stylua_output"
 elif [[ "${REQUIRE_STYLUA:-0}" == "1" ]]; then
   echo "Missing StyLua; formatting checks are required in this environment." >&2
   exit 1
@@ -220,7 +239,6 @@ if command -v nvim >/dev/null 2>&1; then
   nvim --headless --clean -u NONE -l scripts/check-nvim.lua
   echo "Neovim module smoke tests passed."
   nvim --headless --clean -u NONE -l scripts/check-integration.lua
-  echo "Neovim integration smoke tests passed."
 elif [[ "${REQUIRE_NVIM:-0}" == "1" ]]; then
   echo "Missing Neovim; runtime checks are required in this environment." >&2
   exit 1
