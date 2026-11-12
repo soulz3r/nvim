@@ -256,6 +256,13 @@ function M.build(dashboard)
 		end
 
 		local ranges = vim.deepcopy(header_data.highlights)
+
+		-- Alpha expects a contiguous per-line highlight table. Keep the blank
+		-- tagline separator (line 8) so ipairs does not stop before the animation.
+		for line_number = 1, start_line - 1 do
+			ranges[line_number] = ranges[line_number] or {}
+		end
+
 		local animated_ranges = build_animation_highlights(frame, start_line)
 
 		for line_number, line_ranges in pairs(animated_ranges) do
