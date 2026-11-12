@@ -694,11 +694,11 @@ M.config = function()
 	-- LLDB adapter
 	-- =========================================================
 
-  dap.adapters.lldb = {
-    type = "executable",
-    command = paths.lldb_dap,
-    name = "lldb",
-  }
+	dap.adapters.lldb = {
+		type = "executable",
+		command = paths.lldb_dap,
+		name = "lldb",
+	}
 
 	local function make_launch_config(root, executable, args, name)
 		return {
