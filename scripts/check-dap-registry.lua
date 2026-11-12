@@ -21,6 +21,7 @@ local payload = vim.json.encode({
 		["sample-project"] = {
 			root = project_root,
 			executable = executable,
+			args = { "--legacy", "sample file.c" },
 		},
 	},
 })
@@ -53,16 +54,20 @@ local registry = {
 	end,
 }
 
+-- Legacy standalone DAP files are imported and retained as backups.
 vim.fn.writefile({ payload }, source)
 local migrated, backup = registry_migration.migrate_file(source, registry, normalize)
 assert(migrated, "Valid legacy DAP registry should migrate")
 assert(backup == source .. ".migrated", "First migration should use the stable backup suffix")
-assert(vim.fn.filereadable(source) == 0, "Successful migration should move the original file")
+assert(vim.fn.filereadable(source) == 0, "Successful migration should move the original DAP file")
 assert(vim.fn.filereadable(backup) == 1, "Successful migration must preserve a backup")
 assert(#updates == 1 and updates[1].root == project_root, "Migration did not update the expected project")
 assert(updates[1].fields.dap_enabled == true, "Migration must enable DAP for the project")
-assert(updates[1].fields.debug_executable == executable, "Migration lost the configured executable")
-assert(updates[1].fields.last_executable == executable, "Migration must preserve the last executable")
+assert(updates[1].fields.executable == executable, "Migration lost the configured executable")
+assert(
+	vim.deep_equal(updates[1].fields.args, { "--legacy", "sample file.c" }),
+	"Migration lost the configured launch arguments"
+)
 assert(notifications[#notifications].title == "DAP Registry", "Successful migration should report the backup location")
 
 -- Existing backups must never be overwritten.
@@ -73,6 +78,53 @@ assert(migrated_again, "Migration should succeed when the default backup already
 assert(second_backup ~= source .. ".migrated", "Migration must choose a unique backup name")
 assert(vim.fn.readfile(source .. ".migrated")[1] == "keep this backup", "Existing migration backup was overwritten")
 assert(vim.fn.filereadable(second_backup) == 1, "Timestamped migration backup was not created")
+
+-- Import only DAP metadata from the former YAP registry, without modifying YAP's file.
+local yap_source = temp_dir .. "/yap/projects.json"
+local migration_marker = temp_dir .. "/state/soul/dap/yap-registry-imported"
+local yap_payload = vim.json.encode({
+	[project_root] = {
+		root = project_root,
+		name = "sample-project",
+		dap_enabled = true,
+		debug_executable = executable,
+		last_executable = executable,
+		dap_args = { "--from-yap", "sample file.c", 42 },
+	},
+	[temp_dir .. "/ordinary-project"] = {
+		root = temp_dir .. "/ordinary-project",
+		name = "ordinary-project",
+		last_opened = 123,
+	},
+})
+vim.fn.mkdir(vim.fn.fnamemodify(yap_source, ":h"), "p")
+vim.fn.writefile({ yap_payload }, yap_source)
+local before_import = #updates
+local imported = registry_migration.import_yap_file(yap_source, registry, normalize, migration_marker)
+assert(imported, "Legacy YAP DAP metadata should import")
+assert(#updates == before_import + 1, "YAP import must ignore projects without DAP metadata")
+assert(updates[#updates].root == project_root, "YAP import selected the wrong project")
+assert(updates[#updates].fields.executable == executable, "YAP import lost the debug executable")
+assert(
+	vim.deep_equal(updates[#updates].fields.args, { "--from-yap", "sample file.c" }),
+	"YAP import must retain string launch arguments and ignore unsupported values"
+)
+assert(vim.fn.filereadable(yap_source) == 1, "YAP's project registry must remain untouched")
+assert(vim.fn.filereadable(migration_marker) == 1, "YAP import must write a one-time migration marker")
+
+-- The marker prevents stale YAP metadata from overwriting future DAP settings.
+vim.fn.writefile({ vim.json.encode({
+	[temp_dir .. "/new-project"] = {
+		root = temp_dir .. "/new-project",
+		dap_enabled = true,
+	},
+}) }, yap_source)
+local after_first_import = #updates
+assert(
+	registry_migration.import_yap_file(yap_source, registry, normalize, migration_marker),
+	"Repeated YAP import should be a harmless no-op"
+)
+assert(#updates == after_first_import, "YAP metadata must only be imported once")
 
 -- Invalid JSON must leave the original file untouched.
 vim.fn.writefile({ "{ invalid json" }, source)
