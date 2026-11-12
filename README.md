@@ -12,6 +12,7 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Native Neovim LSP configuration, without Mason
 - Blink.cmp completion
 - clangd support for C and C++
+- Fish shell language-server support
 - Project-aware LLDB DAP configuration and executable discovery
 - Shared project metadata for last executable, arguments, and project activity
 - Project actions hub for build, run, clean, and executable selection
@@ -49,7 +50,8 @@ Install the tools you intend to use and make sure they are available on `PATH`:
 
 - `clangd` for C and C++
 - `lua-language-server` for Lua
-- `bash-language-server` for shell scripts
+- `bash-language-server` for Bash scripts
+- `fish-lsp` for Fish scripts
 - `stylua` for Lua formatting and format-on-save
 - `lldb-dap` for C/C++ debugging
 
