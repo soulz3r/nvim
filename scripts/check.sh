@@ -175,7 +175,7 @@ elapsed = time.perf_counter() - started
 
 output = stream.getvalue()
 output = re.sub(
-    r"Ran (\\d+) tests? in [0-9.]+s",
+    r"Ran (\d+) tests? in [0-9.]+s",
     lambda match: f"Ran {match.group(1)} tests in {elapsed:.6f}s",
     output,
 )
