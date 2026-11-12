@@ -378,11 +378,11 @@ fi
 if (( FAIL_COUNT == 0 )); then
   printf '\n%s' "$GREEN"
   center_line "ALL CHECKS PASSED  ✓"
-  printf '%s\n' "$RESET"
+  printf '%s' "$RESET"
 else
   printf '\n%s' "$RED"
   center_line "$FAIL_COUNT CHECK(S) FAILED"
-  printf '%s\n' "$RESET"
+  printf '%s' "$RESET"
 fi
 
 exit "$(( FAIL_COUNT > 0 ))"
