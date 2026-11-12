@@ -61,4 +61,20 @@ for _, name in ipairs(modules) do
 	assert(type(spec) == "table", name .. " did not return a plugin spec table")
 end
 
+local mini_specs = require("soul.plugins.mini")
+local mini_files_spec
+
+for _, spec in ipairs(mini_specs) do
+	if spec[1] == "nvim-mini/mini.files" then
+		mini_files_spec = spec
+		break
+	end
+end
+
+assert(mini_files_spec, "Mini Files plugin specification is missing")
+assert(
+	vim.tbl_contains(mini_files_spec.dependencies or {}, "nvim-mini/mini.icons"),
+	"Mini Files must load Mini Icons as a dependency"
+)
+
 print("Neovim core and plugin-spec smoke tests passed.")
