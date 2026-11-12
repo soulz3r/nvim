@@ -217,6 +217,28 @@ assert(
 assert(vim.api.nvim_win_get_buf(source_win) == source_buf, "DAP exit must restore the original source buffer")
 vim.api.nvim_win_close(other_win, true)
 
+-- Closing the original source window during a session must not make teardown
+-- attempt to restore an invalid window.
+local fallback_win = vim.api.nvim_get_current_win()
+local temporary_buf = vim.api.nvim_create_buf(false, true)
+local temporary_win = vim.api.nvim_open_win(temporary_buf, true, {
+	relative = "editor",
+	width = 10,
+	height = 2,
+	row = 0,
+	col = 0,
+	style = "minimal",
+})
+initialized()
+vim.api.nvim_win_close(temporary_win, true)
+assert(pcall(exited), "DAP teardown must tolerate a source window closed during the session")
+assert(
+	vim.wait(100, function()
+		return vim.api.nvim_get_current_win() == fallback_win
+	end, 10),
+	"DAP teardown must leave focus in a valid window when the source window was closed"
+)
+
 local output = require("soul.core.helpers.ui.output")
 local window = output.create("Integration test", { "first" })
 window.append(" second\nthird")
