@@ -188,7 +188,7 @@ local function compile_and_run_c()
 	if platform.is_windows then
 		local powershell = paths.pwsh
 
-		if vim.fn.executable(powershell) ~= 1 then
+		if not powershell or powershell == "pwsh" then
 			return show_error(
 				"PowerShell 7 could not be resolved. Set PWSH to the full path of pwsh.exe or add its install directory to PATH.\nResolved candidate: "
 					.. tostring(powershell)
