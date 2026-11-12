@@ -46,8 +46,8 @@ PY
 from pathlib import Path
 import sys
 
-for path in Path("lua").rglob("*.lua"):
-    if path.as_posix() == "lua/soul/core/keymaps.lua":
+for path in Path(".").rglob("*.lua"):
+    if ".git" in path.parts or path.as_posix() == "lua/soul/core/keymaps.lua":
         continue
 
     for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
