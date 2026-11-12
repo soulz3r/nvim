@@ -1,6 +1,6 @@
 # C/C++ debugging
 
-The configuration uses `nvim-dap`, `nvim-dap-ui`, and the LLDB DAP adapter directly. It does not use Mason or YAP.
+The configuration uses `nvim-dap`, `nvim-dap-ui`, and the LLDB DAP adapter directly. It does not use Mason and has no runtime dependency on YAP.
 
 ## Install LLDB DAP
 
