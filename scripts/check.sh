@@ -186,9 +186,7 @@ else
 fi
 
 if command -v nvim >/dev/null 2>&1; then
-  nvim --headless --clean -u NONE \
-    -c "luafile scripts/check-nvim.lua" \
-    -c "qa!"
+  nvim --headless --clean -u NONE -l scripts/check-nvim.lua
   echo "Neovim module smoke tests passed."
 elif [[ "${REQUIRE_NVIM:-0}" == "1" ]]; then
   echo "Missing Neovim; runtime checks are required in this environment." >&2
