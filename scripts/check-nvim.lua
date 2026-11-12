@@ -105,6 +105,48 @@ end
 local malformed, malformed_error = dap_args.parse('"unterminated', false)
 assert(malformed == nil and malformed_error, "DAP argument parser must reject unclosed quotes")
 
+local process_helper = require("soul.core.helpers.process")
+local completed_124 = process_helper.wait({
+	wait = function()
+		return { code = 124, stdout = "", stderr = "" }
+	end,
+}, 100)
+assert(completed_124 and completed_124.code == 124, "A completed process exit code of 124 must not be treated as a timeout")
+
+local timeout_waits = 0
+local timeout_killed = false
+local timed_out, timeout_error = process_helper.wait({
+	wait = function()
+		timeout_waits = timeout_waits + 1
+		if timeout_waits == 1 then
+			return nil
+		end
+		return { code = 137 }
+	end,
+	kill = function(_, signal)
+		timeout_killed = signal == 9
+	end,
+}, 25)
+assert(timed_out == nil and timeout_error, "A timed-out process must return a useful error")
+assert(timeout_killed and timeout_waits == 2, "A timed-out process must be killed and reaped")
+
+local failed_waits = 0
+local failed_wait_killed = false
+local failed_wait = process_helper.wait({
+	wait = function()
+		failed_waits = failed_waits + 1
+		if failed_waits == 1 then
+			error("simulated wait failure")
+		end
+		return { code = 137 }
+	end,
+	kill = function(_, signal)
+		failed_wait_killed = signal == 9
+	end,
+}, 25)
+assert(failed_wait == nil, "A failed process wait must not report a result")
+assert(failed_wait_killed and failed_waits == 2, "A failed process wait must clean up the child")
+
 local original_notify = vim.notify
 local animation_notifications = {}
 vim.notify = function(message, level, opts)
