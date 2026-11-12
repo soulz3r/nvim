@@ -2,6 +2,7 @@ local M = {}
 
 -- Creates footer data without depending on Alpha or its dashboard sections.
 function M.new(on_update)
+	local api = {}
 	local git_branch_cache = {}
 	local git_branch_pending = {}
 
@@ -39,7 +40,7 @@ function M.new(on_update)
 				git_branch_cache[cwd] = branch or false
 
 				if on_update then
-					on_update(M.get_lines())
+					on_update(api.get_lines())
 				end
 			end)
 		end)
@@ -53,7 +54,7 @@ function M.new(on_update)
 		return nil
 	end
 
-	function M.get_lines()
+	function api.get_lines()
 		local stats = require("lazy").stats()
 		local ms = math.floor(stats.startuptime * 100 + 0.5) / 100
 		local nvim = vim.version()
@@ -78,14 +79,14 @@ function M.new(on_update)
 		}
 	end
 
-	function M.update()
-		local lines = M.get_lines()
+	function api.update()
+		local lines = api.get_lines()
 		if on_update then
 			on_update(lines)
 		end
 	end
 
-	function M.invalidate(cwd)
+	function api.invalidate(cwd)
 		if cwd then
 			git_branch_cache[cwd] = nil
 		else
@@ -93,7 +94,7 @@ function M.new(on_update)
 		end
 	end
 
-	return M
+	return api
 end
 
 return M
