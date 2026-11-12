@@ -3,6 +3,7 @@ vim.opt.rtp:prepend(root)
 package.path = table.concat({
 	root .. "/lua/?.lua",
 	root .. "/lua/?/init.lua",
+	root .. "/?.lua",
 	package.path,
 }, ";")
 
@@ -21,6 +22,10 @@ require("soul.core.keymaps")
 local keymap_helpers = require("soul.core.helpers.keymaps")
 assert(type(keymap_helpers.opts) == "function", "shared keymap options helper is missing")
 assert(rawget(_G, "OPTS") == nil, "OPTS must not leak into the global namespace")
+
+local lua_ls = require("lsp.lua_ls")
+local lua_globals = lua_ls.settings.Lua.diagnostics.globals
+assert(not vim.tbl_contains(lua_globals, "OPTS"), "LuaLS must not declare OPTS as a global")
 require("soul.core.autocmds")
 require("soul.core.helpers.ui")
 require("soul.core.helpers.ui.output")
