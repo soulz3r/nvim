@@ -7,6 +7,7 @@ end
 return {
 	{
 		"nvim-mini/mini.files",
+		dependencies = { "nvim-mini/mini.icons" },
 		keys = {
 			{
 				"<leader>e",
