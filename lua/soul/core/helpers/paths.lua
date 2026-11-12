@@ -123,6 +123,37 @@ local function find_powershell()
 		if home then
 			add_candidate(home .. "/pwsh.exe")
 		end
+
+		-- The alias may not be discoverable through PATH when Neovim is launched
+		-- outside PowerShell. Windows PowerShell is used only to ask AppX for
+		-- the Store package location; it is never selected as the shell.
+		local windows_powershell = fn.exepath("powershell.exe")
+		if windows_powershell ~= "" then
+			local ok, result = pcall(function()
+				local process = vim.system({
+					windows_powershell,
+					"-NoLogo",
+					"-NoProfile",
+					"-NonInteractive",
+					"-Command",
+					"(Get-AppxPackage -Name Microsoft.PowerShell | Select-Object -First 1 -ExpandProperty InstallLocation)",
+				}, { text = true })
+
+				local completed = process:wait(3000)
+				if not completed then
+					pcall(process.kill, process, 9)
+				end
+
+				return completed
+			end)
+
+			if ok and type(result) == "table" and result.code == 0 then
+				local install_location = vim.trim(result.stdout or "")
+				if install_location ~= "" then
+					add_candidate(install_location .. "/pwsh.exe")
+				end
+			end
+		end
 	end
 
 	if platform.is_windows then
