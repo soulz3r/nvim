@@ -7,14 +7,14 @@ M.lines = {
 	"██║     ╚██████╔╝██║██║╚██╔╝██║",
 	"╚██████╗ ╚═════╝ ╚═╝██║ ╚═╝ ██║",
 	" ╚═════╝",
-	"   C, with a better editor.",
+	"    C, with a better editor.",
 	"",
-	"  FIRST PROGRAM",
-	"  int main(void) {",
-	"    return 0;",
-	"    ^",
-	"  ---------------",
-	"  return exits main",
+	"   FIRST PROGRAM",
+	"   int main(void) {",
+	"     return 0;",
+	"     ^",
+	"   ---------------",
+	"   return exits main",
 }
 
 M.highlights = {
@@ -65,7 +65,7 @@ M.animation = {
 			lines = {
 				"  OUTPUT",
 				"  #include <stdio.h>",
-				"  puts(\"Hello, C\");",
+				'  puts("Hello, C");',
 				"",
 				"  ---------------",
 				"  puts writes to stdout",
@@ -148,7 +148,7 @@ M.animation = {
 			cursor_token = "'c'",
 			lines = {
 				"  STRINGS",
-				"  char name[] = \"C lang\";",
+				'  char name[] = "C lang";',
 				"  name[0] = 'c';",
 				"",
 				"  ---------------",
@@ -244,7 +244,7 @@ M.animation = {
 			cursor_token = "fclose",
 			lines = {
 				"  FILE I O",
-				"  FILE *f = fopen(path, \"r\");",
+				'  FILE *f = fopen(path, "r");',
 				"  if (f) fclose(f);",
 				"",
 				"  ---------------",
