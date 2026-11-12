@@ -158,7 +158,7 @@ local function find_powershell()
 		-- Keep the preferred reverse ordering, but validate every candidate.
 		local where_result = run_probe({ "where.exe", "pwsh.exe" }, deadline)
 		if type(where_result) == "table" and where_result.code == 0 then
-			local matches = vim.split(vim.trim(where_result.stdout or ""), "\\n", {
+			local matches = vim.split(vim.trim(where_result.stdout or ""), "\n", {
 				trimempty = true,
 			})
 			for i = #matches, 1, -1 do
