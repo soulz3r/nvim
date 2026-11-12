@@ -85,7 +85,7 @@ git clone https://github.com/soulz3r/nvim.git ~/.config/nvim
 nvim
 ```
 
-WSL Neovim uses Linux binaries and POSIX build/run commands. To share a Windows project directory, set `PROJECTS_DIR` to its mounted path, for example `/mnt/d/config/projects`. Windows clipboard integration is enabled when `clip.exe` and PowerShell are available in WSL's `PATH`.
+WSL Neovim uses Linux binaries and POSIX build/run commands. To share a Windows project directory, set `PROJECTS_DIR` to its mounted path, for example `/mnt/d/projects`. Windows clipboard integration is enabled when `clip.exe` and PowerShell are available in WSL's `PATH`.
 
 ### Windows
 
@@ -152,7 +152,7 @@ See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry det
 
 | Variable | Purpose | Default |
 |---|---|---|
-| `PROJECTS_DIR` | Base directory for YAP project picker and project discovery | Windows: `D:/config/projects`; Linux: `~/projects` |
+| `PROJECTS_DIR` | Base directory for YAP project picker and project discovery | Windows: `D:/projects`; Linux: `~/projects` |
 | `LLDB_DAP` | Full path or command name for `lldb-dap` | Windows LLVM path; Linux `lldb-dap` |
 | `PWSH` | PowerShell executable used by the configured shell and C runner | `pwsh` or `pwsh.exe` |
 | `CLANG` | Clang executable used by the C compile/run keymap | `clang` from `PATH` |
@@ -216,7 +216,7 @@ On startup, the configuration imports older DAP-only registries from:
 After a successful import, each old file is renamed with a `.migrated` suffix (or a timestamped suffix if that backup already exists). The original data is preserved as a backup.
 ## Repository layout
 
-See [docs/architecture.md](docs/architecture.md) for the module map, [docs/plugin-inventory.md](docs/plugin-inventory.md) for plugin ownership, [docs/development.md](docs/development.md) for project metadata and UI conventions, and [docs/contributing.md](docs/contributing.md) for maintenance rules.
+See [docs/design-decisions.md](docs/design-decisions.md) for the reasoning behind the main architectural choices. See [docs/architecture.md](docs/architecture.md) for the module map, [docs/plugin-inventory.md](docs/plugin-inventory.md) for plugin ownership, [docs/development.md](docs/development.md) for project metadata and UI conventions, and [docs/contributing.md](docs/contributing.md) for maintenance rules.
 
 ## Compatibility
 
