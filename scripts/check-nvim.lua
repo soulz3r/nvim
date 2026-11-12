@@ -62,6 +62,20 @@ end
 local malformed, malformed_error = dap_args.parse('"unterminated', false)
 assert(malformed == nil and malformed_error, "DAP argument parser must reject unclosed quotes")
 
+local animation = require("soul.core.helpers.dashboard.animation").new({
+	interval = 1,
+	is_active = function()
+		return true
+	end,
+	on_tick = function()
+		error("expected animation callback failure")
+	end,
+})
+animation.start()
+assert(vim.wait(100, function()
+	return not animation.is_running()
+end, 1), "Dashboard animation must stop cleanly after a callback error")
+
 local dashboard_buttons = require("soul.core.helpers.dashboard.buttons").items
 local buttons_by_key = {}
 for _, item in ipairs(dashboard_buttons) do
