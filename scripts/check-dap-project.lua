@@ -77,7 +77,10 @@ local marker_source = marker_root .. "/src"
 assert(vim.fn.mkdir(marker_source, "p") == 1, "Could not create marker project source directory")
 assert(vim.fn.mkdir(marker_root .. "/.git", "p") == 1, "Could not create marker project root")
 local marker_file = marker_source .. "/main.c"
-assert(vim.fn.writefile({ "int main(void) { return 0; }" }, marker_file) == 0, "Could not create marker project source file")
+assert(
+	vim.fn.writefile({ "int main(void) { return 0; }" }, marker_file) == 0,
+	"Could not create marker project source file"
+)
 local marker_buf = vim.api.nvim_create_buf(false, true)
 vim.api.nvim_buf_set_name(marker_buf, marker_file)
 vim.api.nvim_set_current_buf(marker_buf)
@@ -85,7 +88,6 @@ assert(
 	projects.resolve_root() == path.normalize(marker_root),
 	"Project marker lookup must start from the current buffer path"
 )
-
 
 -- A file with no marker or registered ancestor falls back to its own directory,
 -- not whichever unrelated directory Neovim happens to use as its cwd.
