@@ -78,10 +78,10 @@ print_status() {
   [[ "$state" == "FAIL" ]] && color="$RED"
   [[ "$state" == "SKIP" ]] && color="$YELLOW"
 
-  printf '  %s%02d%s  %-*.*s %*s%s%s%s\n' \
+  printf '  %s%02d%s  %-*.*s %s%*s%s\n' \
     "$DIM" "$CHECK_COUNT" "$RESET" \
     "$label_width" "$label_width" "$label" \
-    "$status_width" "$state" "$color" "$RESET" "$RESET"
+    "$color" "$status_width" "$state" "$RESET"
 }
 
 run_check() {
