@@ -104,7 +104,12 @@ keymap("n", "<leader>x", function()
 end, { desc = "Make executable" })
 
 keymap("n", "<leader>ne", "<cmd>restart<cr>", { desc = "Restart Neovim" })
-keymap("n", "<leader>ni", "<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>", { desc = "Open config" })
+keymap("n", "<leader>ni", function()
+	vim.cmd({
+		cmd = "edit",
+		args = { vim.fn.stdpath("config") .. "/init.lua" },
+	})
+end, { desc = "Open config" })
 local function show_messages()
 	local messages = vim.api.nvim_exec2("messages", { output = true }).output
 	Output.open("Messages", messages, {
