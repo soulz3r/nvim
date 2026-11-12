@@ -1,5 +1,5 @@
 local M = {
-	servers = { "lua_ls", "stylua", "clangd", "bashls", "fish_ls" },
+	servers = require("soul.lsp.servers"),
 }
 
 function M.capabilities()
