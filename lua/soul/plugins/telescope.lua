@@ -34,12 +34,9 @@ local M = {
 						return false, tostring(process)
 					end
 
-					local result = process:wait(120000)
-					if not result or result.code == 124 then
-						pcall(function()
-							process:kill(9)
-						end)
-						return false, "Build timed out after 120 seconds."
+					local result, wait_error = require("soul.core.helpers.process").wait(process, 120000)
+					if not result then
+						return false, wait_error or "Build timed out after 120 seconds."
 					end
 
 					return result.code == 0,
