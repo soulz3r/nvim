@@ -38,8 +38,8 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          curl --fail --location --retry 3 \
-            "https://github.com/neovim/neovim/releases/download/${{ matrix.channel }}/nvim-linux-x86_64.tar.gz" \
+          curl --fail --location --retry 3 \\
+            "https://github.com/neovim/neovim/releases/download/${{ matrix.channel }}/nvim-linux-x86_64.tar.gz" \\
             --output /tmp/neovim.tar.gz
           tar -xzf /tmp/neovim.tar.gz -C "$RUNNER_TEMP"
           echo "$RUNNER_TEMP/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
@@ -52,7 +52,7 @@ jobs:
           $url = "https://github.com/neovim/neovim/releases/download/${{ matrix.channel }}/nvim-win64.zip"
           Invoke-WebRequest -Uri $url -OutFile $archive
           Expand-Archive -Path $archive -DestinationPath $env:RUNNER_TEMP -Force
-          "$env:RUNNER_TEMP\nvim-win64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          "$env:RUNNER_TEMP\\nvim-win64\\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Show tool versions
         shell: bash
@@ -66,6 +66,7 @@ jobs:
         env:
           REQUIRE_LUA: ${{ runner.os == 'Linux' && '1' || '0' }}
           REQUIRE_NVIM: "1"
+          REQUIRE_PWSH: ${{ runner.os == 'Windows' && '1' || '0' }}
         run: bash scripts/check.sh
 
       - name: Build and load the configured fzf-native DLL
