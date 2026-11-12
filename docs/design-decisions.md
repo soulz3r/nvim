@@ -24,7 +24,7 @@ Server definitions live in the repository's `lsp/` directory and are enabled wit
 
 ## Cross-platform defaults with explicit overrides
 
-Platform detection and external executable resolution are centralized. The default project directory is `D:/projects` on Windows and `~/projects` on Unix-like systems. `PROJECTS_DIR`, `CLANG`, `PWSH`, and `LLDB_DAP` provide machine-specific overrides without requiring edits to tracked configuration files.
+Platform detection and external executable resolution are centralized. The default project directory is `D:/projects/` on Windows and `~/projects` on Unix-like systems. `PROJECTS_DIR`, `CLANG`, `PWSH`, and `LLDB_DAP` provide machine-specific overrides without requiring edits to tracked configuration files.
 
 ## Keep the UI layer deliberate
 
