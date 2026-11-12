@@ -17,7 +17,7 @@ M.items = {
 		icon_group = "ui",
 		icon = "Folder",
 		label = "Open Explorer",
-		command = "<cmd>lua require('mini.files').open(vim.fn.getcwd())<CR>",
+		command = "<cmd>lua require('lazy').load({ plugins = { 'mini.files' } }); require('mini.files').open(vim.fn.getcwd())<CR>",
 		highlight = "AlphaAqua",
 	},
 
@@ -71,7 +71,7 @@ M.items = {
 		icon_group = "ui",
 		icon = "Gear",
 		label = "Config",
-		command = "<cmd>edit " .. vim.fn.stdpath("config") .. "/init.lua<CR>",
+		command = "<cmd>edit " .. vim.fn.fnameescape(vim.fn.stdpath("config") .. "/init.lua") .. "<CR>",
 		highlight = "AlphaTeal",
 	},
 
