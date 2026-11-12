@@ -250,9 +250,9 @@ compatibility_checks() {
     return 1
   fi
 
-  if grep -nF 'soulz3r/yap.nvim' lua/soul/lsp/dap.lua lua/soul/core/helpers/dap \
-    || grep -nF 'require("yap' lua/soul/lsp/dap.lua lua/soul/core/helpers/dap \
-    || grep -nF "require('yap" lua/soul/lsp/dap.lua lua/soul/core/helpers/dap; then
+  if grep -RInF 'soulz3r/yap.nvim' lua/soul/lsp/dap.lua lua/soul/core/helpers/dap \
+    || grep -RInF 'require("yap' lua/soul/lsp/dap.lua lua/soul/core/helpers/dap \
+    || grep -RInF "require('yap" lua/soul/lsp/dap.lua lua/soul/core/helpers/dap; then
     echo "DAP must not depend on YAP's plugin or Lua modules."
     return 1
   fi
