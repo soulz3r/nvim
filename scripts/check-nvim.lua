@@ -33,6 +33,14 @@ vim.env.PWSH = original_pwsh
 require("soul.core.options")
 require("soul.core.keymaps")
 local keymap_helpers = require("soul.core.helpers.keymaps")
+local lsp_config = require("soul.lsp.lsp")
+for _, server in ipairs(lsp_config.servers) do
+	assert(
+		vim.fn.filereadable(root .. "/lsp/" .. server .. ".lua") == 1,
+		("Enabled LSP '%s' has no matching lsp/%s.lua config"):format(server, server)
+	)
+end
+
 local dap_args = require("soul.core.helpers.dap.args")
 local argument_cases = {
 	{},
