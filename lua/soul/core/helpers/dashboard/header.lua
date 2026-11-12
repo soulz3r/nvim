@@ -41,46 +41,66 @@ M.highlights = {
 	},
 }
 
--- The logo stays static. Only the C concept panel beneath it changes.
+-- The logo stays static. The panel below it is animated independently.
 M.animation = {
-	speed = 2400,
+	speed = 90,
 	start_line = 9,
+	chars_per_tick = 4,
+	hold_ticks = 6,
 
-	frames = {
+	scenes = {
 		{
-			"  POINTERS",
-			"  int value = 42;",
-			"  int *ptr = &value;",
-			"             ^",
-			"             address-of",
+			lines = {
+				"  POINTERS",
+				"  int value = 42;",
+				"  int *ptr = &value;",
+				"",
+				"  &value gives the address",
+			},
+			cursor_line = 4,
+			cursor_target = 14,
 		},
 		{
-			"  DEREFERENCE",
-			"  int *ptr = &value;",
-			"  int copy = *ptr;",
-			"             ^",
-			"  copy is now 42",
+			lines = {
+				"  DEREFERENCE",
+				"  int *ptr = &value;",
+				"  int copy = *ptr;",
+				"",
+				"  *ptr reads the stored value",
+			},
+			cursor_line = 4,
+			cursor_target = 14,
 		},
 		{
-			"  MEMORY MAP",
-			"  value @ 0x0010 = 42",
-			"  ptr   @ 0x0020 = 0x0010",
-			"  *ptr  -> 0x0010 -> 42",
-			"  one pointer, one address",
+			lines = {
+				"  MEMORY MAP",
+				"  value @ 0x0010 = 42",
+				"  ptr   @ 0x0020 = 0x0010",
+				"  *ptr  -> 0x0010 -> 42",
+				"  pointer stores an address",
+			},
+			cursor_line = 4,
+			cursor_target = 14,
 		},
 		{
-			"  COMPILATION",
-			"  main.c -> main.i",
-			"  main.i -> main.s",
-			"  main.s -> main.o",
-			"  main.o -> cvim",
+			lines = {
+				"  COMPILATION",
+				"  main.c",
+				"  main.i",
+				"  main.s",
+				"  main.o -> cvim",
+			},
+			cursor_line = 4,
+			cursor_target = 8,
 		},
 		{
-			"  REPRESENTATIONS",
-			"  decimal      42",
-			"  hexadecimal  0x2A",
-			"  binary       00101010",
-			"  same value, three forms",
+			lines = {
+				"  REPRESENTATIONS",
+				"  decimal      42",
+				"  hexadecimal  0x2A",
+				"  binary       00101010",
+				"  same value, three forms",
+			},
 		},
 	},
 }
