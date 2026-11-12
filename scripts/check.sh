@@ -55,7 +55,7 @@ for path in Path(".").rglob("*.lua"):
         continue
 
     content = path.read_bytes()
-    if b"\\r" in content:
+    if b"\r" in content:
         sys.exit(f"{path}: Lua files must use LF line endings.")
 
     for line_number, line in enumerate(content.decode("utf-8").splitlines(), 1):
