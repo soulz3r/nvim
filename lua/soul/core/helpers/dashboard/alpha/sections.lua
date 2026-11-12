@@ -43,11 +43,79 @@ local function build_animation_timeline(animation)
 	return timeline
 end
 
+local function add_range(ranges, group, line, first, last)
+	if first < last then
+		ranges[line] = ranges[line] or {}
+		ranges[line][#ranges[line] + 1] = { group, first, last }
+	end
+end
+
+local function add_pattern(ranges, group, line_number, line, pattern)
+	local first = 1
+
+	while true do
+		local start_index, end_index = line:find(pattern, first)
+		if not start_index then
+			break
+		end
+
+		add_range(ranges, group, line_number, line, start_index - 1, end_index)
+		first = end_index + 1
+	end
+end
+
+local function build_animation_highlights(lines, start_line)
+	local ranges = {}
+	local keywords = {
+		["int"] = true,
+		["void"] = true,
+		["char"] = true,
+		["float"] = true,
+		["double"] = true,
+		["const"] = true,
+		["unsigned"] = true,
+		["long"] = true,
+		["short"] = true,
+	}
+
+	for index, line in ipairs(lines) do
+		local line_number = start_line + index - 1
+
+		if line:match("^%s+[A-Z ]+$") then
+			add_range(ranges, "AlphaTeal", line_number, line, 0, #line)
+		elseif line:match("^%s*int%s") then
+			add_pattern(ranges, "Type", line_number, line, "%f[%w_]int%f[^%w_]")
+			add_pattern(ranges, "Number", line_number, line, "%f[%w_]%d+%f[^%w_]")
+			add_pattern(ranges, "Operator", line_number, line, "[*&=;]")
+			add_pattern(ranges, "Identifier", line_number, line, "%f[%a_][%a_][%w_]*")
+			for word in pairs(keywords) do
+				add_pattern(ranges, "Type", line_number, line, "%f[%w_]" .. word .. "%f[^%w_]")
+			end
+		elseif line:match("^%s*main%.") or line:match("%->") then
+			add_pattern(ranges, "Identifier", line_number, line, "[%w_]+")
+			add_pattern(ranges, "Operator", line_number, line, "[%.%- >]+")
+		else
+			add_pattern(ranges, "Number", line_number, line, "0x[%da-fA-F]+")
+			add_pattern(ranges, "Number", line_number, line, "%f[%d]%d+%f[%D]")
+			add_pattern(ranges, "Operator", line_number, line, "[@=*%- >]+")
+			if #line > 0 and not line:match("^%s*%^") then
+				add_range(ranges, "AlphaYellow", line_number, line, 0, #line)
+			end
+		end
+
+		if line:match("%^") then
+			add_pattern(ranges, "Special", line_number, line, "%^")
+		end
+	end
+
+	return ranges
+end
+
 function M.build(dashboard)
 	local icons = require("soul.core.helpers.icons")
 	local utils = require("alpha.utils")
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Header
 	---------------------------------------------------------------------------
 
@@ -69,7 +137,7 @@ function M.build(dashboard)
 		hl = utils.charhl_to_bytehl(header_hl, header),
 	}
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Buttons
 	---------------------------------------------------------------------------
 
@@ -94,7 +162,7 @@ function M.build(dashboard)
 	dashboard.section.buttons.val = vim.tbl_map(create_button, button_data.items)
 	dashboard.section.buttons.opts.hl = "Include"
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Footer
 	---------------------------------------------------------------------------
 
@@ -149,7 +217,7 @@ function M.build(dashboard)
 
 	local footer = footer_data.new(set_footer)
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Layout
 	---------------------------------------------------------------------------
 
@@ -171,7 +239,7 @@ function M.build(dashboard)
 		noautocmd = true,
 	}
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Animation timeline
 	---------------------------------------------------------------------------
 
@@ -186,6 +254,15 @@ function M.build(dashboard)
 		for index, line in ipairs(frame) do
 			dashboard.section.header.val[start_line + index - 1] = line
 		end
+
+		local ranges = vim.deepcopy(header_data.highlights)
+		local animated_ranges = build_animation_highlights(frame, start_line)
+
+		for line_number, line_ranges in pairs(animated_ranges) do
+			ranges[line_number] = line_ranges
+		end
+
+		dashboard.section.header.opts.hl = utils.charhl_to_bytehl(ranges, dashboard.section.header.val)
 	end
 
 	apply_animation_frame()
