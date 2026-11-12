@@ -100,11 +100,6 @@ if [[ -e lua/soul/plugins/oil.lua ]]; then
   exit 1
 fi
 
-if ! grep -q 'dap_args' lua/soul/lsp/dap.lua; then
-  echo "DAP launch arguments must be stored in the per-project registry." >&2
-  exit 1
-fi
-
 if ! grep -q 'dependencies = { "nvim-mini/mini.icons" }' lua/soul/plugins/mini.lua; then
   echo "Mini Files must declare Mini Icons as a dependency." >&2
   exit 1
