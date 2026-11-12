@@ -29,7 +29,7 @@ function M.config()
     install_dir = vim.fn.stdpath("data") .. "/site",
   })
 
-  treesitter.install({
+  local install_task = treesitter.install({
     "c",
     "cpp",
     "lua",
@@ -60,6 +60,22 @@ function M.config()
     end
   end
 
+  local function start_buffer(buf)
+    if not vim.api.nvim_buf_is_valid(buf) then
+      return false
+    end
+
+    local ok = pcall(vim.treesitter.start, buf)
+    if not ok then
+      started[buf] = nil
+      return false
+    end
+
+    started[buf] = true
+    set_window_folds(buf)
+    return true
+  end
+
   local group = vim.api.nvim_create_augroup("SoulTreesitterFolds", {
     clear = true,
   })
@@ -68,17 +84,29 @@ function M.config()
     group = group,
     pattern = filetypes,
     callback = function(args)
-      local ok = pcall(vim.treesitter.start, args.buf)
-
-      if not ok then
-        started[args.buf] = nil
-        return
-      end
-
-      started[args.buf] = true
-      set_window_folds(args.buf)
+      start_buffer(args.buf)
     end,
   })
+
+  -- Parser installation is asynchronous. Retry buffers that opened while
+  -- their parser was still compiling.
+  install_task:await(function(err)
+    if err then
+      vim.notify(
+        "Treesitter parser installation reported an error: " .. tostring(err),
+        vim.log.levels.WARN,
+        { title = "Treesitter" }
+      )
+    end
+
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      if vim.api.nvim_buf_is_loaded(buf)
+        and vim.tbl_contains(filetypes, vim.bo[buf].filetype)
+      then
+        start_buffer(buf)
+      end
+    end
+  end)
 
   vim.api.nvim_create_autocmd({ "BufWinEnter", "WinEnter" }, {
     group = group,

@@ -266,7 +266,15 @@ M.config = function()
 		"compile_flags.txt",
 		"meson.build",
 		"Cargo.toml",
+		"build.sh",
+		"build.bat",
+		"build_all.sh",
+		"build_all.bat",
 	}
+
+	-- An explicit project selection wins over the still-open buffer until
+	-- the user moves to another buffer.
+	local selected_project
 
 	local function current_file()
 		local name = vim.api.nvim_buf_get_name(0)
@@ -303,6 +311,14 @@ M.config = function()
 	end
 
 	local function resolve_project_root()
+		if selected_project then
+			if selected_project.buf == vim.api.nvim_get_current_buf() then
+				return selected_project.root
+			end
+
+			selected_project = nil
+		end
+
 		local file = current_file()
 
 		if file then
@@ -520,6 +536,10 @@ M.config = function()
 			end
 
 			vim.api.nvim_set_current_dir(entry.root)
+			selected_project = {
+				root = entry.root,
+				buf = vim.api.nvim_get_current_buf(),
+			}
 
 			local touched, saved = pcall(project_registry.touch, entry.root)
 			if not touched or saved ~= true then

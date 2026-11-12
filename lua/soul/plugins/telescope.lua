@@ -8,7 +8,104 @@ local M = {
 
     {
       "nvim-telescope/telescope-fzf-native.nvim",
-      build = "make",
+      build = function(plugin)
+        local fn = vim.fn
+        local paths = require("soul.core.helpers.paths")
+        local windows = require("soul.core.platform").is_windows
+        local library = plugin.dir .. "/build/" .. (windows and "libfzf.dll" or "libfzf.so")
+
+        local function run(command)
+          local ok, process = pcall(vim.system, command, {
+            cwd = plugin.dir,
+            text = true,
+          })
+
+          if not ok then
+            return false, tostring(process)
+          end
+
+          local result = process:wait(120000)
+          if not result then
+            pcall(function()
+              process:kill(9)
+            end)
+            return false, "Build timed out after 120 seconds."
+          end
+
+          local output = table.concat({
+            result.stdout or "",
+            result.stderr or "",
+          }, "\n")
+
+          return result.code == 0, output
+        end
+
+        -- A stale build directory makes the upstream Windows Makefile's
+        -- cmd.exe mkdir command fail before compilation starts.
+        pcall(fn.delete, plugin.dir .. "/build", "rf")
+
+        local make = fn.exepath("make")
+        if windows and make == "" then
+          make = fn.exepath("mingw32-make")
+        end
+
+        local make_error
+        if make ~= "" then
+          local command = { make, "-C", plugin.dir }
+          if windows then
+            local compiler = paths.clang or fn.exepath("clang")
+            if compiler and compiler ~= "" then
+              command[#command + 1] = 'CC="' .. compiler .. '"'
+            end
+          end
+
+          local ok, output = run(command)
+          if ok and vim.uv.fs_stat(library) then
+            return
+          end
+          make_error = output
+        end
+
+        -- CMake is a Windows fallback for machines without a working Make
+        -- toolchain. The install step puts the DLL where fzf_lib.lua expects it.
+        if windows then
+          local cmake = fn.exepath("cmake")
+          if cmake ~= "" then
+            local configure_ok, configure_output = run({
+              cmake, "-S", ".", "-B", "build",
+              "-DCMAKE_BUILD_TYPE=Release",
+              "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+            })
+
+            if configure_ok then
+              local build_ok, build_output = run({
+                cmake, "--build", "build", "--config", "Release",
+              })
+
+              if build_ok then
+                local install_ok, install_output = run({
+                  cmake, "--install", "build", "--config", "Release", "--prefix", "build",
+                })
+
+                if install_ok and vim.uv.fs_stat(library) then
+                  return
+                end
+                make_error = install_output
+              else
+                make_error = build_output
+              end
+            else
+              make_error = configure_output
+            end
+          end
+        end
+
+        error(
+          "Could not build telescope-fzf-native.nvim. "
+            .. (make_error or "Neither make nor a usable CMake toolchain was found.")
+            .. "\nInstall a C compiler and make, or CMake on Windows, then run :Lazy build telescope-fzf-native.nvim."
+        )
+      end,
     },
 
     "nvim-telescope/telescope-ui-select.nvim",
@@ -91,8 +188,6 @@ function M.config()
           ["<C-f>"] = actions.to_fuzzy_refine,
           ["<C-a>"] = actions.select_all,
           ["<C-x>"] = actions.drop_all,
-
-          ["dd"] = actions.delete_buffer,
 
           ["<esc>"] = actions.close,
           ["q"] = actions.close,
@@ -232,11 +327,13 @@ function M.config()
     local ok, err = pcall(telescope.load_extension, name)
 
     if not ok then
-      vim.notify(
-        ("Telescope extension '%s' failed to load: %s"):format(name, tostring(err)),
-        vim.log.levels.WARN,
-        { title = "Telescope" }
-      )
+      local message = ("Telescope extension '%s' failed to load: %s"):format(name, tostring(err))
+
+      if name == "fzf" then
+        message = message .. "\nRebuild the native library with :Lazy build telescope-fzf-native.nvim."
+      end
+
+      vim.notify(message, vim.log.levels.WARN, { title = "Telescope" })
     end
   end
 
