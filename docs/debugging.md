@@ -16,12 +16,14 @@ If the adapter is elsewhere, set `LLDB_DAP` to its full path before launching Ne
 The current project root is detected from the current buffer using common markers:
 
 - `.git`
+- `.clangd`, `.clang-tidy`, and `.clang-format`
 - `CMakeLists.txt`
 - `Makefile` / `makefile`
 - `build.ninja`
-- `compile_commands.json`
+- `compile_commands.json` / `compile_flags.txt`
 - `meson.build`
 - `Cargo.toml`
+- `build.sh`, `build.bat`, `build_all.sh`, and `build_all.bat`
 
 Executable discovery checks the project root and common output directories such as `bin/`, `build/`, `build/Debug/`, `build/Release/`, `Debug/`, and `Release/`.
 
