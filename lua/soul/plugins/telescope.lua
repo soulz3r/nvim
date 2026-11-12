@@ -34,7 +34,7 @@ local M = {
           end
 
           local result = process:wait(120000)
-          if not result then
+          if not result or result.code == 124 then
             pcall(function()
               process:kill(9)
             end)
