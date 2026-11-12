@@ -30,10 +30,7 @@ end
 local resolved_paths = require(paths_module)
 
 if platform.is_windows and vim.fn.exepath("pwsh") ~= "" then
-	assert(
-		resolved_paths.pwsh ~= "pwsh",
-		"PWSH=pwsh must resolve to a concrete Windows executable path"
-	)
+	assert(resolved_paths.pwsh ~= "pwsh", "PWSH=pwsh must resolve to a concrete Windows executable path")
 end
 
 vim.env.PWSH = original_pwsh
