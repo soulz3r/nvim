@@ -17,10 +17,12 @@ jobs:
       - name: Check out native sorter
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
           $source = Join-Path $env:RUNNER_TEMP "telescope-fzf-native"
           git clone https://github.com/nvim-telescope/telescope-fzf-native.nvim.git $source
           git -C $source checkout b25b749b9db64d375d782094e2b9dce53ad53a40
-          cmake -S $source -B (Join-Path $source "build") -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          cmake -S $source -B (Join-Path $source "build") -DCMAKE_BUILD_TYPE=Release "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
           cmake --build (Join-Path $source "build") --config Release
           cmake --install (Join-Path $source "build") --config Release --prefix (Join-Path $source "build")
           $library = Join-Path $source "build/libfzf.dll"
