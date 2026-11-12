@@ -5,7 +5,7 @@ local M = {
 }
 
 function M.config()
-	require("mini.ai").setup()
+	require("soul.core.helpers.mini.ai").setup()
 end
 
 return M
