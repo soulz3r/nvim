@@ -36,10 +36,11 @@ local function run_probe(command, deadline)
 	end
 
 	local result = process:wait(math.min(remaining, probe_timeout_ms))
-	if not result then
+	if not result or result.code == 124 then
 		pcall(function()
 			process:kill(9)
 		end)
+		return nil
 	end
 
 	return result
