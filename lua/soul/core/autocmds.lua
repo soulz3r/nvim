@@ -142,4 +142,7 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
+-- Reconcile persisted statusline state after this module is reloaded.
+schedule_float_statusline_update()
+
 return M
