@@ -85,7 +85,7 @@ git clone https://github.com/soulz3r/nvim.git ~/.config/nvim
 nvim
 ```
 
-WSL Neovim uses Linux binaries and POSIX build/run commands. To share a Windows project directory, set `PROJECTS_DIR` to its mounted path, for example `/mnt/d/config/projects`. Windows clipboard integration is enabled when `clip.exe` and PowerShell are available in WSL's `PATH`.
+WSL Neovim uses Linux binaries and POSIX build/run commands. To share a Windows project directory, set `PROJECTS_DIR` to its mounted path, for example `/mnt/d/projects`. Windows clipboard integration is enabled when `clip.exe` and PowerShell are available in WSL's `PATH`.
 
 ### Windows
 
@@ -152,7 +152,7 @@ See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry det
 
 | Variable | Purpose | Default |
 |---|---|---|
-| `PROJECTS_DIR` | Base directory for YAP project picker and project discovery | Windows: `D:/config/projects`; Linux: `~/projects` |
+| `PROJECTS_DIR` | Base directory for YAP project picker and project discovery | `~/projects` on all platforms |
 | `LLDB_DAP` | Full path or command name for `lldb-dap` | Windows LLVM path; Linux `lldb-dap` |
 | `PWSH` | PowerShell executable used by the configured shell and C runner | `pwsh` or `pwsh.exe` |
 | `CLANG` | Clang executable used by the C compile/run keymap | `clang` from `PATH` |
@@ -216,7 +216,7 @@ On startup, the configuration imports older DAP-only registries from:
 After a successful import, each old file is renamed with a `.migrated` suffix (or a timestamped suffix if that backup already exists). The original data is preserved as a backup.
 ## Repository layout
 
-See [docs/architecture.md](docs/architecture.md) for the module map and [docs/development.md](docs/development.md) for project metadata, C helpers, and UI conventions.
+See [docs/design-decisions.md](docs/design-decisions.md) for the reasoning behind the main architectural choices. See [docs/architecture.md](docs/architecture.md) for the module map, [docs/plugin-inventory.md](docs/plugin-inventory.md) for plugin ownership, [docs/development.md](docs/development.md) for project metadata and UI conventions, and [docs/contributing.md](docs/contributing.md) for maintenance rules.
 
 ## Compatibility
 
@@ -234,7 +234,7 @@ Run the repository's static checks with:
 bash scripts/check.sh
 ```
 
-The script validates JSON configuration, plugin lockfile revisions, deprecated/private API usage, Lua syntax, and core/plugin-spec imports. GitHub Actions runs the checks against the latest Neovim stable release and nightly build. The headless smoke test does not install or execute third-party plugin configurations, so test those features after plugin updates and on the operating systems you use.
+Python 3 is required for repository checks only; it is not a Neovim runtime dependency. The script validates JSON configuration, plugin lockfile revisions, Lua indentation and line endings, deprecated/private API usage, Lua syntax, and core/plugin-spec imports. It also runs unit tests for the repository's Python check helpers. GitHub Actions runs the checks against the latest Neovim stable release and nightly build. The headless smoke test does not install or execute third-party plugin configurations, so test those features after plugin updates and on the operating systems you use. Follow [docs/manual-testing.md](docs/manual-testing.md) for real DAP, Telescope/fzf-native, PowerShell, UI, and platform checks.
 
 ## Troubleshooting
 
@@ -242,6 +242,7 @@ The script validates JSON configuration, plugin lockfile revisions, deprecated/p
 - Run `:Lazy` and check whether plugin installation or compilation failed.
 - Make sure `rg`, `fd`, `clangd`, `stylua`, language servers, and `lldb-dap` are visible on `PATH`.
 - If DAP cannot start, check `LLDB_DAP` and confirm that the executable exists.
+- If the configured PowerShell shell or Windows C runner cannot start, inspect `:lua print(require("soul.core.helpers.paths").pwsh)` and verify the returned path with `:lua print(vim.fn.executable(require("soul.core.helpers.paths").pwsh))`. Set `PWSH` to the full path of PowerShell 7's `pwsh.exe` if automatic discovery selects the wrong installation. Windows PowerShell 5.1 is intentionally not accepted as the configured shell.
 - If C diagnostics are missing or use the wrong standard, check the project's `compile_commands.json` or `compile_flags.txt`.
 - If Treesitter highlighting is missing after first install, run `:TSUpdate` and reopen the buffer.
 - If Telescope reports that the `fzf` extension or `libfzf.dll` is missing, run `:Lazy build telescope-fzf-native.nvim` to rebuild the native library, then restart Neovim so Telescope can load it.

@@ -4,7 +4,7 @@ local M = {
 }
 
 function M.config()
-	require 'eyeliner'.setup {
+	require("eyeliner").setup({
 		highlight_on_key = true,
 
 		dim = true,
@@ -13,9 +13,8 @@ function M.config()
 
 		disabled_filetypes = { "alpha" },
 
-
 		default_keymaps = true,
-	}
+	})
 end
 
 return M

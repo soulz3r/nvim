@@ -40,27 +40,9 @@ for plugin, metadata in lock.items():
 print(f"Validated {len(lock)} locked plugin revisions.")
 PY
 
-# Lua indentation follows .stylua.toml: hard tabs with a display width of four.
-# keymaps.lua contains an intentional multiline Ex command whose contents are space-indented.
-"$PYTHON" - <<'PY'
-from pathlib import Path
-import sys
-
-for path in Path(".").rglob("*.lua"):
-    if (
-        not path.is_file()
-        or ".git" in path.parts
-        or path.as_posix() == "lua/soul/core/keymaps.lua"
-    ):
-        continue
-
-    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-        prefix = line[: len(line) - len(line.lstrip(" " + chr(9)))]
-        if " " in prefix:
-            sys.exit(
-                f"{path}:{line_number}: Lua indentation must use tabs, not spaces."
-            )
-PY
+# Test the indentation checker itself, then enforce the repository-wide policy.
+"$PYTHON" -m unittest discover -s scripts -p 'test_*.py'
+"$PYTHON" scripts/lua_indentation.py
 
 if [[ -e lsp/dap-projects.json ]]; then
   echo "lsp/dap-projects.json is local DAP state and must not be committed." >&2
@@ -118,11 +100,6 @@ if [[ -e lua/soul/plugins/oil.lua ]]; then
   exit 1
 fi
 
-if ! grep -q 'dap_args' lua/soul/lsp/dap.lua; then
-  echo "DAP launch arguments must be stored in the per-project registry." >&2
-  exit 1
-fi
-
 if ! grep -q 'dependencies = { "nvim-mini/mini.icons" }' lua/soul/plugins/mini.lua; then
   echo "Mini Files must declare Mini Icons as a dependency." >&2
   exit 1
@@ -148,8 +125,8 @@ if ! grep -q 'install_task:await' lua/soul/plugins/treesitter.lua; then
   exit 1
 fi
 
-if ! grep -q 'build = function(plugin)' lua/soul/plugins/telescope.lua; then
-  echo "Telescope fzf-native must use the platform-aware native build function." >&2
+if ! grep -q 'build = require("soul.core.helpers.fzf_native").build' lua/soul/plugins/telescope.lua; then
+  echo "Telescope fzf-native must use the extracted platform-aware build helper." >&2
   exit 1
 fi
 
@@ -195,21 +172,51 @@ for pattern in "${legacy_patterns[@]}"; do
   fi
 done
 
-if command -v luac >/dev/null 2>&1; then
+LUAC="$(command -v luac || command -v luac.exe || true)"
+if [[ -n "$LUAC" ]]; then
   while IFS= read -r -d '' file; do
-    luac -p "$file"
+    "$LUAC" -p "$file"
   done < <(find . -type f -name '*.lua' -not -path './.git/*' -print0)
   echo "Lua syntax checks passed."
 elif [[ "${REQUIRE_LUA:-0}" == "1" ]]; then
-  echo "Missing luac; Lua syntax checks are required in this environment." >&2
+  echo "Missing luac or luac.exe; Lua syntax checks are required in this environment." >&2
   exit 1
 else
   echo "Skipping Lua syntax checks (luac is not installed)."
 fi
 
+STYLUA="$(command -v stylua || command -v stylua.exe || true)"
+if [[ -n "$STYLUA" ]]; then
+  stylua_output="$(mktemp)"
+  if "$STYLUA" --check . >"$stylua_output" 2>&1; then
+    echo "StyLua formatting checks passed."
+  else
+    echo "StyLua formatting checks failed:"
+    if grep -q '^Diff in ' "$stylua_output"; then
+      grep '^Diff in ' "$stylua_output" | sed 's/^Diff in //; s/:$//' | sort -u | sed 's/^/  /'
+      echo "Run 'stylua .' to apply formatting after resolving the line-ending policy."
+    else
+      cat "$stylua_output"
+    fi
+    rm -f "$stylua_output"
+    exit 1
+  fi
+  rm -f "$stylua_output"
+elif [[ "${REQUIRE_STYLUA:-0}" == "1" ]]; then
+  echo "Missing StyLua; formatting checks are required in this environment." >&2
+  exit 1
+else
+  echo "Skipping StyLua checks (stylua is not installed)."
+fi
+
 if command -v nvim >/dev/null 2>&1; then
   nvim --headless --clean -u NONE -l scripts/check-nvim.lua
   echo "Neovim module smoke tests passed."
+  nvim --headless --clean -u NONE -l scripts/check-integration.lua
+  nvim --headless --clean -u NONE -l scripts/check-notify.lua
+  nvim --headless --clean -u NONE -l scripts/check-dap-registry.lua
+  nvim --headless --clean -u NONE -l scripts/check-dap-executables.lua
+  nvim --headless --clean -u NONE -l scripts/check-dap-project.lua
 elif [[ "${REQUIRE_NVIM:-0}" == "1" ]]; then
   echo "Missing Neovim; runtime checks are required in this environment." >&2
   exit 1

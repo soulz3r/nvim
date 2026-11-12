@@ -1,12 +1,11 @@
 local M = {}
 
 local platform = require("soul.core.platform")
+local process_helper = require("soul.core.helpers.process")
 local fn = vim.fn
 
 local projects_dir = vim.env.PROJECTS_DIR
-M.projects = projects_dir and vim.trim(projects_dir) ~= "" and vim.trim(projects_dir)
-	or (platform.is_windows and "D:/config/projects")
-	or fn.expand("~/projects")
+M.projects = projects_dir and vim.trim(projects_dir) ~= "" and vim.trim(projects_dir) or fn.expand("~/projects")
 
 local function find_executable(names)
 	for _, name in ipairs(names) do
@@ -30,16 +29,13 @@ local function run_probe(command, deadline)
 		return
 	end
 
-	local ok, process = pcall(vim.system, command, { text = true })
+	local ok, child = pcall(vim.system, command, { text = true })
 	if not ok then
 		return
 	end
 
-	local result = process:wait(math.min(remaining, probe_timeout_ms))
-	if not result or result.code == 124 then
-		pcall(function()
-			process:kill(9)
-		end)
+	local result = process_helper.wait(child, math.min(remaining, probe_timeout_ms))
+	if not result then
 		return nil
 	end
 
@@ -118,26 +114,87 @@ local function find_powershell()
 		end
 	end
 
-	add_candidate(vim.env.PWSH)
-
-	-- Store-installed PowerShell lives in a versioned WindowsApps package
-	-- directory. Prefer PSHOME when Neovim inherited it from PowerShell.
+	-- PSHOME is already known when Neovim was launched from PowerShell.
+	-- Prefer its concrete executable before probing command aliases or invoking
+	-- Windows PowerShell to query the Store package location.
 	if platform.is_windows and vim.env.PSHOME then
 		add_candidate(vim.env.PSHOME .. "/pwsh.exe")
 	end
+
+	add_candidate(vim.env.PWSH)
 
 	local pwsh = fn.exepath("pwsh")
 	local pwsh_exe = fn.exepath("pwsh.exe")
 	add_candidate(pwsh)
 	add_candidate(pwsh_exe)
 
-	-- The WindowsApps command alias can launch PowerShell but is not itself
-	-- accepted by termopen(). Ask it for the real package executable instead.
+	local function resolve_candidates()
+		for _, candidate in ipairs(candidates) do
+			if remaining_probe_time(deadline) <= 0 then
+				break
+			end
+
+			if is_runnable_powershell(candidate, deadline) then
+				local normalized = candidate:gsub("\\", "/"):lower()
+				local is_store_alias = platform.is_windows and normalized:find("/windowsapps/", 1, true) ~= nil
+
+				if is_store_alias then
+					-- Store aliases can be spawned but are not reliable termopen
+					-- shells. Resolve the real package executable only on demand.
+					local home = powershell_home(candidate, deadline)
+					if home then
+						local executable = home .. "/pwsh.exe"
+						if is_runnable_powershell(executable, deadline) then
+							return executable
+						end
+					end
+				else
+					return candidate
+				end
+			end
+		end
+	end
+
+	local resolved = resolve_candidates()
+	if resolved then
+		return resolved
+	end
+
 	if platform.is_windows then
-		local alias = pwsh ~= "" and pwsh or pwsh_exe
-		local home = powershell_home(alias, deadline)
-		if home then
-			add_candidate(home .. "/pwsh.exe")
+		local function add_program_files(root)
+			if type(root) == "string" and root ~= "" then
+				add_candidate(root .. "/PowerShell/7/pwsh.exe")
+			end
+		end
+
+		-- Check every standard install root. ProgramFiles can point at the
+		-- 32-bit directory in some process environments.
+		add_program_files(vim.env.ProgramW6432)
+		add_program_files(vim.env.ProgramFiles)
+		add_program_files(vim.env["ProgramFiles(x86)"])
+		add_program_files("C:/Program Files")
+		add_program_files("C:/Program Files (x86)")
+
+		local local_programs = vim.env.LOCALAPPDATA
+		if local_programs then
+			add_candidate(local_programs .. "/Programs/PowerShell/7/pwsh.exe")
+		end
+
+		-- Slow discovery is a fallback, not a startup prerequisite. Only reach
+		-- these probes when known executable paths did not resolve.
+		local where_result = run_probe({ "where.exe", "pwsh.exe" }, deadline)
+		if type(where_result) == "table" and where_result.code == 0 then
+			local matches = vim.split(vim.trim(where_result.stdout or ""), "\n", {
+				trimempty = true,
+			})
+			for i = #matches, 1, -1 do
+				add_candidate(vim.trim(matches[i]))
+			end
+		end
+
+		local resolved_programs = resolve_candidates()
+		if resolved_programs then
+			return resolved_programs
 		end
 
 		-- The alias may not be discoverable through PATH when Neovim is launched
@@ -161,67 +218,13 @@ local function find_powershell()
 				end
 			end
 		end
-	end
-
-	if platform.is_windows then
-		-- where.exe may list package-specific aliases that cannot be spawned.
-		-- Keep the preferred reverse ordering, but validate every candidate.
-		local where_result = run_probe({ "where.exe", "pwsh.exe" }, deadline)
-		if type(where_result) == "table" and where_result.code == 0 then
-			local matches = vim.split(vim.trim(where_result.stdout or ""), "\n", {
-				trimempty = true,
-			})
-			for i = #matches, 1, -1 do
-				add_candidate(vim.trim(matches[i]))
-			end
-		end
-
-		local function add_program_files(root)
-			if type(root) == "string" and root ~= "" then
-				add_candidate(root .. "/PowerShell/7/pwsh.exe")
-			end
-		end
-
-		-- Check every standard install root. ProgramFiles can point at the
-		-- 32-bit directory in some process environments, so do not choose
-		-- just one and accidentally skip the 64-bit PowerShell installation.
-		add_program_files(vim.env.ProgramW6432)
-		add_program_files(vim.env.ProgramFiles)
-		add_program_files(vim.env["ProgramFiles(x86)"])
-		add_program_files("C:/Program Files")
-		add_program_files("C:/Program Files (x86)")
-
-		local local_programs = vim.env.LOCALAPPDATA
-		if local_programs then
-			add_candidate(local_programs .. "/Programs/PowerShell/7/pwsh.exe")
-		end
 	else
 		add_candidate(fn.exepath("powershell"))
 	end
 
-	for _, candidate in ipairs(candidates) do
-		if remaining_probe_time(deadline) <= 0 then
-			break
-		end
-
-		if is_runnable_powershell(candidate, deadline) then
-			local normalized = candidate:gsub("\\", "/"):lower()
-			local is_store_alias = platform.is_windows and normalized:find("/windowsapps/", 1, true) ~= nil
-
-			if is_store_alias then
-				-- Store execution aliases can be spawned but are not reliable
-				-- termopen shells. Resolve the package's real pwsh.exe instead.
-				local home = powershell_home(candidate, deadline)
-				if home then
-					local executable = home .. "/pwsh.exe"
-					if is_runnable_powershell(executable, deadline) then
-						return executable
-					end
-				end
-			else
-				return candidate
-			end
-		end
+	resolved = resolve_candidates()
+	if resolved then
+		return resolved
 	end
 
 	-- Never silently fall back to Windows PowerShell 5.1.

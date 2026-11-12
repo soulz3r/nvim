@@ -79,7 +79,6 @@ function M.config()
 			end
 		end,
 	})
-
 end
 
 return M
