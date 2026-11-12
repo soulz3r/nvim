@@ -44,7 +44,15 @@ GitHub Actions checks Neovim stable and nightly on Windows and Linux, plus stabl
 
 ## DAP module boundaries
 
-The DAP entry point currently owns adapter setup, project selection, registry synchronization, launch lifecycle, UI lifecycle, and REPL mappings. These pieces share session and selected-project state, so splitting them solely to reduce file length would add module boundaries without removing meaningful coupling. The argument parser is already extracted as a small independently tested helper. Extract project discovery or REPL behavior only when it gains a stable interface and direct tests.
+The DAP plugin specification in `lua/soul/lsp/dap.lua` is the orchestration layer. It wires the LLDB adapter, YAP-backed project state, launch configuration, and keymaps. Focused helpers own independent concerns:
+
+- `lua/soul/core/helpers/dap/args.lua`: portable launch-argument parsing and formatting.
+- `lua/soul/core/helpers/dap/executables.lua`: bounded project executable discovery and ranking.
+- `lua/soul/core/helpers/dap/registry.lua`: safe migration of legacy project registries.
+- `lua/soul/core/helpers/dap/repl.lua`: REPL discovery, focus, and Telescope-backed search.
+- `lua/soul/core/helpers/dap/ui.lua`: DAP UI setup and restoration of the original source window after a session.
+
+Keep session orchestration in the plugin entry point; keep reusable or independently testable behavior in helpers. Avoid splitting code into modules that merely pass the same large collection of mutable locals around.
 
 ## Manual platform checks
 
