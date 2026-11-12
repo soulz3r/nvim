@@ -3,8 +3,9 @@ local M = {
 	version = "*",
 	event = "InsertEnter",
 }
+
 function M.config()
-	require("mini.pairs").setup()
+	require("soul.core.helpers.mini.pairs").setup()
 end
 
 return M
