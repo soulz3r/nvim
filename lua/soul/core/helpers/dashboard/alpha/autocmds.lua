@@ -4,7 +4,12 @@ function M.register(state)
 	local animation = state.animation
 	local footer = state.footer
 
+	local group = vim.api.nvim_create_augroup("SoulAlpha", {
+		clear = true,
+	})
+
 	vim.api.nvim_create_autocmd("FileType", {
+		group = group,
 		pattern = "alpha",
 		callback = function()
 			vim.opt_local.foldenable = false
@@ -16,11 +21,13 @@ function M.register(state)
 	})
 
 	vim.api.nvim_create_autocmd("User", {
+		group = group,
 		pattern = "AlphaReady",
 		callback = animation.start,
 	})
 
 	vim.api.nvim_create_autocmd("BufEnter", {
+		group = group,
 		callback = function(args)
 			if vim.bo[args.buf].filetype == "alpha" then
 				footer.invalidate(vim.fn.getcwd())
@@ -32,6 +39,7 @@ function M.register(state)
 	})
 
 	vim.api.nvim_create_autocmd("BufLeave", {
+		group = group,
 		callback = function(args)
 			if vim.bo[args.buf].filetype == "alpha" then
 				animation.stop()
@@ -40,6 +48,7 @@ function M.register(state)
 	})
 
 	vim.api.nvim_create_autocmd("User", {
+		group = group,
 		pattern = "VeryLazy",
 		callback = function()
 			footer.update()
@@ -48,6 +57,7 @@ function M.register(state)
 	})
 
 	vim.api.nvim_create_autocmd("DirChanged", {
+		group = group,
 		callback = function()
 			if vim.bo.filetype == "alpha" then
 				footer.update()
