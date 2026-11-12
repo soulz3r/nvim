@@ -96,6 +96,13 @@ local yap_payload = vim.json.encode({
 		name = "ordinary-project",
 		last_opened = 123,
 	},
+	[temp_dir .. "/runner-only-project"] = {
+		root = temp_dir .. "/runner-only-project",
+		name = "runner-only-project",
+		last_executable = temp_dir .. "/runner-only-project/bin/app.exe",
+		last_args = { "--run-only" },
+		last_run = 456,
+	},
 })
 vim.fn.mkdir(vim.fn.fnamemodify(yap_source, ":h"), "p")
 vim.fn.writefile({ yap_payload }, yap_source)
@@ -103,6 +110,10 @@ local before_import = #updates
 local imported = registry_migration.import_yap_file(yap_source, registry, normalize, migration_marker)
 assert(imported, "Legacy YAP DAP metadata should import")
 assert(#updates == before_import + 1, "YAP import must ignore projects without DAP metadata")
+assert(
+	updates[#updates].root ~= temp_dir .. "/runner-only-project",
+	"YAP runner-only metadata must not be imported as DAP state"
+)
 assert(updates[#updates].root == project_root, "YAP import selected the wrong project")
 assert(updates[#updates].fields.executable == executable, "YAP import lost the debug executable")
 assert(
