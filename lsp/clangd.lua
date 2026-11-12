@@ -25,7 +25,10 @@ local function switch_source_header(bufnr, client)
 			return
 		end
 
-		vim.cmd.edit(vim.uri_to_fname(uri))
+		vim.cmd({
+			cmd = "edit",
+			args = { vim.uri_to_fname(uri) },
+		})
 	end, bufnr)
 end
 
