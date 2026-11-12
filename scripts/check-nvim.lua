@@ -72,9 +72,12 @@ local animation = require("soul.core.helpers.dashboard.animation").new({
 	end,
 })
 animation.start()
-assert(vim.wait(100, function()
-	return not animation.is_running()
-end, 1), "Dashboard animation must stop cleanly after a callback error")
+assert(
+	vim.wait(100, function()
+		return not animation.is_running()
+	end, 1),
+	"Dashboard animation must stop cleanly after a callback error"
+)
 
 local dashboard_buttons = require("soul.core.helpers.dashboard.buttons").items
 local buttons_by_key = {}
