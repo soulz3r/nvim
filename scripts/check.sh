@@ -262,7 +262,7 @@ compatibility_checks() {
     return 1
   fi
 
-  if ! grep -q 'pcall(require, "yap.project_registry")' lua/soul/plugins/lualine.lua; then
+  if ! grep -q 'package.loaded\["yap.project_registry"\]' lua/soul/plugins/lualine.lua; then
     echo "Lualine must guard its optional YAP project-status integration."
     return 1
   fi
