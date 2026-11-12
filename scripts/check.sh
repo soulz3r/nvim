@@ -125,8 +125,8 @@ if ! grep -q 'install_task:await' lua/soul/plugins/treesitter.lua; then
   exit 1
 fi
 
-if ! grep -q 'build = function(plugin)' lua/soul/plugins/telescope.lua; then
-  echo "Telescope fzf-native must use the platform-aware native build function." >&2
+if ! grep -q 'build = require("soul.core.helpers.fzf_native").build' lua/soul/plugins/telescope.lua; then
+  echo "Telescope fzf-native must use the extracted platform-aware build helper." >&2
   exit 1
 fi
 
