@@ -19,7 +19,7 @@ local M = {
 				enable = true,
 			},
 			diagnostics = {
-				globals = { "vim", "GET", "OPTS", "keymap", "hl", "platform" },
+				globals = { "vim", "GET", "keymap", "hl", "platform" },
 			},
 			runtime = {
 				version = "LuaJIT",
