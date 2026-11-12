@@ -1,6 +1,11 @@
 local M = {}
+local configured = false
 
 function M.setup()
+	if configured then
+		return
+	end
+
 	local MiniFiles = require("mini.files")
 	local show_hidden = false
 
@@ -94,7 +99,12 @@ function M.setup()
 		vim.ui.open(entry.path)
 	end
 
+	local group = vim.api.nvim_create_augroup("SoulMiniFiles", {
+		clear = true,
+	})
+
 	vim.api.nvim_create_autocmd("User", {
+		group = group,
 		pattern = "MiniFilesBufferCreate",
 		callback = function(args)
 			local buf = args.data.buf_id
@@ -127,6 +137,8 @@ function M.setup()
 			})
 		end,
 	})
+
+	configured = true
 end
 
 return M
