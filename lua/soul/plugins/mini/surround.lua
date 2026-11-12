@@ -3,8 +3,9 @@ local M = {
 	version = "*",
 	event = { "BufReadPost", "BufNewFile" },
 }
+
 function M.config()
-	require("mini.surround").setup()
+	require("soul.core.helpers.mini.surround").setup()
 end
 
 return M
