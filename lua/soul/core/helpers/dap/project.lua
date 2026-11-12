@@ -169,7 +169,7 @@ function M.setup(project_registry)
 		local name = vim.api.nvim_buf_get_name(0)
 		if name ~= "" then
 			local file = path.normalize(name)
-			local detected = vim.fs.root(0, root_markers)
+			local detected = vim.fs.root(file, root_markers)
 			if detected then
 				return path.normalize(detected)
 			end
