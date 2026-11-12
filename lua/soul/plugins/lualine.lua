@@ -6,6 +6,18 @@ local M = {
 
 function M.config()
 	local palette = require("soul.core.helpers.ui.colors").palette
+	local project_status = ""
+	local attached_clients = {}
+
+	local function has_project_status()
+		project_status = require("yap.project_registry").status()
+		return project_status ~= ""
+	end
+
+	local function has_lsp_clients()
+		attached_clients = vim.lsp.get_clients({ bufnr = 0 })
+		return #attached_clients > 0
+	end
 
 	require("lualine").setup({
 		options = {
@@ -14,10 +26,10 @@ function M.config()
 			component_separators = "",
 			section_separators = "",
 			globalstatus = true,
-      disabled_filetypes = {
-        statusline = { "alpha", "project-output" },
-        winbar = { "alpha", "project-output" },
-      },
+			disabled_filetypes = {
+				statusline = { "alpha", "project-output" },
+				winbar = { "alpha", "project-output" },
+			},
 			always_show_tabline = false,
 			refresh = {
 				statusline = 1000,
@@ -79,21 +91,16 @@ function M.config()
 			lualine_y = {
 				{
 					function()
-						return require("yap.project_registry").status()
+						return project_status
 					end,
-					cond = function()
-						return require("yap.project_registry").status() ~= ""
-					end,
+					cond = has_project_status,
 					color = { fg = palette.green },
 				},
 				{
 					function()
-						local clients = vim.lsp.get_clients({ bufnr = 0 })
-						return #clients > 0 and ("󰒋 " .. #clients) or ""
+						return "󰒋 " .. #attached_clients
 					end,
-					cond = function()
-						return #vim.lsp.get_clients({ bufnr = 0 }) > 0
-					end,
+					cond = has_lsp_clients,
 					color = { fg = palette.teal },
 				},
 			},
