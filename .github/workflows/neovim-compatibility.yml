@@ -1,0 +1,90 @@
+name: Neovim compatibility
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    name: Neovim ${{ matrix.channel }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        channel: [stable, nightly]
+        exclude:
+        - os: macos-latest
+          channel: nightly
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Set up Lua 5.1
+        if: runner.os == 'Linux'
+        uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.1"
+
+      - name: Install Neovim on Linux (${{ matrix.channel }})
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            "https://github.com/neovim/neovim/releases/download/${{ matrix.channel }}/nvim-linux-x86_64.tar.gz" \
+            --output /tmp/neovim.tar.gz
+          tar -xzf /tmp/neovim.tar.gz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+
+      - name: Install Neovim on Windows (${{ matrix.channel }})
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP "neovim.zip"
+          $url = "https://github.com/neovim/neovim/releases/download/${{ matrix.channel }}/nvim-win64.zip"
+          Invoke-WebRequest -Uri $url -OutFile $archive
+          Expand-Archive -Path $archive -DestinationPath $env:RUNNER_TEMP -Force
+          "$env:RUNNER_TEMP\nvim-win64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Install Neovim on macOS
+        if: runner.os == 'macOS'
+        run: brew install neovim
+
+      - name: Show tool versions
+        shell: bash
+        run: |
+          nvim --version
+          python --version
+          if command -v luac >/dev/null 2>&1; then luac -v; fi
+
+      - name: Run repository checks
+        shell: bash
+        env:
+          REQUIRE_LUA: ${{ runner.os == 'Linux' && '1' || '0' }}
+          REQUIRE_NVIM: "1"
+          REQUIRE_PWSH: ${{ runner.os == 'Windows' && '1' || '0' }}
+          PROFILE_PWSH: ${{ runner.os == 'Windows' && '1' || '0' }}
+        run: bash scripts/check.sh
+
+      - name: Build and load the configured fzf-native DLL
+        if: runner.os == 'Windows' && matrix.channel == 'stable'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          $source = Join-Path $env:RUNNER_TEMP "telescope-fzf-native"
+          git clone https://github.com/nvim-telescope/telescope-fzf-native.nvim.git $source
+          git -C $source checkout b25b749b9db64d375d782094e2b9dce53ad53a40
+          $env:FZF_NATIVE_DIR = $source
+          nvim --headless --clean -l scripts/check-fzf-build.lua
