@@ -158,7 +158,7 @@ function M.config()
 		}
 
 		local notification_id = server_state.notification_id
-		if is_notification_active(notification_id) then
+		if notification_id then
 			local ok, err = pcall(MiniNotify.update, notification_id, {
 				msg = message,
 				data = data,
@@ -172,8 +172,6 @@ function M.config()
 
 				server_state.notification_id = nil
 			end
-		else
-			server_state.notification_id = nil
 		end
 
 		if not server_state.notification_id then
