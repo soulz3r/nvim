@@ -7,7 +7,15 @@ function M.config()
 	local floats = require("soul.core.helpers.ui.floats")
 	local platform = require("soul.core.platform")
 	local paths = require("soul.core.helpers.paths")
-	local terminal_shell = platform.is_windows and paths.pwsh or vim.o.shell
+	local terminal_shell = vim.o.shell
+
+	if platform.is_windows then
+		-- ToggleTerm passes cmd as a PowerShell command string to termopen().
+		-- Invoke the resolved executable explicitly so Store paths containing
+		-- spaces are not split into separate command tokens.
+		local quoted_powershell = "'" .. paths.pwsh:gsub("'", "''") .. "'"
+		terminal_shell = "& " .. quoted_powershell .. " -NoLogo -NoProfile -NoExit"
+	end
 	local execs = {
 		{ nil, "<M-1>", "Horizontal Terminal", "horizontal", 0.3 },
 		{ nil, "<M-2>", "Vertical Terminal", "vertical", 0.4 },
