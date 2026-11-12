@@ -111,7 +111,10 @@ local completed_124 = process_helper.wait({
 		return { code = 124, stdout = "", stderr = "" }
 	end,
 }, 100)
-assert(completed_124 and completed_124.code == 124, "A completed process exit code of 124 must not be treated as a timeout")
+assert(
+	completed_124 and completed_124.code == 124,
+	"A completed process exit code of 124 must not be treated as a timeout"
+)
 
 local timeout_waits = 0
 local timeout_killed = false
