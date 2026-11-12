@@ -26,6 +26,11 @@ function M.new(on_update)
 			text = true,
 		}, function(result)
 			vim.schedule(function()
+				-- Ignore a callback from a process that already hit its timeout.
+				if git_branch_pending[cwd] ~= process then
+					return
+				end
+
 				git_branch_pending[cwd] = nil
 
 				local branch
@@ -47,6 +52,22 @@ function M.new(on_update)
 
 		if ok then
 			git_branch_pending[cwd] = process
+
+			vim.defer_fn(function()
+				if git_branch_pending[cwd] ~= process then
+					return
+				end
+
+				git_branch_pending[cwd] = nil
+				git_branch_cache[cwd] = false
+				pcall(function()
+					process:kill(9)
+				end)
+
+				if on_update then
+					on_update(api.get_lines())
+				end
+			end, 1500)
 		else
 			git_branch_cache[cwd] = false
 		end
