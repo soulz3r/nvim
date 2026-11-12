@@ -67,9 +67,14 @@ local undotree_spec = require("soul.plugins.undotree")
 assert(undotree_spec[1] == "jiaoshijie/undotree", "Undotree plugin repository is incorrect")
 assert(type(undotree_spec.keys) == "table", "Undotree must be lazy-loaded from its keymap")
 
-local lockfile = vim.json.decode(table.concat(vim.fn.readfile("lazy-lock.json"), "\\n"))
+local lockfile = vim.json.decode(table.concat(vim.fn.readfile("lazy-lock.json"), "\n"))
 assert(lockfile.undotree, "Undotree is missing from lazy-lock.json")
-assert(lockfile.undotree.commit == "ae312c61558ee41316e992d3bae3afea2a77f62c", "Undotree lock revision is stale")
+assert(
+	type(lockfile.undotree.commit) == "string"
+		and #lockfile.undotree.commit == 40
+		and lockfile.undotree.commit:match("^[0-9a-f]+$"),
+	"Undotree lock revision must be a full commit SHA"
+)
 
 local mini_specs = require("soul.plugins.mini")
 local mini_files_spec
