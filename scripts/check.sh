@@ -198,13 +198,14 @@ for pattern in "${legacy_patterns[@]}"; do
   fi
 done
 
-if command -v luac >/dev/null 2>&1; then
+LUAC="$(command -v luac || command -v luac.exe || true)"
+if [[ -n "$LUAC" ]]; then
   while IFS= read -r -d '' file; do
-    luac -p "$file"
+    "$LUAC" -p "$file"
   done < <(find . -type f -name '*.lua' -not -path './.git/*' -print0)
   echo "Lua syntax checks passed."
 elif [[ "${REQUIRE_LUA:-0}" == "1" ]]; then
-  echo "Missing luac; Lua syntax checks are required in this environment." >&2
+  echo "Missing luac or luac.exe; Lua syntax checks are required in this environment." >&2
   exit 1
 else
   echo "Skipping Lua syntax checks (luac is not installed)."
