@@ -8,73 +8,80 @@ M.lines = {
 	"╚██████╗ ╚═════╝ ╚═╝██║ ╚═╝ ██║",
 	" ╚═════╝",
 	"   C, with a better editor.",
+	"",
+	"  POINTERS",
+	"  int value = 42;",
+	"  int *ptr = &value;",
+	"             ^",
+	"             address-of",
 }
 
 -- Character-based highlight ranges. Alpha converts these to byte positions.
 M.highlights = {
-	{ { "AlphaGreen", 0, 31 } },
-	{ { "AlphaGreen", 0, 31 } },
-	{ { "AlphaGreen", 0, 31 } },
-	{ { "AlphaGreen", 0, 31 } },
-	{ { "AlphaGreen", 0, 31 } },
-	{ { "AlphaGreen", 0, 8 } },
-	{ { "AlphaYellow", 0, 27 } },
+	{
+		{ "AlphaGreen", 0, 31 },
+	},
+	{
+		{ "AlphaGreen", 0, 31 },
+	},
+	{
+		{ "AlphaGreen", 0, 31 },
+	},
+	{
+		{ "AlphaGreen", 0, 31 },
+	},
+	{
+		{ "AlphaGreen", 0, 31 },
+	},
+	{
+		{ "AlphaGreen", 0, 8 },
+	},
+	{
+		{ "AlphaYellow", 0, 27 },
+	},
 }
 
--- Animation data is kept separate from the Alpha section that consumes it.
+-- The logo stays static. Only the C concept panel beneath it changes.
 M.animation = {
-	speed = 150,
+	speed = 2400,
+	start_line = 9,
 
-	fragments = {
-		DA = { "d ", "da", "da", "d ", "  " },
-		EM = { "e ", "em", "em", "e ", "  " },
-		ON = { "o ", "on", "on", "o ", "  " },
-	},
-
-	lines = {
-		[2] = {
-			"██╔════╝██╔═══██╗██║",
-			" ██║██║士兵",
+	frames = {
+		{
+			"  POINTERS",
+			"  int value = 42;",
+			"  int *ptr = &value;",
+			"             ^",
+			"             address-of",
 		},
-
-		[3] = {
-			"███████╗██║no ██║██║",
-			" ██║██║国王",
+		{
+			"  DEREFERENCE",
+			"  int copy = *ptr;",
+			"              ^",
+			"              dereference",
+			"  copy is now 42",
 		},
-
-		[4] = {
-			"╚════██║██║me ██║██║",
-			" ██║██║没了",
+		{
+			"  MEMORY MAP",
+			"  value @ 0x0010 = 42",
+			"  ptr   @ 0x0020 = 0x0010",
+			"  *ptr  -> 0x0010 -> 42",
+			"  one pointer, one address",
 		},
-	},
-
-	steps = {
-		-- DA
-		{ 2, "DA", 1 },
-		{ 2, "DA", 2 },
-		{ 2, "DA", 3 },
-
-		-- EM
-		{ 3, "EM", 1 },
-		{ 3, "EM", 2 },
-		{ 3, "EM", 3 },
-
-		-- ON
-		{ 4, "ON", 1 },
-		{ 4, "ON", 2 },
-		{ 4, "ON", 3 },
-
-		-- Erase ON
-		{ 4, "ON", 4 },
-		{ 4, "ON", 5 },
-
-		-- Erase EM
-		{ 3, "EM", 4 },
-		{ 3, "EM", 5 },
-
-		-- Erase DA
-		{ 2, "DA", 4 },
-		{ 2, "DA", 5 },
+		{
+			"  COMPILATION",
+			"  main.c -> main.i",
+			"  main.i -> main.s",
+			"  main.s -> main.o",
+			"  main.o -> cvim",
+		},
+		{
+			"  REPRESENTATIONS",
+			"  decimal      42",
+			"  hexadecimal  0x2A",
+			"  binary       00101010",
+			"  same value, three forms",
+		},
 	},
 }
 
