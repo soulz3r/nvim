@@ -22,7 +22,7 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Mini.ai text objects, Mini.surround editing, and Mini.notify notifications
 - Treesitter highlighting and folding integration
 - A floating single-file C23 compile/run terminal across Windows, WSL, and Linux
-- YAP project workflows with a component-based runner, live build/run summary, and ANSI-colored process output
+- YAP's Telescope project picker, project actions, and ANSI-colored floating runner output
 - ToggleTerm with persistent horizontal, vertical, and floating terminals
 - Alpha dashboard with recent files, recent projects, quick actions, and an animated header
 - LSP-aware breadcrumbs in the winbar
@@ -41,7 +41,7 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Neovide 0.16+ (optional; required for all configured GUI options)
 - `ripgrep` (`rg`) for live grep
 - `fd` for file discovery
-- `make` and a C compiler for `telescope-fzf-native.nvim`
+- `make` and a C compiler for `telescope-fzf-native.nvim`; on Windows, CMake is also supported as a fallback
 
 ### Language tools
 
@@ -142,7 +142,7 @@ The adapter defaults to:
 
 Override the executable with the `LLDB_DAP` environment variable if it is installed elsewhere.
 
-The debugger detects project roots from common markers such as `.git`, `CMakeLists.txt`, `Makefile`, `compile_commands.json`, `meson.build`, and `Cargo.toml`. It searches common build directories for executables and also lets you select an executable manually.
+The debugger detects project roots from common markers such as `.git`, `CMakeLists.txt`, `Makefile`, `build.sh`, `build.bat`, `compile_commands.json`, `meson.build`, and `Cargo.toml`. It searches common build directories for executables and also lets you select an executable manually.
 
 See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry details.
 
@@ -157,27 +157,45 @@ See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry det
 
 ## Projects
 
-YAP owns the C project workflow and its NuiComponents interface. Use `<leader>pp` to open the C project switcher. Select a project to change Neovim's working directory to that project and close the picker.
+YAP uses `telescope-project.nvim` for project selection and adds project-specific actions to that picker. The integration is enabled in `lua/soul/plugins/yap.lua`; it does not use Nui or NuiComponents.
 
-The picker discovers C projects from the YAP registry and immediate subdirectories of `PROJECTS_DIR`. It uses a NuiComponents input, selectable project list, optional README preview, and contextual keymap hints. Telescope remains installed for the other pickers in this Neovim configuration.
+Use `<leader>pp` to open the project picker. Select a project to change Neovim's working directory. While the picker is open:
+
+| Mapping | Action |
+|---|---|
+| `Ctrl-g` | Build and run the selected project |
+| `Ctrl-y` | Build the selected project |
+| `Ctrl-e` | Choose an executable and run it |
+| `Ctrl-a` | Open the project's action menu |
+| `gR` / `gB` / `gE` | Run / build / choose executable in Normal mode |
+| `gC` / `gX` / `gS` | Clean / rebuild / choose build script in Normal mode |
+| `gA` | Open the project action menu in Normal mode |
+
+Direct actions are also available from the current working directory:
 
 | Key | Action |
 |---|---|
-| `<leader>pp` | Open YAP C project switcher |
+| `<leader>pp` | Open the YAP project picker |
 | `<leader>pr` | Build and run the current project, then enter arguments |
 | `<leader>pb` | Build the current project |
 | `<leader>pc` | Clean the current project |
 | `<leader>pB` | Clean and rebuild the current project |
 | `<leader>pS` | Choose a build script |
-| `<leader>pe` | Select an executable from `bin/` and run it with arguments |
+| `<leader>pe` | Select an executable and run it with arguments |
 | `<leader>ps` | Stop the active project process |
 | `<leader>pR` | Rerun the most recently used executable and saved arguments |
-| `<leader>pq` | Extract compiler diagnostics into the quickfix list |
 
-The runner opens a component-based floating window with a live operation summary, per-step status and duration, and a separate ANSI-colored process-output pane. The output is read-only; press `q` or `Esc` to close it, `Ctrl-c` to stop a running process, and `<leader>pq` to open parsed diagnostics.
+The runner opens a read-only floating output window with an operation summary and ANSI-colored process output. Press `q` or `Esc` to close it, `Ctrl-c` to stop a running process, or `<leader>pq` inside the output window to send parsed compiler diagnostics to quickfix.
 
-YAP's direct UI dependencies are `nui.nvim` and `nui-components.nvim`, declared in `lua/soul/plugins/yap.lua`.
+YAP's C/C++ helpers are buffer-local:
 
+| Key | Action |
+|---|---|
+| `<leader>ch` | Switch between matching source and header files |
+| `<leader>ci` | Insert an include directive |
+| `<leader>cp` | Show project root, compile metadata, and attached LSP clients |
+
+The project runner and C helper windows use YAP's own Neovim floating-window helpers.
 ## Local project state
 
 YAP's project registry is runtime state and is not committed to Git. It is stored under:
@@ -224,6 +242,7 @@ The script validates JSON configuration, plugin lockfile revisions, deprecated/p
 - If DAP cannot start, check `LLDB_DAP` and confirm that the executable exists.
 - If C diagnostics are missing or use the wrong standard, check the project's `compile_commands.json` or `compile_flags.txt`.
 - If Treesitter highlighting is missing after first install, run `:TSUpdate` and reopen the buffer.
+- If Telescope reports that the `fzf` extension or `libfzf.dll` is missing, run `:Lazy build telescope-fzf-native.nvim` to rebuild the native library.
 
 ## License
 

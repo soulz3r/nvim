@@ -28,6 +28,26 @@ local lua_globals = lua_ls.settings.Lua.diagnostics.globals
 assert(not vim.tbl_contains(lua_globals, "OPTS"), "LuaLS must not declare OPTS as a global")
 require("soul.core.autocmds")
 assert(#vim.api.nvim_get_autocmds({ group = "SoulCore" }) > 0, "core autocmd group was not registered")
+
+-- Re-sourcing the autocmd module while a qualifying float is open must not
+-- lose the original global statusline setting.
+local original_laststatus = vim.o.laststatus
+vim.o.laststatus = 2
+local float_buf = vim.api.nvim_create_buf(false, true)
+vim.bo[float_buf].modifiable = false
+local float_win = vim.api.nvim_open_win(float_buf, true, {
+	relative = "editor",
+	width = 1,
+	height = 1,
+	row = 0,
+	col = 0,
+	style = "minimal",
+})
+assert(vim.wait(100, function() return vim.o.laststatus == 0 end, 10), "float did not hide the global statusline")
+dofile(root .. "/lua/soul/core/autocmds.lua")
+vim.api.nvim_win_close(float_win, true)
+assert(vim.wait(100, function() return vim.o.laststatus == 2 end, 10), "reloading autocmds lost the original statusline setting")
+vim.o.laststatus = original_laststatus
 local alpha_autocmds = require("soul.core.helpers.dashboard.alpha.autocmds")
 local alpha_state = {
 	animation = {
@@ -82,6 +102,24 @@ for _, name in ipairs(modules) do
 	assert(ok, name .. ": " .. tostring(spec))
 	assert(type(spec) == "table", name .. " did not return a plugin spec table")
 end
+
+local telescope_spec = require("soul.plugins.telescope")
+local fzf_spec
+
+for _, dependency in ipairs(telescope_spec.dependencies or {}) do
+	if type(dependency) == "table" and dependency[1] == "nvim-telescope/telescope-fzf-native.nvim" then
+		fzf_spec = dependency
+		break
+	end
+end
+
+assert(fzf_spec and type(fzf_spec.build) == "function", "Telescope fzf-native needs a platform-aware build function")
+
+local yap_spec = require("soul.plugins.yap")
+assert(
+	vim.tbl_contains(yap_spec.dependencies or {}, "nvim-telescope/telescope-project.nvim"),
+	"YAP must declare the Telescope project extension"
+)
 
 local undotree_spec = require("soul.plugins.undotree")
 assert(undotree_spec[1] == "jiaoshijie/undotree", "Undotree plugin repository is incorrect")

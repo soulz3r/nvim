@@ -8,7 +8,7 @@ Project run records and argument history are stored under `stdpath("data")/yap`.
 
 ## C tools
 
-YAP keeps the C/C++ helper functionality available with only one default mapping:
+YAP registers three buffer-local C/C++ helper mappings:
 
 | Mapping / Command | Action |
 |---|---|

@@ -154,7 +154,7 @@ Mini.ai provides additional built-in text objects for arguments, function calls,
 
 | Mapping | Action |
 |---|---|
-| `<leader>pp` | Open the YAP C project switcher |
+| `<leader>pp` | Open the YAP Telescope project picker |
 | `<leader>pr` | Build and run the current C project |
 | `<leader>pb` | Build the current C project only |
 | `<leader>pc` | Clean the current C project |
@@ -164,16 +164,10 @@ Mini.ai provides additional built-in text objects for arguments, function calls,
 | `<leader>ps` | Stop the active project process |
 | `<leader>pR` | Rerun the most recently used saved project's executable and arguments |
 
-Inside the YAP Telescope project picker:
+Inside the YAP Telescope project picker, these YAP-specific actions are available:
 
 | Mapping | Action |
 |---|---|
-| `i` | Enter Insert mode and filter projects |
-| `Esc` | Return to Normal mode |
-| `j` / `k` | Select the next / previous project in Normal mode |
-| `Ctrl-n` / `Ctrl-p` | Select the next / previous project in either mode |
-| `Enter` | Set the working directory to the selected project and close the picker |
-| `q` | Close the picker in Normal mode |
 | `Ctrl-g` | Build and run the selected project |
 | `Ctrl-y` | Build the selected project |
 | `Ctrl-e` | Choose an executable and run it |
@@ -181,3 +175,5 @@ Inside the YAP Telescope project picker:
 | `gR` / `gB` / `gE` | Run / build / choose executable in Normal mode |
 | `gC` / `gX` / `gS` | Clean / rebuild / choose build script in Normal mode |
 | `gA` | Open the project action menu in Normal mode |
+
+The runner output window also supports `Ctrl-c` to stop the active process and `<leader>pq` to send parsed compiler diagnostics to quickfix.

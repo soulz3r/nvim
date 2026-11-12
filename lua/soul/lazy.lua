@@ -8,7 +8,7 @@ if not vim.uv.fs_stat(lazy_entry) then
 		error(
 			"lazy.nvim exists but is incomplete: "
 				.. lazypath
-				.. "\\nRemove that directory and restart Neovim to bootstrap a clean copy."
+				.. "\nRemove that directory and restart Neovim to bootstrap a clean copy."
 		)
 	end
 
@@ -37,7 +37,7 @@ if not vim.uv.fs_stat(lazy_entry) then
 
 	if result.code ~= 0 then
 		local output = (result.stderr and result.stderr ~= "" and result.stderr) or result.stdout
-		error("Failed to bootstrap lazy.nvim:\\n" .. (output or "Unknown git error"))
+		error("Failed to bootstrap lazy.nvim:\n" .. (output or "Unknown git error"))
 	end
 
 	if not vim.uv.fs_stat(lazy_entry) then
