@@ -47,9 +47,13 @@ function M.setup(path, project_registry)
 	local projects = {}
 
 	local function load_projects()
-		local ok, entries = pcall(project_registry.list)
+		local ok, entries, read_error = pcall(project_registry.list)
 		if not ok or type(entries) ~= "table" then
-			vim.notify("Could not read the independent DAP project registry: " .. tostring(entries), vim.log.levels.ERROR)
+			local detail = not ok and entries or read_error or entries
+			vim.notify(
+				"Could not read the independent DAP project registry: " .. tostring(detail),
+				vim.log.levels.ERROR
+			)
 			return {}
 		end
 
@@ -90,10 +94,11 @@ function M.setup(path, project_registry)
 			fields.executable = normalized_executable
 		end
 
-		local ok, saved = pcall(project_registry.update, root, fields)
+		local ok, saved, save_error = pcall(project_registry.update, root, fields)
 		if not ok or saved ~= true then
+			local detail = not ok and saved or save_error
 			vim.notify(
-				"Could not save DAP project metadata for:\n" .. root .. (not ok and ("\n" .. tostring(saved)) or ""),
+				"Could not save DAP project metadata for:\n" .. root .. (detail and ("\n" .. tostring(detail)) or ""),
 				vim.log.levels.ERROR
 			)
 			return nil
@@ -116,14 +121,15 @@ function M.setup(path, project_registry)
 		end
 
 		local normalized_args = copy_args(args)
-		local ok, saved = pcall(project_registry.update, root, {
+		local ok, saved, save_error = pcall(project_registry.update, root, {
 			dap_enabled = true,
 			args = normalized_args,
 		})
 
 		if not ok or saved ~= true then
+			local detail = not ok and saved or save_error
 			vim.notify(
-				"Could not save launch arguments for project:\n" .. root .. (not ok and ("\n" .. tostring(saved)) or ""),
+				"Could not save launch arguments for project:\n" .. root .. (detail and ("\n" .. tostring(detail)) or ""),
 				vim.log.levels.ERROR
 			)
 			return false
