@@ -105,10 +105,11 @@ package.preload["soul.core.helpers.dap.registry"] = function()
 		end,
 	}
 end
+local lualine_config
 package.preload["lualine"] = function()
 	return {
 		setup = function(opts)
-			_G.integration_lualine_config = opts
+			lualine_config = opts
 		end,
 	}
 end
@@ -132,7 +133,7 @@ assert(package.loaded["yap.project_registry"] == nil, "DAP must not load YAP's p
 -- Lualine's project label must disappear cleanly when YAP is not installed.
 local lualine_spec = require("soul.plugins.lualine")
 lualine_spec.config()
-local project_component = _G.integration_lualine_config.sections.lualine_y[1]
+local project_component = lualine_config.sections.lualine_y[1]
 assert(type(project_component.cond) == "function", "Lualine project status must have a condition")
 assert(not project_component.cond(), "Lualine must hide the optional project label without YAP")
 assert(package.loaded["yap.project_registry"] == nil, "Optional Lualine status must not require YAP")
