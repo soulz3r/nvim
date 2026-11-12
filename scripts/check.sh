@@ -52,6 +52,31 @@ if grep -RInE --include='*.lua' '^[[:space:]]*function[[:space:]]+OPTS[[:space:]
   exit 1
 fi
 
+if grep -q '"OPTS"' lsp/lua_ls.lua; then
+  echo "LuaLS must not declare OPTS as a global." >&2
+  exit 1
+fi
+
+if ! grep -q '"help"' lua/soul/plugins/treesitter.lua; then
+  echo "Treesitter must start for help buffers using the vimdoc parser." >&2
+  exit 1
+fi
+
+if grep -q 'disabled_buftypes = { "alpha" }' lua/soul/extras/eyeliner.lua; then
+  echo "Alpha is a filetype, not a buftype; remove the invalid Eyeliner filter." >&2
+  exit 1
+fi
+
+if grep -q 'lua/soul/plugins/mini/init.lua' docs/architecture.md; then
+  echo "Architecture docs contain the obsolete Mini plugin path." >&2
+  exit 1
+fi
+
+if ! grep -q 'dap_args' lua/soul/lsp/dap.lua; then
+  echo "DAP launch arguments must be stored in the per-project registry." >&2
+  exit 1
+fi
+
 # Private Neovim APIs are not allowed in the core configuration. UI2 is the
 # sole exception and must remain isolated in the optional tiny-cmdline module.
 if grep -RInE --include='*.lua' --exclude='tiny_cmdline.lua' --exclude-dir='.git' 'vim\._' .; then
