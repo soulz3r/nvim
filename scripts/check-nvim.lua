@@ -33,6 +33,27 @@ vim.env.PWSH = original_pwsh
 require("soul.core.options")
 require("soul.core.keymaps")
 local keymap_helpers = require("soul.core.helpers.keymaps")
+local dap_args = require("soul.core.helpers.dap.args")
+local argument_cases = {
+	{},
+	{ "" },
+	{ "simple", "two words", "it's", "a\\\"b" },
+	{ "single'quote", "quote\\\"and'quote", "trailing\\" },
+	{ "C:\\Program Files\\app\\", "--name", "value with spaces" },
+}
+
+for _, is_windows in ipairs({ false, true }) do
+	for _, expected in ipairs(argument_cases) do
+		local encoded = dap_args.format(expected)
+		local decoded, parse_error = dap_args.parse(encoded, is_windows)
+		assert(decoded, tostring(parse_error))
+		assert(vim.deep_equal(decoded, expected), "DAP argument round-trip failed: " .. encoded)
+	end
+end
+
+local malformed, malformed_error = dap_args.parse('"unterminated', false)
+assert(malformed == nil and malformed_error, "DAP argument parser must reject unclosed quotes")
+
 assert(type(keymap_helpers.opts) == "function", "shared keymap options helper is missing")
 assert(rawget(_G, "OPTS") == nil, "OPTS must not leak into the global namespace")
 
