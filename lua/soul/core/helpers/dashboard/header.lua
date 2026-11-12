@@ -43,7 +43,7 @@ M.highlights = {
 
 -- The logo stays static. The panel below it is animated independently.
 M.animation = {
-	speed = 125,
+	speed = 160,
 	start_line = 9,
 	chars_per_tick = 4,
 	hold_ticks = 6,
