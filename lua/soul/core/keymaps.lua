@@ -337,7 +337,6 @@ end
 
 keymap("n", "<leader>X", compile_and_run_c, OPTS("Compile and run C file"))
 
-
 keymap("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
 vim.keymap.set("t", ",,", [[<C-\><C-n>]], {
 	desc = "Terminal Normal Mode",
