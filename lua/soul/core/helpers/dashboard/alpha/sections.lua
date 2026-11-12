@@ -4,7 +4,7 @@ function M.build(dashboard)
 	local icons = require("soul.core.helpers.icons")
 	local utils = require("alpha.utils")
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Header
 	---------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ function M.build(dashboard)
 		hl = utils.charhl_to_bytehl(header_hl, header),
 	}
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Buttons
 	---------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@ function M.build(dashboard)
 	dashboard.section.buttons.val = vim.tbl_map(create_button, button_data.items)
 	dashboard.section.buttons.opts.hl = "Include"
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Footer
 	---------------------------------------------------------------------------
 
@@ -106,7 +106,7 @@ function M.build(dashboard)
 
 	local footer = footer_data.new(set_footer)
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Layout
 	---------------------------------------------------------------------------
 
@@ -128,7 +128,7 @@ function M.build(dashboard)
 		noautocmd = true,
 	}
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Animation frame state
 	---------------------------------------------------------------------------
 
@@ -136,15 +136,12 @@ function M.build(dashboard)
 	local animation_step = 1
 
 	local function apply_animation_frame()
-		local state = animation_data.steps[animation_step]
+		local frame = animation_data.frames[animation_step]
+		local start_line = animation_data.start_line
 
-		local line = state[1]
-		local frames = animation_data.fragments[state[2]]
-		local frame = state[3]
-
-		dashboard.section.header.val[line] = animation_data.lines[line][1]
-			.. frames[frame]
-			.. animation_data.lines[line][2]
+		for index, line in ipairs(frame) do
+			dashboard.section.header.val[start_line + index - 1] = line
+		end
 	end
 
 	apply_animation_frame()
@@ -157,7 +154,7 @@ function M.build(dashboard)
 		next_animation_frame = function()
 			animation_step = animation_step + 1
 
-			if animation_step > #animation_data.steps then
+			if animation_step > #animation_data.frames then
 				animation_step = 1
 			end
 
