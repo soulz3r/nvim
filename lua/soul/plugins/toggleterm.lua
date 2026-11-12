@@ -5,6 +5,9 @@ local M = {
 
 function M.config()
 	local floats = require("soul.core.helpers.ui.floats")
+	local platform = require("soul.core.platform")
+	local paths = require("soul.core.helpers.paths")
+	local terminal_shell = platform.is_windows and paths.pwsh or vim.o.shell
 	local execs = {
 		{ nil, "<M-1>", "Horizontal Terminal", "horizontal", 0.3 },
 		{ nil, "<M-2>", "Vertical Terminal", "vertical", 0.4 },
@@ -69,7 +72,7 @@ function M.config()
 		local direction = exec[4]
 
 		local opts = {
-			cmd = exec[1] or vim.o.shell,
+			cmd = exec[1] or terminal_shell,
 			keymap = exec[2],
 			label = exec[3],
 			count = i + 100,
@@ -94,7 +97,7 @@ function M.config()
 		persist_size = true,
 		direction = "float",
 		close_on_exit = true,
-		shell = vim.o.shell,
+		shell = terminal_shell,
 
 		float_opts = {
 			border = floats.border,
