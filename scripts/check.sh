@@ -51,7 +51,7 @@ for path in Path("lua").rglob("*.lua"):
         continue
 
     for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-        prefix = line[: len(line) - len(line.lstrip(" \\t"))]
+        prefix = line[: len(line) - len(line.lstrip(" " + chr(9)))]
         if " " in prefix:
             sys.exit(
                 f"{path}:{line_number}: Lua indentation must use tabs, not spaces."
