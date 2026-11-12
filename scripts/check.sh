@@ -24,6 +24,10 @@ with open("lazy-lock.json", encoding="utf-8") as lock_file:
 if not isinstance(lock, dict) or not lock:
     sys.exit("lazy-lock.json must contain a non-empty plugin map")
 
+luarc = json.load(open(".luarc.json", encoding="utf-8"))
+if "param-type-mismatch" in luarc.get("diagnostics.disable", []):
+    sys.exit("LuaLS parameter type diagnostics must not be disabled globally")
+
 for plugin, metadata in lock.items():
     if not isinstance(metadata, dict):
         sys.exit(f"Invalid lock entry for {plugin}")
@@ -42,6 +46,11 @@ if [[ -e lsp/dap-projects.json ]]; then
 fi
 
 # Autocmd file patterns do not support a leading "!" as a negative match.
+if grep -nF 'tabdo wincmd =' lua/soul/core/autocmds.lua; then
+  echo "Window resizing must not overwrite manually adjusted split sizes." >&2
+  exit 1
+fi
+
 if grep -nF 'pattern = { "!vim" }' lua/soul/core/autocmds.lua; then
   echo "Invalid negative autocmd pattern detected." >&2
   exit 1
