@@ -15,7 +15,7 @@ These checks complement CI. They exercise real plugins and external tools that h
 2. Confirm the build creates the platform library (`libfzf.dll` on Windows, `libfzf.so` on Linux).
 3. Open `:Telescope find_files` and `:Telescope live_grep`; verify fuzzy sorting works.
 4. If native loading fails, confirm Telescope displays a warning and its non-native picker remains usable.
-5. To exercise fallback behavior, test on a Windows toolchain with CMake unavailable, then with Make unavailable and LLVM Clang available. Confirm a failed CMake attempt is cleaned before Make starts, and a failed cleanup stops the build instead of reusing stale output.
+5. Exercise the fallback paths in separate clean plugin checkouts: first make CMake configuration/build fail while Make succeeds; then make CMake and Make unavailable while LLVM Clang is available. Confirm a failed CMake attempt is cleaned before Make starts, and a failed cleanup stops the build instead of reusing stale output.
 6. Restore the normal PATH after each test and rebuild from a clean plugin directory.
 
 ## Real DAP session
