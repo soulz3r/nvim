@@ -34,7 +34,7 @@ These checks complement CI. They exercise real plugins and external tools that h
 3. Set `PSHOME` to an invalid directory and verify it is ignored.
 4. If both PowerShell 7 and Windows PowerShell 5.1 are installed, verify 5.1 is rejected.
 5. Test a PowerShell installation path containing spaces.
-6. Temporarily remove PowerShell 7 from the test process PATH and verify the resolver reports the fallback command rather than selecting Windows PowerShell 5.1.
+6. In a disposable Windows VM with PowerShell 7 absent but Windows PowerShell 5.1 present, verify the resolver returns the documented `pwsh` fallback instead of selecting 5.1. The normal resolver also scans standard installation directories, so removing only the PATH entry is not a valid absence test.
 7. Restore environment variables and PATH after testing.
 
 ## UI and platform smoke tests
