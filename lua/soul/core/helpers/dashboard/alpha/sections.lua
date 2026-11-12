@@ -43,10 +43,10 @@ local function build_animation_timeline(animation)
 	return timeline
 end
 
-local function add_range(ranges, group, line, first, last)
+local function add_range(ranges, group, line_number, _, first, last)
 	if first < last then
-		ranges[line] = ranges[line] or {}
-		ranges[line][#ranges[line] + 1] = { group, first, last }
+		ranges[line_number] = ranges[line_number] or {}
+		ranges[line_number][#ranges[line_number] + 1] = { group, first, last }
 	end
 end
 
@@ -93,11 +93,11 @@ local function build_animation_highlights(lines, start_line)
 			end
 		elseif line:match("^%s*main%.") or line:match("%->") then
 			add_pattern(ranges, "Identifier", line_number, line, "[%w_]+")
-			add_pattern(ranges, "Operator", line_number, line, "[%.%- >]+")
+			add_pattern(ranges, "Operator", line_number, line, "[%.%-]+")
 		else
 			add_pattern(ranges, "Number", line_number, line, "0x[%da-fA-F]+")
 			add_pattern(ranges, "Number", line_number, line, "%f[%d]%d+%f[%D]")
-			add_pattern(ranges, "Operator", line_number, line, "[@=*%- >]+")
+			add_pattern(ranges, "Operator", line_number, line, "[@=*%-]+")
 			if #line > 0 and not line:match("^%s*%^") then
 				add_range(ranges, "AlphaYellow", line_number, line, 0, #line)
 			end
