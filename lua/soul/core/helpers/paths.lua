@@ -3,9 +3,10 @@ local M = {}
 local platform = require("soul.core.platform")
 local fn = vim.fn
 
-M.projects = vim.env.PROJECTS_DIR
-	or (platform.is_windows and "D:/config/projects")
-	or fn.expand("~/projects")
+local projects_dir = vim.env.PROJECTS_DIR
+	M.projects = projects_dir and vim.trim(projects_dir) ~= "" and vim.trim(projects_dir)
+		or (platform.is_windows and "D:/config/projects")
+		or fn.expand("~/projects")
 
 local function find_executable(names)
 	for _, name in ipairs(names) do
@@ -206,9 +207,10 @@ M.clang = vim.env.CLANG and fn.executable(vim.env.CLANG) == 1 and vim.env.CLANG
 
 M.pwsh = find_powershell()
 
-M.lldb_dap = vim.env.LLDB_DAP
-	or (platform.is_windows and "C:/Program Files/LLVM/bin/lldb-dap.exe")
-	or "lldb-dap"
+local lldb_dap = vim.env.LLDB_DAP
+	M.lldb_dap = lldb_dap and vim.trim(lldb_dap) ~= "" and vim.trim(lldb_dap)
+		or (platform.is_windows and "C:/Program Files/LLVM/bin/lldb-dap.exe")
+		or "lldb-dap"
 
 -- Windows clipboard tools are only resolved when Neovim itself runs in WSL.
 if platform.is_wsl then
