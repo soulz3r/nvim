@@ -14,56 +14,12 @@ function M.config()
 		return b
 	end
 
-	local header = {
-		"███████╗ ██████╗ ██╗   ██╗██╗灵魂",
-		"██╔════╝██╔═══██╗██║   ██║██║士兵",
-		"███████╗██║no ██║██║   ██║██║国王",
-		"╚════██║██║me ██║██║   ██║██║没了",
-		"███████║╚██████╔╝╚██████╔╝███████╗",
-		"╚══════╝ ╚═════╝  ╚═════╝ ╚══════╝",
-	}
+	local header_data = require("soul.core.helpers.dashboard.header")
+	local header = header_data.lines
 
 	dashboard.section.header.val = header
 
-	local header_hl = {
-		{
-			{ "AlphaGreen", 0, 29 },
-			{ "AlphaYellow", 29, 31 },
-		},
-
-		{
-			{ "AlphaGreen", 0, 20 },
-			{ "AlphaRed", 20, 22 },
-			{ "AlphaGreen", 22, 29 },
-			{ "AlphaYellow", 29, 31 },
-		},
-
-		{
-			{ "AlphaGreen", 0, 11 },
-			{ "AlphaYellow", 11, 13 },
-			{ "AlphaGreen", 13, 20 },
-			{ "AlphaRed", 20, 22 },
-			{ "AlphaGreen", 22, 29 },
-			{ "AlphaYellow", 29, 31 },
-		},
-
-		{
-			{ "AlphaGreen", 0, 11 },
-			{ "AlphaYellow", 11, 13 },
-			{ "AlphaGreen", 13, 20 },
-			{ "AlphaRed", 20, 22 },
-			{ "AlphaGreen", 22, 29 },
-			{ "AlphaYellow", 29, 31 },
-		},
-
-		{
-			{ "AlphaGreen", 0, 34 },
-		},
-
-		{
-			{ "AlphaGreen", 0, 34 },
-		},
-	}
+	local header_hl = header_data.highlights
 
 	for line_number, line in ipairs(header) do
 		for i = 1, vim.fn.strchars(line) do
@@ -304,87 +260,19 @@ function M.config()
 		noautocmd = true,
 	}
 
-	local daad_frames = {
-		"d ",
-		"da",
-		"da",
-		"d ",
-		"  ",
-	}
-
-	local emme_frames = {
-		"e ",
-		"em",
-		"em",
-		"e ",
-		"  ",
-	}
-
-	local onno_frames = {
-		"o ",
-		"on",
-		"on",
-		"o ",
-		"  ",
-	}
-
-	local animation_speed = 150
+	local animation_data = header_data.animation
 	local animation_step = 1
 
-	local animation_lines = {
-		[2] = {
-			"██╔════╝██╔═══██╗██║",
-			" ██║██║士兵",
-		},
-
-		[3] = {
-			"███████╗██║no ██║██║",
-			" ██║██║国王",
-		},
-
-		[4] = {
-			"╚════██║██║me ██║██║",
-			" ██║██║没了",
-		},
-	}
-
-	local animation = {
-		-- DA
-		{ 2, daad_frames, 1 },
-		{ 2, daad_frames, 2 },
-		{ 2, daad_frames, 3 },
-
-		-- EM
-		{ 3, emme_frames, 1 },
-		{ 3, emme_frames, 2 },
-		{ 3, emme_frames, 3 },
-
-		-- ON
-		{ 4, onno_frames, 1 },
-		{ 4, onno_frames, 2 },
-		{ 4, onno_frames, 3 },
-
-		-- Erase ON
-		{ 4, onno_frames, 4 },
-		{ 4, onno_frames, 5 },
-
-		-- Erase EM
-		{ 3, emme_frames, 4 },
-		{ 3, emme_frames, 5 },
-
-		-- Erase DA
-		{ 2, daad_frames, 4 },
-		{ 2, daad_frames, 5 },
-	}
-
 	local function apply_animation_frame()
-		local state = animation[animation_step]
+		local state = animation_data.steps[animation_step]
 
 		local line = state[1]
-		local frames = state[2]
+		local frames = animation_data.fragments[state[2]]
 		local frame = state[3]
 
-		dashboard.section.header.val[line] = animation_lines[line][1] .. frames[frame] .. animation_lines[line][2]
+		dashboard.section.header.val[line] = animation_data.lines[line][1]
+			.. frames[frame]
+			.. animation_data.lines[line][2]
 	end
 
 	apply_animation_frame()
@@ -419,7 +307,7 @@ function M.config()
 
 		animation_step = animation_step + 1
 
-		if animation_step > #animation then
+		if animation_step > #animation_data.steps then
 			animation_step = 1
 		end
 
@@ -428,7 +316,7 @@ function M.config()
 
 		vim.defer_fn(function()
 			animate(generation)
-		end, animation_speed)
+		end, animation_data.speed)
 	end
 
 	local function start_animation()
@@ -443,7 +331,7 @@ function M.config()
 
 		vim.defer_fn(function()
 			animate(generation)
-		end, animation_speed)
+		end, animation_data.speed)
 	end
 
 	---------------------------------------------------------------------------
