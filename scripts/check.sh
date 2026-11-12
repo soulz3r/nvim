@@ -70,7 +70,7 @@ print_status() {
   local state="$2"
   local color="$GREEN"
   local status_width=6
-  local label_width=$(( TERM_WIDTH - 12 ))
+  local label_width=$(( TERM_WIDTH - 13 ))
 
   (( CHECK_COUNT += 1 ))
   (( label_width < 20 )) && label_width=20
@@ -109,6 +109,7 @@ run_check() {
 
 run_shell_check() {
   local label="$1"
+  shift
   local output="$TEMP_DIR/check-$((CHECK_COUNT + 1)).log"
 
   if "$@" >"$output" 2>&1; then
