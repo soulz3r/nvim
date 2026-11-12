@@ -20,3 +20,10 @@ jobs:
 
       - name: Run static checks
         run: bash scripts/check.sh
+
+      - name: Check Lua formatting
+        uses: JohnnyMorganz/stylua-action@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: latest
+          args: --check lua/soul/core/autocmds.lua lua/soul/core/helpers/dashboard/alpha/autocmds.lua lua/soul/core/helpers/dashboard/footer.lua lua/soul/core/helpers/paths.lua lua/soul/core/keymaps.lua lua/soul/lsp/lsp.lua lua/soul/plugins/undotree.lua scripts/check-nvim.lua
