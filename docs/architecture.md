@@ -40,7 +40,7 @@ Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 - `lua/soul/plugins/gitsigns.lua` registers Git mappings with WhichKey.
 - `lua/soul/plugins/breadcrumbs.lua` configures breadcrumbs.nvim and declares its nvim-lspconfig and nvim-navic dependencies. `lua/soul/lsp/lsp.lua` initializes Navic before enabling servers and attaches it to clients that support document symbols.
 - LSP capabilities use Blink.cmp when it is available. LSP keymaps are attached per buffer when a server attaches. The LSP attach callback connects nvim-navic to clients that support document symbols, which supplies the context rendered by breadcrumbs.nvim.
-- Render Markdown depends on Treesitter and Mini Icons. Mini Files depends on Mini Icons.
+- Render Markdown declares Treesitter and Mini Icons as dependencies. Mini Files also declares Mini Icons as a dependency so its icon integration is ready whenever the file browser loads.
 - ToggleTerm uses the configured shell and shared float border helpers.
 
 YAP's project switcher and runner use `nui-components.nvim` on top of `nui.nvim`. Its project registry is shared by the project picker, Lualine, and DAP. The registry and other runtime state are stored outside the repository.
