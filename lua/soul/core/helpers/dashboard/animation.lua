@@ -7,7 +7,7 @@ function M.new(opts)
 	assert(type(opts.on_tick) == "function", "animation requires on_tick")
 	assert(type(opts.is_active) == "function", "animation requires is_active")
 
-	local interval = opts.interval or 150
+	local interval = math.max(1, math.floor(tonumber(opts.interval) or 150))
 	local running = false
 	local generation = 0
 
@@ -21,15 +21,35 @@ function M.new(opts)
 			return
 		end
 
-		if not opts.is_active() then
+		local active_ok, active = pcall(opts.is_active)
+		if not active_ok or not active then
 			stop()
+			if not active_ok then
+				pcall(vim.notify, "Animation activity check failed: " .. tostring(active), vim.log.levels.WARN, {
+					title = "Dashboard",
+				})
+			end
 			return
 		end
 
-		opts.on_tick()
+		local tick_ok, tick_error = pcall(opts.on_tick)
+		if not tick_ok then
+			stop()
+			pcall(vim.notify, "Animation stopped: " .. tostring(tick_error), vim.log.levels.WARN, {
+				title = "Dashboard",
+			})
+			return
+		end
 
 		if opts.redraw then
-			opts.redraw()
+			local redraw_ok, redraw_error = pcall(opts.redraw)
+			if not redraw_ok then
+				stop()
+				pcall(vim.notify, "Animation redraw failed: " .. tostring(redraw_error), vim.log.levels.WARN, {
+					title = "Dashboard",
+				})
+				return
+			end
 		end
 
 		vim.defer_fn(function()
