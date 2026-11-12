@@ -106,6 +106,8 @@ assert(projects.resolve_root() == fallback_dir, "Unregistered files must fall ba
 
 
 
+vim.api.nvim_set_current_buf(buf)
+
 -- Project settings must be persisted through the shared YAP registry.
 local saved_args = { "--input", "sample file.c", 42, "--verbose" }
 assert(projects.save_args(inner, saved_args), "Project launch arguments should be saved")
