@@ -22,7 +22,7 @@ local function add_executable(relative_path)
 	vim.fn.mkdir(vim.fn.fnamemodify(path, ":h"), "p")
 	assert(vim.fn.writefile({ "test executable" }, path) == 0, "Could not create test executable: " .. path)
 	if not platform.is_windows then
-		assert(vim.fn.setfperm(path, "rwxr-xr-x") == 0, "Could not mark test executable: " .. path)
+		assert(vim.fn.setfperm(path, "rwxr-xr-x") == 1, "Could not mark test executable: " .. path)
 	end
 	created[relative_path] = path
 	return path
