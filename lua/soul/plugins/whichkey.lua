@@ -137,9 +137,9 @@ function M.config()
 		{ "<leader>dh", desc = "Evaluate expression", icon = ui.Lightbulb },
 		{ "<leader>dR", desc = "Open / focus REPL", icon = icons.misc.Terminal },
 		{ "<leader>d/", desc = "Search REPL", icon = ui.FindText },
-		{ "<leader>du", desc = "Toggle DAP UI", icon = ui.Layout },
+		{ "<leader>du", desc = "Toggle DAP UI", icon = ui.Stacks },
 		{ "<leader>dw", desc = "Add watch", icon = ui.Watches },
-		{ "<leader>dt", desc = "Float DAP element", icon = ui.Window },
+		{ "<leader>dt", desc = "Float DAP element", icon = ui.FolderOpen },
 		{ "<leader>d?", desc = "Show DAP log", icon = ui.Note },
 
 		-- Non-leader shortcuts
