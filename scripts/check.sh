@@ -40,30 +40,9 @@ for plugin, metadata in lock.items():
 print(f"Validated {len(lock)} locked plugin revisions.")
 PY
 
-# Lua indentation follows .stylua.toml: hard tabs with a display width of four.
-# keymaps.lua contains an intentional multiline Ex command whose contents are space-indented.
-"$PYTHON" - <<'PY'
-from pathlib import Path
-import sys
-
-for path in Path(".").rglob("*.lua"):
-    if not path.is_file() or ".git" in path.parts:
-        continue
-
-    content = path.read_bytes()
-    if b"\r" in content:
-        sys.exit(f"{path}: Lua files must use LF line endings.")
-
-    if path.as_posix() == "lua/soul/core/keymaps.lua":
-        continue
-
-    for line_number, line in enumerate(content.decode("utf-8").splitlines(), 1):
-        prefix = line[: len(line) - len(line.lstrip(" " + chr(9)))]
-        if " " in prefix:
-            sys.exit(
-                f"{path}:{line_number}: Lua indentation must use tabs, not spaces."
-            )
-PY
+# Test the indentation checker itself, then enforce the repository-wide policy.
+"$PYTHON" -m unittest discover -s scripts -p 'test_*.py'
+"$PYTHON" scripts/lua_indentation.py
 
 if [[ -e lsp/dap-projects.json ]]; then
   echo "lsp/dap-projects.json is local DAP state and must not be committed." >&2
@@ -118,11 +97,6 @@ fi
 
 if [[ -e lua/soul/plugins/oil.lua ]]; then
   echo "The unused Oil specification conflicts with the Mini Files choice." >&2
-  exit 1
-fi
-
-if ! grep -q 'dap_args' lua/soul/lsp/dap.lua; then
-  echo "DAP launch arguments must be stored in the per-project registry." >&2
   exit 1
 fi
 
@@ -239,6 +213,9 @@ if command -v nvim >/dev/null 2>&1; then
   nvim --headless --clean -u NONE -l scripts/check-nvim.lua
   echo "Neovim module smoke tests passed."
   nvim --headless --clean -u NONE -l scripts/check-integration.lua
+  nvim --headless --clean -u NONE -l scripts/check-notify.lua
+  nvim --headless --clean -u NONE -l scripts/check-dap-registry.lua
+  nvim --headless --clean -u NONE -l scripts/check-dap-executables.lua
 elif [[ "${REQUIRE_NVIM:-0}" == "1" ]]; then
   echo "Missing Neovim; runtime checks are required in this environment." >&2
   exit 1

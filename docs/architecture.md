@@ -16,6 +16,9 @@ The entry point is `init.lua`. It loads the core modules, registers plugin group
 | `lua/soul/core/platform.lua` | Centralized Windows, WSL, Linux, macOS, and Termux detection |
 | `lua/soul/core/helpers/paths.lua` | Project directory and external tool path resolution |
 | `lua/soul/core/helpers/keymaps.lua` | Shared options for keymap definitions |
+| `lua/soul/core/helpers/process.lua` | Child-process timeout, termination, and reaping |
+| `lua/soul/core/helpers/dap/registry.lua` | Safe migration of legacy DAP project registries |
+| `lua/soul/core/helpers/dap/executables.lua` | Bounded project executable discovery and ranking |
 | `lua/soul/core/options.lua` | Editor options, shell, clipboard, and UI defaults |
 | `lua/soul/core/keymaps.lua` | Global keymaps and shared keymap helpers |
 | `lua/soul/core/autocmds.lua` | Core autocmds |
@@ -65,6 +68,6 @@ Machine-specific tool paths belong in `lua/soul/core/helpers/paths.lua`. Use `PR
 
 - `lua/soul/lsp/lsp.lua` configures native Neovim LSP capabilities, keymaps, formatting, and diagnostics.
 - Server definitions are supplied by nvim-lspconfig and enabled through `vim.lsp.enable()`.
-- `lua/soul/lsp/dap.lua` configures the LLDB DAP adapter, project-aware executable selection, launch arguments, REPL helpers, and DAP UI. Its session, project-selection, and UI callbacks share runtime state, so the module remains an orchestration boundary rather than being split by line count. The argument parser is isolated under `lua/soul/core/helpers/dap/args.lua` and tested independently.
+- `lua/soul/lsp/dap.lua` configures the LLDB DAP adapter, project selection, launch arguments, REPL helpers, and DAP UI. Its session, project-selection, and UI callbacks share runtime state, so it remains the orchestration boundary. Legacy registry migration and bounded executable discovery are isolated under `lua/soul/core/helpers/dap/` and tested independently; argument parsing remains isolated under `lua/soul/core/helpers/dap/args.lua`.
 
 The configuration targets Neovim 0.12 or newer. The optional tiny-cmdline integration is isolated in `lua/soul/extras/tiny_cmdline.lua`; it relies on private, experimental UI2 internals and falls back to Neovim's native command line when the required UI2 entry point is unavailable or setup fails. The rest of the configuration does not depend on UI2.

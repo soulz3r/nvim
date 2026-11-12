@@ -234,7 +234,7 @@ Run the repository's static checks with:
 bash scripts/check.sh
 ```
 
-The script validates JSON configuration, plugin lockfile revisions, deprecated/private API usage, Lua syntax, and core/plugin-spec imports. GitHub Actions runs the checks against the latest Neovim stable release and nightly build. The headless smoke test does not install or execute third-party plugin configurations, so test those features after plugin updates and on the operating systems you use.
+Python 3 is required for repository checks only; it is not a Neovim runtime dependency. The script validates JSON configuration, plugin lockfile revisions, Lua indentation and line endings, deprecated/private API usage, Lua syntax, and core/plugin-spec imports. It also runs unit tests for the repository's Python check helpers. GitHub Actions runs the checks against the latest Neovim stable release and nightly build. The headless smoke test does not install or execute third-party plugin configurations, so test those features after plugin updates and on the operating systems you use.
 
 ## Troubleshooting
 
@@ -242,6 +242,7 @@ The script validates JSON configuration, plugin lockfile revisions, deprecated/p
 - Run `:Lazy` and check whether plugin installation or compilation failed.
 - Make sure `rg`, `fd`, `clangd`, `stylua`, language servers, and `lldb-dap` are visible on `PATH`.
 - If DAP cannot start, check `LLDB_DAP` and confirm that the executable exists.
+- If the configured PowerShell shell or Windows C runner cannot start, inspect `:lua print(require("soul.core.helpers.paths").pwsh)` and verify the returned path with `:lua print(vim.fn.executable(require("soul.core.helpers.paths").pwsh))`. Set `PWSH` to the full path of PowerShell 7's `pwsh.exe` if automatic discovery selects the wrong installation. Windows PowerShell 5.1 is intentionally not accepted as the configured shell.
 - If C diagnostics are missing or use the wrong standard, check the project's `compile_commands.json` or `compile_flags.txt`.
 - If Treesitter highlighting is missing after first install, run `:TSUpdate` and reopen the buffer.
 - If Telescope reports that the `fzf` extension or `libfzf.dll` is missing, run `:Lazy build telescope-fzf-native.nvim` to rebuild the native library, then restart Neovim so Telescope can load it.

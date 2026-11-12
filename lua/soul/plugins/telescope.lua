@@ -1,4 +1,5 @@
 local OPTS = require("soul.core.helpers.keymaps").opts
+local process_helper = require("soul.core.helpers.process")
 
 local M = {
 	"nvim-telescope/telescope.nvim",
@@ -34,12 +35,9 @@ local M = {
 						return false, tostring(process)
 					end
 
-					local result = process:wait(120000)
-					if not result or result.code == 124 then
-						pcall(function()
-							process:kill(9)
-						end)
-						return false, "Build timed out after 120 seconds."
+					local result, wait_error = process_helper.wait(process, 120000)
+					if not result then
+						return false, wait_error or "Build timed out after 120 seconds."
 					end
 
 					return result.code == 0,
@@ -104,7 +102,12 @@ local M = {
 
 						local cleaned, cleanup_error = clean_build()
 						if not cleaned then
-							table.insert(errors, cleanup_error)
+							error(
+								table.concat(errors, "\n\n")
+									.. "\n\n"
+									.. cleanup_error
+									.. "\nRefusing to continue with a potentially stale native build directory."
+							)
 						end
 					end
 				end
