@@ -1,3 +1,4 @@
+local M = {}
 
 local statusline_laststatus
 local statusline_update_pending = false
@@ -49,70 +50,70 @@ local function schedule_float_statusline_update()
 	vim.schedule(update_float_statusline)
 end
 
+local group = vim.api.nvim_create_augroup("SoulCore", {
+	clear = true,
+})
+
 vim.api.nvim_create_autocmd({
 	"BufWinEnter",
 	"BufWinLeave",
 	"WinEnter",
 	"WinClosed",
 }, {
+	group = group,
 	callback = schedule_float_statusline_update,
 })
 
 vim.api.nvim_create_autocmd("OptionSet", {
+	group = group,
 	pattern = "modifiable",
 	callback = schedule_float_statusline_update,
 })
 
 vim.api.nvim_create_autocmd("User", {
+	group = group,
 	pattern = { "MiniFilesExplorerOpen", "MiniFilesExplorerClose" },
 	callback = schedule_float_statusline_update,
 })
 
-vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
-  callback = function()
-    vim.opt_local.formatoptions:remove({ "c", "r", "o" })
-  end,
+vim.api.nvim_create_autocmd("BufWinEnter", {
+	group = group,
+	callback = function()
+		vim.opt_local.formatoptions:remove({ "c", "r", "o" })
+	end,
 })
-
-
 
 vim.api.nvim_create_autocmd("FileType", {
-  pattern = {
-    "netrw",
-    "Jaq",
-    "qf",
-    "git",
-    "help",
-    "man",
-    "lspinfo",
-    "oil",
-    "spectre_panel",
-    "lir",
-    "DressingSelect",
-    "tsplayground",
-    "mininotify-history",
-  },
-  callback = function(args)
-    vim.bo[args.buf].buflisted = false
+	group = group,
+	pattern = {
+		"netrw",
+		"Jaq",
+		"qf",
+		"git",
+		"help",
+		"man",
+		"lspinfo",
+		"spectre_panel",
+		"lir",
+		"DressingSelect",
+		"tsplayground",
+		"mininotify-history",
+	},
+	callback = function(args)
+		vim.bo[args.buf].buflisted = false
 
-    vim.keymap.set("n", "q", function()
-      pcall(vim.cmd, "close")
-    end, {
-      buffer = args.buf,
-      silent = true,
-      desc = "Close utility window",
-    })
-  end,
-})
-
-
-vim.api.nvim_create_autocmd({ "VimResized" }, {
-  callback = function()
-    vim.cmd("tabdo wincmd =")
-  end,
+		vim.keymap.set("n", "q", function()
+			pcall(vim.cmd, "close")
+		end, {
+			buffer = args.buf,
+			silent = true,
+			desc = "Close utility window",
+		})
+	end,
 })
 
 vim.api.nvim_create_autocmd("BufWinEnter", {
+	group = group,
 	callback = function(args)
 		-- Only check ordinary file buffers; special/plugin buffers have no
 		-- external file timestamp to refresh.
@@ -122,16 +123,20 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
 	end,
 })
 
-vim.api.nvim_create_autocmd({ "TextYankPost" }, {
-  callback = function()
-    vim.hl.on_yank({ higroup = "Visual", timeout = 40 })
-  end,
+vim.api.nvim_create_autocmd("TextYankPost", {
+	group = group,
+	callback = function()
+		vim.hl.on_yank({ higroup = "Visual", timeout = 40 })
+	end,
 })
 
-vim.api.nvim_create_autocmd({ "FileType" }, {
-  pattern = { "gitcommit", "markdown", "NeogitCommitMessage" },
-  callback = function()
-    vim.opt_local.wrap = true
-    vim.opt_local.spell = false
-  end,
+vim.api.nvim_create_autocmd("FileType", {
+	group = group,
+	pattern = { "gitcommit", "markdown", "NeogitCommitMessage" },
+	callback = function()
+		vim.opt_local.wrap = true
+		vim.opt_local.spell = false
+	end,
 })
+
+return M
