@@ -3,7 +3,9 @@ local M = {
 	version = "*",
 	event = "VeryLazy",
 }
+
 function M.config()
-	require("mini.icons").setup()
+	require("soul.core.helpers.mini.icons").setup()
 end
+
 return M
