@@ -469,6 +469,7 @@ function M.config()
 	vim.api.nvim_create_autocmd("BufEnter", {
 		callback = function(args)
 			if vim.bo[args.buf].filetype == "alpha" then
+				git_branch_cache[vim.fn.getcwd()] = nil
 				update_footer()
 				pcall(vim.cmd.AlphaRedraw)
 				start_animation()
