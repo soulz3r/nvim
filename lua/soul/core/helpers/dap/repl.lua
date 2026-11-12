@@ -82,27 +82,27 @@ function M.setup(dap)
 					results = entries,
 					entry_maker = function(entry)
 						return {
-						value = entry,
-						display = string.format("%4d  %s", entry.lnum, entry.line),
-						ordinal = entry.line,
-						lnum = entry.lnum,
-					}
+							value = entry,
+							display = string.format("%4d  %s", entry.lnum, entry.line),
+							ordinal = entry.line,
+							lnum = entry.lnum,
+						}
+					end,
+				}),
+				sorter = conf.generic_sorter({}),
+				attach_mappings = function(prompt_bufnr)
+					actions.select_default:replace(function()
+						local selection = action_state.get_selected_entry()
+						actions.close(prompt_bufnr)
+	
+						if selection then
+							jump_to_line(selection.value.lnum)
+						end
+					end)
+	
+					return true
 				end,
-			}),
-			sorter = conf.generic_sorter({}),
-			attach_mappings = function(prompt_bufnr)
-				actions.select_default:replace(function()
-					local selection = action_state.get_selected_entry()
-					actions.close(prompt_bufnr)
-
-					if selection then
-						jump_to_line(selection.value.lnum)
-					end
-				end)
-
-				return true
-			end,
-		})
+			})
 		:find()
 	end
 
