@@ -79,8 +79,6 @@ M.animation = {
 				"  *ptr  -> 0x0010 -> 42",
 				"  pointer stores an address",
 			},
-			cursor_line = 4,
-			cursor_target = 14,
 		},
 		{
 			lines = {
@@ -90,8 +88,6 @@ M.animation = {
 				"  main.s",
 				"  main.o -> cvim",
 			},
-			cursor_line = 4,
-			cursor_target = 8,
 		},
 		{
 			lines = {
