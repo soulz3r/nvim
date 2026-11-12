@@ -59,18 +59,17 @@ if vim.env.PROFILE_PWSH == "1" then
 	print(("PowerShell resolver completed in %.2f ms (%s)"):format(pwsh_elapsed_ms, tostring(resolved_paths.pwsh)))
 end
 
-if platform.is_windows then
-	if vim.env.REQUIRE_PWSH == "1" then
-		assert(pwsh_on_path, "PowerShell 7 must be available on PATH in this CI job")
-	end
-
-	if pwsh_on_path then
-		assert(resolved_paths.pwsh ~= "pwsh", "PWSH=pwsh must resolve to a concrete Windows executable path")
-		assert(
-			vim.fn.executable(resolved_paths.pwsh) == 1,
-			"PWSH resolver returned a path that is not executable: " .. tostring(resolved_paths.pwsh)
-		)
-	end
+if platform.is_windows and (vim.env.REQUIRE_PWSH == "1" or pwsh_on_path) then
+	assert(
+		type(resolved_paths.pwsh) == "string"
+			and resolved_paths.pwsh ~= ""
+			and resolved_paths.pwsh ~= "pwsh",
+		"PowerShell 7 must resolve to a concrete Windows executable path"
+	)
+	assert(
+		vim.fn.executable(resolved_paths.pwsh) == 1,
+		"PWSH resolver returned a path that is not executable: " .. tostring(resolved_paths.pwsh)
+	)
 end
 
 vim.env.PWSH = original_pwsh
