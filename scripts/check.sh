@@ -160,7 +160,29 @@ PY
 
 # Keep the unittest report until the end so its summary reflects completed work.
 UNIT_OUTPUT="$TEMP_DIR/unittest.log"
-if "$PYTHON" -m unittest discover -s scripts -p 'test_*.py' >"$UNIT_OUTPUT" 2>&1; then
+if "$PYTHON" - >"$UNIT_OUTPUT" 2>&1 <<'PY'
+import io
+import re
+import sys
+import time
+import unittest
+
+suite = unittest.defaultTestLoader.discover("scripts", pattern="test_*.py")
+stream = io.StringIO()
+started = time.perf_counter()
+result = unittest.TextTestRunner(stream=stream, verbosity=1).run(suite)
+elapsed = time.perf_counter() - started
+
+output = stream.getvalue()
+output = re.sub(
+    r"Ran (\\d+) tests? in [0-9.]+s",
+    lambda match: f"Ran {match.group(1)} tests in {elapsed:.6f}s",
+    output,
+)
+print(output, end="")
+sys.exit(not result.wasSuccessful())
+PY
+then
   print_status "Python unit tests" "PASS"
   UNIT_SUMMARY="$(grep -E '^Ran [0-9]+ tests? in ' "$UNIT_OUTPUT" | tail -n 1 || true)"
   UNIT_RESULT="$(grep -E '^(OK|FAILED)( \(.*\))?$' "$UNIT_OUTPUT" | tail -n 1 || true)"
