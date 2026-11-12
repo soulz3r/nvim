@@ -1,6 +1,11 @@
 local M = {}
+local configured = false
 
 function M.setup()
+	if configured then
+		return
+	end
+
 	local MiniSessions = require("mini.sessions")
 
 	MiniSessions.setup({
@@ -34,6 +39,8 @@ function M.setup()
 	end, {
 		desc = "Delete project session",
 	})
+
+	configured = true
 end
 
 return M
