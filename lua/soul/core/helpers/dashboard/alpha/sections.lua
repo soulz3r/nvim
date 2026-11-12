@@ -43,71 +43,155 @@ local function build_animation_timeline(animation)
 	return timeline
 end
 
-local function add_range(ranges, group, line_number, _, first, last)
+local function add_range(ranges, group, line_number, first, last)
 	if first < last then
 		ranges[line_number] = ranges[line_number] or {}
 		ranges[line_number][#ranges[line_number] + 1] = { group, first, last }
 	end
 end
 
-local function add_pattern(ranges, group, line_number, line, pattern)
-	local first = 1
+local topic_highlights = {
+	POINTERS = "AlphaTopicPointers",
+	DEREFERENCE = "AlphaTopicDereference",
+	["MEMORY MAP"] = "AlphaTopicMemory",
+	COMPILATION = "AlphaTopicCompilation",
+	REPRESENTATIONS = "AlphaTopicRepresentations",
+}
 
-	while true do
-		local start_index, end_index = line:find(pattern, first)
-		if not start_index then
-			break
+local c_types = {
+	int = true, char = true, float = true, double = true, void = true,
+	short = true, long = true, signed = true, unsigned = true, const = true,
+	size_t = true,
+}
+
+local c_keywords = {
+	["return"] = true, ["if"] = true, ["else"] = true, ["for"] = true,
+	["while"] = true, ["struct"] = true, ["enum"] = true, ["typedef"] = true,
+	["static"] = true, ["extern"] = true, ["sizeof"] = true,
+}
+
+local function highlight_c_code(ranges, line_number, line)
+	add_range(ranges, "AlphaCodeText", line_number, 0, #line)
+
+	local index = 1
+	while index <= #line do
+		local char = line:sub(index, index)
+
+		if char:match("[%a_]") then
+			local finish = line:find("[^%w_]", index) or (#line + 1)
+			local word = line:sub(index, finish - 1)
+			local group = c_types[word] and "AlphaCodeType"
+				or c_keywords[word] and "AlphaCodeKeyword"
+				or "AlphaCodeIdentifier"
+			add_range(ranges, group, line_number, index - 1, finish - 1)
+			index = finish
+		elseif char:match("%d") then
+			local number = line:sub(index):match("^0[xX][%da-fA-F]+")
+				or line:sub(index):match("^%d+")
+			local finish = index + #number
+			add_range(ranges, "AlphaCodeNumber", line_number, index - 1, finish - 1)
+			index = finish
+		elseif char:match("[*&=+%-%/%<>!|%%]") then
+			local finish = index + 1
+			while finish <= #line and line:sub(finish, finish):match("[=&|<>]") do
+				finish = finish + 1
+			end
+			add_range(ranges, "AlphaCodeOperator", line_number, index - 1, finish - 1)
+			index = finish
+		elseif char:match("[;:,%.%(%)%[%]{}]") then
+			add_range(ranges, "AlphaCodePunctuation", line_number, index - 1, index)
+			index = index + 1
+		else
+			index = index + 1
 		end
+	end
+end
 
-		add_range(ranges, group, line_number, line, start_index - 1, end_index)
-		first = end_index + 1
+local function highlight_message(ranges, line_number, line)
+	if #line == 0 then
+		return
+	end
+
+	add_range(ranges, "AlphaMessage", line_number, 0, #line)
+
+	for _, term in ipairs({ "&value", "*ptr", "address", "stored value", "pointer", "same value" }) do
+		local first = 1
+		while true do
+			local start_index, end_index = line:find(term, first, true)
+			if not start_index then
+				break
+			end
+			add_range(ranges, "AlphaMessageKey", line_number, start_index - 1, end_index)
+			first = end_index + 1
+		end
+	end
+end
+
+local function highlight_animation_line(ranges, line_number, line, line_index)
+	local heading = line:match("^%s*(.-)%s*$")
+	local topic_group = topic_highlights[heading]
+
+	if topic_group then
+		add_range(ranges, topic_group, line_number, 0, #line)
+		return
+	end
+
+	if line:match("^%s*%^") then
+		local caret = line:find("%^")
+		add_range(ranges, "AlphaCodeCursor", line_number, caret - 1, caret)
+		return
+	end
+
+	if line:match("^%s*int%s") then
+		highlight_c_code(ranges, line_number, line)
+		return
+	end
+
+	if line:match("^%s*main%.[ciso]+") or line:match("%->%s*cvim") then
+		add_range(ranges, "AlphaCodeFile", line_number, 0, #line)
+		local arrow = line:find("%-%>")
+		if arrow then
+			add_range(ranges, "AlphaCodeOperator", line_number, arrow - 1, arrow + 1)
+			local target = line:find("cvim", arrow, true)
+			if target then
+				add_range(ranges, "AlphaCodeStage", line_number, target - 1, target + 3)
+			end
+		end
+		return
+	end
+
+	if line:find("0x", 1, true) or line:find("@", 1, true) then
+		add_range(ranges, "AlphaCodeText", line_number, 0, #line)
+		local first = 1
+		while true do
+			local address_start, address_end = line:find("0x[%da-fA-F]+", first)
+			if not address_start then
+				break
+			end
+			add_range(ranges, "AlphaCodeNumber", line_number, address_start - 1, address_end)
+			first = address_end + 1
+		end
+		local number_start, number_end = line:find("%f[%d]%d+%f[%D]")
+		if number_start then
+			add_range(ranges, "AlphaCodeNumber", line_number, number_start - 1, number_end)
+		end
+		local operator_start, operator_end = line:find("[@=*%-]+")
+		if operator_start then
+			add_range(ranges, "AlphaCodeOperator", line_number, operator_start - 1, operator_end)
+		end
+		return
+	end
+
+	if line_index == 5 then
+		highlight_message(ranges, line_number, line)
 	end
 end
 
 local function build_animation_highlights(lines, start_line)
 	local ranges = {}
-	local keywords = {
-		["int"] = true,
-		["void"] = true,
-		["char"] = true,
-		["float"] = true,
-		["double"] = true,
-		["const"] = true,
-		["unsigned"] = true,
-		["long"] = true,
-		["short"] = true,
-	}
-
 	for index, line in ipairs(lines) do
-		local line_number = start_line + index - 1
-
-		if line:match("^%s+[A-Z ]+$") then
-			add_range(ranges, "AlphaTeal", line_number, line, 0, #line)
-		elseif line:match("^%s*int%s") then
-			add_pattern(ranges, "Type", line_number, line, "%f[%w_]int%f[^%w_]")
-			add_pattern(ranges, "Number", line_number, line, "%f[%w_]%d+%f[^%w_]")
-			add_pattern(ranges, "Operator", line_number, line, "[*&=;]")
-			add_pattern(ranges, "Identifier", line_number, line, "%f[%a_][%a_][%w_]*")
-			for word in pairs(keywords) do
-				add_pattern(ranges, "Type", line_number, line, "%f[%w_]" .. word .. "%f[^%w_]")
-			end
-		elseif line:match("^%s*main%.") or line:match("%->") then
-			add_pattern(ranges, "Identifier", line_number, line, "[%w_]+")
-			add_pattern(ranges, "Operator", line_number, line, "[%.%-]+")
-		else
-			add_pattern(ranges, "Number", line_number, line, "0x[%da-fA-F]+")
-			add_pattern(ranges, "Number", line_number, line, "%f[%d]%d+%f[%D]")
-			add_pattern(ranges, "Operator", line_number, line, "[@=*%-]+")
-			if #line > 0 and not line:match("^%s*%^") then
-				add_range(ranges, "AlphaYellow", line_number, line, 0, #line)
-			end
-		end
-
-		if line:match("%^") then
-			add_pattern(ranges, "Special", line_number, line, "%^")
-		end
+		highlight_animation_line(ranges, start_line + index - 1, line, index)
 	end
-
 	return ranges
 end
 
