@@ -63,10 +63,7 @@ assert(#updates == 1 and updates[1].root == project_root, "Migration did not upd
 assert(updates[1].fields.dap_enabled == true, "Migration must enable DAP for the project")
 assert(updates[1].fields.debug_executable == executable, "Migration lost the configured executable")
 assert(updates[1].fields.last_executable == executable, "Migration must preserve the last executable")
-assert(
-	notifications[#notifications].title == "DAP Registry",
-	"Successful migration should report the backup location"
-)
+assert(notifications[#notifications].title == "DAP Registry", "Successful migration should report the backup location")
 
 -- Existing backups must never be overwritten.
 vim.fn.writefile({ payload }, source)
