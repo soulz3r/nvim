@@ -113,7 +113,8 @@ function M.on_attach(client, bufnr)
 		client.server_capabilities.documentFormattingProvider = false
 	end
 
-	if vim.lsp.inlay_hint
+	if
+		vim.lsp.inlay_hint
 		and client:supports_method("textDocument/inlayHint")
 		and not vim.b[bufnr].soul_inlay_hint_initialized
 	then
