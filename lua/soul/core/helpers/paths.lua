@@ -76,10 +76,22 @@ local function find_powershell()
 			end
 		end
 
-		local program_files = vim.env.ProgramW6432 or vim.env.ProgramFiles or "C:/Program Files"
-		local local_programs = vim.env.LOCALAPPDATA
+		local function add_program_files(root)
+			if type(root) == "string" and root ~= "" then
+				add_candidate(root .. "/PowerShell/7/pwsh.exe")
+			end
+		end
 
-		add_candidate(program_files .. "/PowerShell/7/pwsh.exe")
+		-- Check every standard install root. ProgramFiles can point at the
+		-- 32-bit directory in some process environments, so do not choose
+		-- just one and accidentally skip the 64-bit PowerShell installation.
+		add_program_files(vim.env.ProgramW6432)
+		add_program_files(vim.env.ProgramFiles)
+		add_program_files(vim.env["ProgramFiles(x86)"])
+		add_program_files("C:/Program Files")
+		add_program_files("C:/Program Files (x86)")
+
+		local local_programs = vim.env.LOCALAPPDATA
 		if local_programs then
 			add_candidate(local_programs .. "/Programs/PowerShell/7/pwsh.exe")
 		end
