@@ -60,11 +60,12 @@ local dap = {
 	end,
 	continue = function() end,
 	launch_count = 0,
-	run = function(config)
-		dap.last_config = config
-		dap.launch_count = dap.launch_count + 1
-	end,
 }
+
+function dap.run(config)
+	dap.last_config = config
+	dap.launch_count = dap.launch_count + 1
+end
 
 local dapui = {
 	elements = {
@@ -115,6 +116,14 @@ assert(dap.configurations.cpp == dap.configurations.c, "C++ should reuse the C l
 assert(dap.configurations.rust == dap.configurations.c, "Rust should reuse the C launch configurations")
 assert(dap.defaults.fallback.switchbuf == "useopen", "DAP must not open unrelated source buffers")
 
+local function find_mapping(description)
+	for _, mapping in ipairs(vim.api.nvim_get_keymap("n")) do
+		if mapping.desc == description then
+			return mapping
+		end
+	end
+end
+
 -- Exercise the real DAP launch callback against a stateful in-memory registry.
 -- The test uses Neovim's own executable so it does not depend on a compiler.
 local project_root = vim.fn.fnamemodify(vim.fn.resolve(vim.fn.getcwd()), ":p"):gsub("\\", "/")
@@ -156,14 +165,6 @@ end
 start_mapping.callback()
 vim.ui.input = original_input
 assert(dap.launch_count == launch_count, "Cancelling the DAP argument prompt must not launch a session")
-
-local function find_mapping(description)
-	for _, mapping in ipairs(vim.api.nvim_get_keymap("n")) do
-		if mapping.desc == description then
-			return mapping
-		end
-	end
-end
 
 local toggle_mapping = find_mapping("DAP UI: Toggle")
 assert(toggle_mapping and type(toggle_mapping.callback) == "function", "DAP UI toggle mapping is missing")
