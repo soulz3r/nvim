@@ -1,4 +1,5 @@
 local OPTS = require("soul.core.helpers.keymaps").opts
+local process_helper = require("soul.core.helpers.process")
 
 local M = {
 	"nvim-telescope/telescope.nvim",
@@ -34,7 +35,7 @@ local M = {
 						return false, tostring(process)
 					end
 
-					local result, wait_error = require("soul.core.helpers.process").wait(process, 120000)
+					local result, wait_error = process_helper.wait(process, 120000)
 					if not result then
 						return false, wait_error or "Build timed out after 120 seconds."
 					end
