@@ -81,13 +81,20 @@ function M.config()
 		return mini_notify(message, level, opts)
 	end
 
-	-- LuaLS can report the same workspace operation under multiple progress
-	-- tokens. Track those tokens, but render only one notification per server.
 	local progress_by_client = {}
 	local progress_by_server = {}
 	local progress_group = vim.api.nvim_create_augroup("SoulLspProgress", {
 		clear = true,
 	})
+
+	local function is_notification_active(id)
+		if not id then
+			return false
+		end
+
+		local notification = MiniNotify.get_all()[id]
+		return notification ~= nil and notification.ts_remove == nil
+	end
 
 	local function render_progress(server_name, server_state)
 		local latest
@@ -101,8 +108,13 @@ function M.config()
 		end
 
 		if not latest then
+			server_state.cleanup_generation = (server_state.cleanup_generation or 0) + 1
+			local cleanup_generation = server_state.cleanup_generation
+
 			vim.defer_fn(function()
-				if progress_by_server[server_name] ~= server_state then
+				if progress_by_server[server_name] ~= server_state
+					or server_state.cleanup_generation ~= cleanup_generation
+				then
 					return
 				end
 
@@ -112,14 +124,23 @@ function M.config()
 					end
 				end
 
-				MiniNotify.remove(server_state.notification_id)
+				if is_notification_active(server_state.notification_id) then
+					MiniNotify.remove(server_state.notification_id)
+				end
+
+				server_state.notification_id = nil
+
 				for client_id in pairs(server_state.clients) do
 					progress_by_client[client_id] = nil
 				end
+
 				progress_by_server[server_name] = nil
 			end, 1000)
 			return
 		end
+
+		-- Any new progress invalidates a pending cleanup from an older run.
+		server_state.cleanup_generation = (server_state.cleanup_generation or 0) + 1
 
 		local message = latest.title or latest.message or "Working"
 		if latest.title and latest.message and latest.message ~= latest.title then
@@ -136,13 +157,32 @@ function M.config()
 			client_name = server_name,
 		}
 
-		if server_state.notification_id then
-			MiniNotify.update(server_state.notification_id, {
+		local notification_id = server_state.notification_id
+		if is_notification_active(notification_id) then
+			local ok, err = pcall(MiniNotify.update, notification_id, {
 				msg = message,
 				data = data,
 			})
+
+			if not ok then
+				-- Recover only if the notification disappeared during the update.
+				if is_notification_active(notification_id) then
+					error(err, 0)
+				end
+
+				server_state.notification_id = nil
+			end
 		else
-			server_state.notification_id = MiniNotify.add(message, "INFO", "MiniNotifyLspProgress", data)
+			server_state.notification_id = nil
+		end
+
+		if not server_state.notification_id then
+			server_state.notification_id = MiniNotify.add(
+				message,
+				"INFO",
+				"MiniNotifyLspProgress",
+				data
+			)
 		end
 	end
 
