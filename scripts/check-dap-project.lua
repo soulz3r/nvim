@@ -62,10 +62,7 @@ local buf = vim.api.nvim_create_buf(false, true)
 vim.api.nvim_buf_set_name(buf, source_file)
 vim.api.nvim_set_current_buf(buf)
 
-assert(
-	projects.resolve_root() == inner,
-	"Project resolution must prefer the nearest registered ancestor"
-)
+assert(projects.resolve_root() == inner, "Project resolution must prefer the nearest registered ancestor")
 local entry, resolved_root = projects.current()
 assert(resolved_root == inner, "Current project returned the wrong registered root")
 assert(vim.deep_equal(entry.args, { "--from-registry" }), "Current project did not load shared launch arguments")
@@ -75,14 +72,14 @@ assert(vim.deep_equal(entry.args, { "--from-registry" }), "Current project did n
 local fallback_dir = path.normalize(temp_dir .. "/unregistered/src")
 assert(vim.fn.mkdir(fallback_dir, "p") == 1, "Could not create fallback source directory")
 local fallback_file = fallback_dir .. "/standalone.c"
-assert(vim.fn.writefile({ "int main(void) { return 0; }" }, fallback_file) == 0, "Could not create fallback source file")
+assert(
+	vim.fn.writefile({ "int main(void) { return 0; }" }, fallback_file) == 0,
+	"Could not create fallback source file"
+)
 local fallback_buf = vim.api.nvim_create_buf(false, true)
 vim.api.nvim_buf_set_name(fallback_buf, fallback_file)
 vim.api.nvim_set_current_buf(fallback_buf)
-assert(
-	projects.resolve_root() == fallback_dir,
-	"Unregistered files must fall back to their containing directory"
-)
+assert(projects.resolve_root() == fallback_dir, "Unregistered files must fall back to their containing directory")
 
 vim.fn.delete(temp_dir, "rf")
 print("DAP path and project resolution tests passed.")

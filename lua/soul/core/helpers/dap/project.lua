@@ -200,12 +200,16 @@ function M.setup(project_registry)
 		local entry = key and projects[key] or nil
 		local ok, shared = pcall(project_registry.get, root)
 
-		if ok and type(shared) == "table" and (
-			shared.dap_enabled
-			or shared.debug_executable
-			or shared.last_executable
-			or type(shared.dap_args) == "table"
-		) then
+		if
+			ok
+			and type(shared) == "table"
+			and (
+				shared.dap_enabled
+				or shared.debug_executable
+				or shared.last_executable
+				or type(shared.dap_args) == "table"
+			)
+		then
 			entry = entry or { root = root }
 			entry.executable = shared.debug_executable or shared.last_executable or entry.executable
 			if type(shared.dap_args) == "table" then

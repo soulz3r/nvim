@@ -32,11 +32,10 @@ function M.build(plugin)
 			return false, wait_error or "Build timed out after 120 seconds."
 		end
 
-		return result.code == 0,
-			table.concat({
-				result.stdout or "",
-				result.stderr or "",
-			}, "\n")
+		return result.code == 0, table.concat({
+			result.stdout or "",
+			result.stderr or "",
+		}, "\n")
 	end
 
 	local errors = {}

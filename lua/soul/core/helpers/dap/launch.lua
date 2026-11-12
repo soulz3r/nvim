@@ -118,12 +118,7 @@ function M.setup(dap, projects, args, platform, paths)
 
 			projects.save_executable(root, executable)
 			prompt_arguments(function(launch_args)
-				dap.run(make_config(
-					root,
-					executable,
-					launch_args,
-					"Launch " .. fn.fnamemodify(executable, ":t")
-				))
+				dap.run(make_config(root, executable, launch_args, "Launch " .. fn.fnamemodify(executable, ":t")))
 			end)
 		end
 

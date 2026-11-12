@@ -94,16 +94,16 @@ function M.setup(dap)
 					actions.select_default:replace(function()
 						local selection = action_state.get_selected_entry()
 						actions.close(prompt_bufnr)
-	
+
 						if selection then
 							jump_to_line(selection.value.lnum)
 						end
 					end)
-	
+
 					return true
 				end,
 			})
-		:find()
+			:find()
 	end
 
 	local function open_or_focus_repl()
