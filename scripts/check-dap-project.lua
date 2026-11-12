@@ -129,10 +129,7 @@ assert(
 	vim.deep_equal(saved_entry.args, { "--input", "sample file.c", "--verbose" }),
 	"Current project must expose the saved launch arguments"
 )
-assert(
-	saved_entry.executable == path.normalize(vim.v.progpath),
-	"Current project must expose the saved executable"
-)
+assert(saved_entry.executable == path.normalize(vim.v.progpath), "Current project must expose the saved executable")
 
 -- Cancelling project selection must leave the working directory unchanged.
 local original_cwd = vim.fn.getcwd()
