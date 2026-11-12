@@ -256,8 +256,8 @@ function M.setup()
 	local function show_notification_history()
 		local width = math.max(1, math.min(math.floor(vim.o.columns * 0.70), vim.o.columns - 4))
 		local height = math.max(1, math.min(math.floor(vim.o.lines * 0.60), vim.o.lines - 4))
-		local row = math.floor((vim.o.lines - height) / 2 - 1)
-		local col = math.floor((vim.o.columns - width) / 2)
+		local row = math.max(0, math.floor((vim.o.lines - height) / 2 - 1))
+		local col = math.max(0, math.floor((vim.o.columns - width) / 2))
 		local notifications = MiniNotify.default_sort(vim.tbl_values(MiniNotify.get_all()))
 		local lines = {}
 
