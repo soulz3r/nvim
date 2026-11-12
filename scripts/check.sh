@@ -72,6 +72,21 @@ if grep -q 'lua/soul/plugins/mini/init.lua' docs/architecture.md; then
   exit 1
 fi
 
+if ! grep -q 'GET("soul.plugins.undotree")' init.lua; then
+  echo "Undotree plugin specification must be registered from init.lua." >&2
+  exit 1
+fi
+
+if grep -q 'nvim.undotree' lua/soul/core/keymaps.lua; then
+  echo "The old undeclared Undotree package command must not return." >&2
+  exit 1
+fi
+
+if [[ -e lua/soul/plugins/oil.lua ]]; then
+  echo "The unused Oil specification conflicts with the Mini Files choice." >&2
+  exit 1
+fi
+
 if ! grep -q 'dap_args' lua/soul/lsp/dap.lua; then
   echo "DAP launch arguments must be stored in the per-project registry." >&2
   exit 1
