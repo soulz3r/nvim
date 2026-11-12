@@ -99,7 +99,7 @@ function M.setup(path, override)
 			return false, read_error
 		end
 
-		local entry = data[key] or { root = root, created_at = os.time() }
+		local entry = type(data[key]) == "table" and data[key] or { root = root, created_at = os.time() }
 		for name, value in pairs(fields) do
 			entry[name] = value
 		end
