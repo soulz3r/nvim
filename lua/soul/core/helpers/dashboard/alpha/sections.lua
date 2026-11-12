@@ -1,10 +1,53 @@
 local M = {}
 
+local function build_animation_timeline(animation)
+	local timeline = {}
+	local chars_per_tick = math.max(1, animation.chars_per_tick or 4)
+	local hold_ticks = math.max(0, animation.hold_ticks or 0)
+
+	local function push(lines)
+		timeline[#timeline + 1] = vim.deepcopy(lines)
+	end
+
+	for _, scene in ipairs(animation.scenes) do
+		local visible = { "", "", "", "", "" }
+
+		for line_index, line in ipairs(scene.lines) do
+			if line_index == scene.cursor_line then
+				local target = math.max(1, scene.cursor_target or 1)
+
+				for column = 1, target, 2 do
+					visible[line_index] = string.rep(" ", column - 1) .. "^"
+					push(visible)
+				end
+
+				visible[line_index] = string.rep(" ", target - 1) .. "^"
+				push(visible)
+			else
+				for column = 1, #line, chars_per_tick do
+					visible[line_index] = line:sub(1, math.min(column + chars_per_tick - 1, #line))
+					push(visible)
+				end
+
+				if line == "" then
+					push(visible)
+				end
+			end
+		end
+
+		for _ = 1, hold_ticks do
+			push(visible)
+		end
+	end
+
+	return timeline
+end
+
 function M.build(dashboard)
 	local icons = require("soul.core.helpers.icons")
 	local utils = require("alpha.utils")
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Header
 	---------------------------------------------------------------------------
 
@@ -26,7 +69,7 @@ function M.build(dashboard)
 		hl = utils.charhl_to_bytehl(header_hl, header),
 	}
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Buttons
 	---------------------------------------------------------------------------
 
@@ -51,7 +94,7 @@ function M.build(dashboard)
 	dashboard.section.buttons.val = vim.tbl_map(create_button, button_data.items)
 	dashboard.section.buttons.opts.hl = "Include"
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Footer
 	---------------------------------------------------------------------------
 
@@ -106,7 +149,7 @@ function M.build(dashboard)
 
 	local footer = footer_data.new(set_footer)
 
-	---------------------------------------------------------------------------
+	--------------------------------------------------------------------------- 
 	-- Layout
 	---------------------------------------------------------------------------
 
@@ -128,15 +171,16 @@ function M.build(dashboard)
 		noautocmd = true,
 	}
 
-	---------------------------------------------------------------------------
-	-- Animation frame state
+	--------------------------------------------------------------------------- 
+	-- Animation timeline
 	---------------------------------------------------------------------------
 
 	local animation_data = header_data.animation
+	local timeline = build_animation_timeline(animation_data)
 	local animation_step = 1
 
 	local function apply_animation_frame()
-		local frame = animation_data.frames[animation_step]
+		local frame = timeline[animation_step]
 		local start_line = animation_data.start_line
 
 		for index, line in ipairs(frame) do
@@ -154,7 +198,7 @@ function M.build(dashboard)
 		next_animation_frame = function()
 			animation_step = animation_step + 1
 
-			if animation_step > #animation_data.frames then
+			if animation_step > #timeline then
 				animation_step = 1
 			end
 
