@@ -9,8 +9,8 @@ function M.config()
 	local attached_clients = {}
 
 	local function has_project_status()
-		local ok, registry = pcall(require, "yap.project_registry")
-		if not ok or type(registry.status) ~= "function" then
+		local registry = package.loaded["yap.project_registry"]
+		if type(registry) ~= "table" or type(registry.status) ~= "function" then
 			project_status = ""
 			return false
 		end
