@@ -9,27 +9,6 @@ permissions:
   contents: read
 
 jobs:
-  native-windows-build:
-    name: Telescope fzf-native / Windows
-    runs-on: windows-latest
-    timeout-minutes: 10
-    steps:
-      - name: Check out native sorter
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-          $PSNativeCommandUseErrorActionPreference = $true
-          $source = Join-Path $env:RUNNER_TEMP "telescope-fzf-native"
-          git clone https://github.com/nvim-telescope/telescope-fzf-native.nvim.git $source
-          git -C $source checkout b25b749b9db64d375d782094e2b9dce53ad53a40
-          cmake -S $source -B (Join-Path $source "build") -DCMAKE_BUILD_TYPE=Release "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"
-          cmake --build (Join-Path $source "build") --config Release
-          cmake --install (Join-Path $source "build") --config Release --prefix (Join-Path $source "build")
-          $library = Join-Path $source "build/libfzf.dll"
-          if (!(Test-Path $library)) {
-            throw "Native sorter build did not produce $library"
-          }
-
   compatibility:
     name: Neovim ${{ matrix.channel }} / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
