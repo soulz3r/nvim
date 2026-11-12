@@ -44,7 +44,7 @@ local function is_runnable_powershell(path)
 		and result.code == 0
 		and tonumber(vim.trim(result.stdout or ""))
 
-	return major ~= nil and major >= 7
+	return type(major) == "number" and major >= 7
 end
 
 local function find_powershell()
