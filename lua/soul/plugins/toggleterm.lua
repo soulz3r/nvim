@@ -125,20 +125,20 @@ function M.config()
 		},
 	})
 
-	vim.cmd([[
-    augroup terminal_setup
-      autocmd!
-      autocmd TermOpen * nnoremap <buffer><LeftRelease> <LeftRelease>i
-    augroup END
-  ]])
-
-	vim.api.nvim_create_autocmd("TermEnter", {
-		callback = function()
-			vim.cmd.startinsert()
-		end,
+	local group = vim.api.nvim_create_augroup("SoulToggleTerm", {
+		clear = true,
 	})
+
 	vim.api.nvim_create_autocmd("TermOpen", {
+		group = group,
 		callback = function(ev)
+			vim.keymap.set("n", "<LeftRelease>", "<LeftRelease>i", {
+				buffer = ev.buf,
+				silent = true,
+				noremap = true,
+				desc = "Enter terminal input after mouse release",
+			})
+
 			if vim.bo[ev.buf].filetype ~= "toggleterm" then
 				return
 			end
@@ -148,6 +148,15 @@ function M.config()
 				silent = true,
 				desc = "Close terminal",
 			})
+		end,
+	})
+
+	vim.api.nvim_create_autocmd("TermEnter", {
+		group = group,
+		callback = function(ev)
+			if vim.bo[ev.buf].filetype == "toggleterm" then
+				vim.cmd.startinsert()
+			end
 		end,
 	})
 end
