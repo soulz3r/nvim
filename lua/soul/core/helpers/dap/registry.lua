@@ -37,11 +37,8 @@ local function migrate_entries(entries, project_registry, normalize, legacy_shap
 	for key, entry in pairs(entries) do
 		if type(entry) == "table" then
 			local root = normalize(entry.root or key)
-			local executable = normalize(
-				legacy_shape and entry.executable
-					or (entry.debug_executable or entry.last_executable or entry.executable)
-			)
-			local args = legacy_shape and entry.args or (entry.dap_args or entry.args)
+			local executable = normalize(legacy_shape and entry.executable or entry.debug_executable)
+			local args = legacy_shape and entry.args or entry.dap_args
 			local has_dap_data = legacy_shape or entry.dap_enabled or executable or type(args) == "table"
 
 			if root and has_dap_data then
