@@ -30,16 +30,13 @@ local function run_probe(command, deadline)
 		return
 	end
 
-	local ok, process = pcall(vim.system, command, { text = true })
+	local ok, child = pcall(vim.system, command, { text = true })
 	if not ok then
 		return
 	end
 
-	local result = process:wait(math.min(remaining, probe_timeout_ms))
-	if not result or result.code == 124 then
-		pcall(function()
-			process:kill(9)
-		end)
+	local result = require("soul.core.helpers.process").wait(child, math.min(remaining, probe_timeout_ms))
+	if not result then
 		return nil
 	end
 
