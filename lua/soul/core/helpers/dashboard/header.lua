@@ -56,9 +56,9 @@ M.animation = {
 		},
 		{
 			"  DEREFERENCE",
+			"  int *ptr = &value;",
 			"  int copy = *ptr;",
-			"              ^",
-			"              dereference",
+			"             ^",
 			"  copy is now 42",
 		},
 		{
