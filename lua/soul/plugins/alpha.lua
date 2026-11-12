@@ -15,11 +15,12 @@ function M.config()
 	end
 
 	local header_data = require("soul.core.helpers.dashboard.header")
-	local header = header_data.lines
+	local header = vim.deepcopy(header_data.lines)
 
 	dashboard.section.header.val = header
 
-	local header_hl = header_data.highlights
+	-- Alpha mutates the header while animating, so keep helper data immutable.
+	local header_hl = vim.deepcopy(header_data.highlights)
 
 	for line_number, line in ipairs(header) do
 		for i = 1, vim.fn.strchars(line) do
