@@ -77,6 +77,11 @@ if ! grep -q 'dap_args' lua/soul/lsp/dap.lua; then
   exit 1
 fi
 
+if ! grep -q 'dependencies = { "nvim-mini/mini.icons" }' lua/soul/plugins/mini.lua; then
+  echo "Mini Files must declare Mini Icons as a dependency." >&2
+  exit 1
+fi
+
 # Private Neovim APIs are not allowed in the core configuration. UI2 is the
 # sole exception and must remain isolated in the optional tiny-cmdline module.
 if grep -RInE --include='*.lua' --exclude='tiny_cmdline.lua' --exclude-dir='.git' 'vim\._' .; then
