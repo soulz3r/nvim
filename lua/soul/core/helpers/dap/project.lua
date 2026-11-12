@@ -2,7 +2,7 @@ local M = {}
 
 function M.setup(project_registry)
 	local path = require("soul.core.helpers.dap.path")
-	local store = require("soul.core.helpers.dap.project.store").setup(project_registry, path)
+	local store = require("soul.core.helpers.dap.project.store").setup(path, project_registry)
 	local resolver = require("soul.core.helpers.dap.project.resolver").setup(path, store.find_registered_ancestor)
 	local selection = require("soul.core.helpers.dap.project.selection").setup(store, resolver, path)
 
