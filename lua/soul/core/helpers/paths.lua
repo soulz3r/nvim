@@ -6,7 +6,7 @@ local fn = vim.fn
 
 local projects_dir = vim.env.PROJECTS_DIR
 M.projects = projects_dir and vim.trim(projects_dir) ~= "" and vim.trim(projects_dir)
-	or (platform.is_windows and "D:/config/projects")
+	or (platform.is_windows and "D:/projects")
 	or fn.expand("~/projects")
 
 local function find_executable(names)
