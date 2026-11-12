@@ -19,6 +19,7 @@ local platform = require("soul.core.platform")
 local paths_module = "soul.core.helpers.paths"
 local original_pwsh = vim.env.PWSH
 local original_paths = package.loaded[paths_module]
+local pwsh_on_path = platform.is_windows and vim.fn.exepath("pwsh") ~= ""
 
 -- Exercise PowerShell discovery from a clean module state. This keeps the
 -- test valid even if another smoke test starts importing paths.lua earlier.
@@ -29,12 +30,22 @@ end
 
 local resolved_paths = require(paths_module)
 
-if platform.is_windows and vim.fn.exepath("pwsh") ~= "" then
-	assert(resolved_paths.pwsh ~= "pwsh", "PWSH=pwsh must resolve to a concrete Windows executable path")
+if platform.is_windows then
+	if vim.env.REQUIRE_PWSH == "1" then
+		assert(pwsh_on_path, "PowerShell 7 must be available on PATH in this CI job")
+	end
+
+	if pwsh_on_path then
+		assert(resolved_paths.pwsh ~= "pwsh", "PWSH=pwsh must resolve to a concrete Windows executable path")
+		assert(
+			vim.fn.executable(resolved_paths.pwsh) == 1,
+			"PWSH resolver returned a path that is not executable: " .. tostring(resolved_paths.pwsh)
+		)
+	end
 end
 
 vim.env.PWSH = original_pwsh
-package.loaded[paths_module] = original_paths or resolved_paths
+package.loaded[paths_module] = original_paths
 
 require("soul.core.options")
 require("soul.core.keymaps")
