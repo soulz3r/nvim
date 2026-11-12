@@ -55,6 +55,37 @@ local function is_runnable_powershell(path)
 	return major ~= nil and major >= 7
 end
 
+local function powershell_home(path)
+	if type(path) ~= "string" or path == "" then
+		return
+	end
+
+	local ok, result = pcall(function()
+		local process = vim.system({
+			path,
+			"-NoLogo",
+			"-NoProfile",
+			"-NonInteractive",
+			"-Command",
+			"[Console]::Out.Write($PSHOME)",
+		}, { text = true })
+
+		local completed = process:wait(3000)
+		if not completed then
+			pcall(process.kill, process, 9)
+		end
+
+		return completed
+	end)
+
+	if ok and type(result) == "table" and result.code == 0 then
+		local home = vim.trim(result.stdout or "")
+		if home ~= "" then
+			return home
+		end
+	end
+end
+
 local function find_powershell()
 	local candidates = {}
 	local seen = {}
@@ -72,8 +103,27 @@ local function find_powershell()
 	end
 
 	add_candidate(vim.env.PWSH)
-	add_candidate(fn.exepath("pwsh"))
-	add_candidate(fn.exepath("pwsh.exe"))
+
+	-- Store-installed PowerShell lives in a versioned WindowsApps package
+	-- directory. Prefer PSHOME when Neovim inherited it from PowerShell.
+	if platform.is_windows and vim.env.PSHOME then
+		add_candidate(vim.env.PSHOME .. "/pwsh.exe")
+	end
+
+	local pwsh = fn.exepath("pwsh")
+	local pwsh_exe = fn.exepath("pwsh.exe")
+	add_candidate(pwsh)
+	add_candidate(pwsh_exe)
+
+	-- The WindowsApps command alias can launch PowerShell but is not itself
+	-- accepted by termopen(). Ask it for the real package executable instead.
+	if platform.is_windows then
+		local alias = pwsh ~= "" and pwsh or pwsh_exe
+		local home = powershell_home(alias)
+		if home then
+			add_candidate(home .. "/pwsh.exe")
+		end
+	end
 
 	if platform.is_windows then
 		-- where.exe may list package-specific aliases that cannot be spawned.
