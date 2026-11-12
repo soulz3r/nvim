@@ -229,14 +229,24 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 			add_range(ranges, "AlphaCodeNumber", line_number, number_start - 1, number_end)
 		end
 
-		local operator_start, operator_end = line:find("[@=*%-]+")
-		if operator_start then
+		local operator_search = 1
+		while true do
+			local operator_start, operator_end = line:find("[@=*%-]+", operator_search)
+			if not operator_start then
+				break
+			end
 			add_range(ranges, "AlphaCodeOperator", line_number, operator_start - 1, operator_end)
+			operator_search = operator_end + 1
 		end
 
-		local arrow_start, arrow_end = line:find("%-%>")
-		if arrow_start then
+		local arrow_search = 1
+		while true do
+			local arrow_start, arrow_end = line:find("%-%>", arrow_search)
+			if not arrow_start then
+				break
+			end
 			add_range(ranges, "AlphaCodeOperator", line_number, arrow_start - 1, arrow_end)
+			arrow_search = arrow_end + 1
 		end
 		return
 	end
