@@ -102,7 +102,12 @@ local M = {
 
 						local cleaned, cleanup_error = clean_build()
 						if not cleaned then
-							table.insert(errors, cleanup_error)
+							error(
+								table.concat(errors, "\n\n")
+									.. "\n\n"
+									.. cleanup_error
+									.. "\nRefusing to continue with a potentially stale native build directory."
+							)
 						end
 					end
 				end
