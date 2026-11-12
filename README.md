@@ -41,7 +41,7 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - Neovide 0.16+ (optional; required for all configured GUI options)
 - `ripgrep` (`rg`) for live grep
 - `fd` for file discovery
-- `make` and a C compiler for `telescope-fzf-native.nvim`; on Windows, CMake is also supported as a fallback
+- A C compiler for `telescope-fzf-native.nvim`; Windows builds prefer CMake/Visual Studio and fall back to Make or LLVM Clang
 
 ### Language tools
 

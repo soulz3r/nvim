@@ -116,6 +116,44 @@ local M = {
           table.insert(errors, "GNU Make was not found.")
         end
 
+        -- Last-resort Windows path for LLVM-only setups without Make/CMake.
+        if windows then
+          local cleaned, cleanup_error = clean_build()
+          if not cleaned then
+            table.insert(errors, cleanup_error)
+          else
+            fn.mkdir(build_dir, "p")
+
+            local clang_cl = fn.exepath("clang-cl")
+            if clang_cl ~= "" then
+              local ok, output = run({
+                clang_cl,
+                "/nologo", "/O2", "/W4", "/MT", "/LD", "/std:c11",
+                "src/fzf.c", "/Fe:build/libfzf.dll",
+              })
+
+              if ok and vim.uv.fs_stat(library) then
+                return
+              end
+              table.insert(errors, "clang-cl build failed:\n" .. output)
+            end
+
+            local clang = paths.clang or fn.exepath("clang")
+            if clang and clang ~= "" then
+              local ok, output = run({
+                clang,
+                "-O3", "-Wall", "-fpic", "-std=gnu99", "-shared",
+                "src/fzf.c", "-o", "build/libfzf.dll",
+              })
+
+              if ok and vim.uv.fs_stat(library) then
+                return
+              end
+              table.insert(errors, "Clang build failed:\n" .. output)
+            end
+          end
+        end
+
         error(
           "Could not build telescope-fzf-native.nvim.\n"
             .. table.concat(errors, "\n\n")
