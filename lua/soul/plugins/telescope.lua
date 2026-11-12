@@ -44,7 +44,7 @@ local M = {
           return result.code == 0, table.concat({
             result.stdout or "",
             result.stderr or "",
-          }, "\\n")
+          }, "\n")
         end
 
         local errors = {}
@@ -78,12 +78,12 @@ local M = {
                 if install_ok and vim.uv.fs_stat(library) then
                   return
                 end
-                table.insert(errors, "CMake install failed:\\n" .. install_output)
+                table.insert(errors, "CMake install failed:\n" .. install_output)
               else
-                table.insert(errors, "CMake build failed:\\n" .. build_output)
+                table.insert(errors, "CMake build failed:\n" .. build_output)
               end
             else
-              table.insert(errors, "CMake configure failed:\\n" .. configure_output)
+              table.insert(errors, "CMake configure failed:\n" .. configure_output)
             end
 
             local cleaned, cleanup_error = clean_build()
@@ -111,15 +111,15 @@ local M = {
           if make_ok and vim.uv.fs_stat(library) then
             return
           end
-          table.insert(errors, "Make build failed:\\n" .. make_output)
+          table.insert(errors, "Make build failed:\n" .. make_output)
         else
           table.insert(errors, "GNU Make was not found.")
         end
 
         error(
-          "Could not build telescope-fzf-native.nvim.\\n"
-            .. table.concat(errors, "\\n\\n")
-            .. "\\nInstall a C compiler and Make, or CMake with Visual Studio Build Tools on Windows. "
+          "Could not build telescope-fzf-native.nvim.\n"
+            .. table.concat(errors, "\n\n")
+            .. "\nInstall a C compiler and Make, or CMake with Visual Studio Build Tools on Windows. "
             .. "Then run :Lazy build telescope-fzf-native.nvim."
         )
       end,
