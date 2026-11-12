@@ -13,7 +13,6 @@ function M.config()
 
     disabled_filetypes = { "alpha" },
 
-    disabled_buftypes = { "alpha" },
 
     default_keymaps = true,
   }
