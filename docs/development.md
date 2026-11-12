@@ -36,4 +36,27 @@ Lua source uses hard tabs with a display width of four, as defined in `.stylua.t
 
 ## Checks
 
-Run `bash scripts/check.sh` for JSON validation, lockfile validation, regression guards for known configuration invariants, deprecated/private API scans, Lua syntax checks, and a headless core/plugin-spec smoke test. Use `stylua .` to apply the repository formatting rules from `.stylua.toml`; CI checks formatting for files touched by the core maintenance workflow. GitHub Actions runs these checks against the latest Neovim stable release and nightly build on Windows and Linux. The smoke test does not install or execute third-party plugin configurations, so it cannot replace interactive checks of plugin behavior.
+Run `bash scripts/check.sh` for JSON and lockfile validation, regression guards, deprecated/private API scans, Lua syntax checks, full-repository StyLua validation (when StyLua is installed), and headless Neovim smoke/integration tests. Set `REQUIRE_LUA=1`, `REQUIRE_NVIM=1`, and `REQUIRE_STYLUA=1` in environments where all three tools must be present. Use `stylua .` to apply the formatting rules from `.stylua.toml`.
+
+The headless integration test exercises the custom DAP plugin configuration with stubbed external plugin APIs and tests the shared floating-output window lifecycle. It verifies our integration contracts without downloading plugins. It does not prove that LLDB, language servers, Telescope, Mini Files, ToggleTerm, or Neovide work on a particular machine.
+
+GitHub Actions checks Neovim stable and nightly on Windows and Linux, plus stable Neovim on macOS. Windows CI prints the PowerShell resolver duration when profiling is enabled. The resolver checks an inherited `PSHOME` executable before running slower WindowsApps and AppX discovery probes.
+
+## DAP module boundaries
+
+The DAP entry point currently owns adapter setup, project selection, registry synchronization, launch lifecycle, UI lifecycle, and REPL mappings. These pieces share session and selected-project state, so splitting them solely to reduce file length would add module boundaries without removing meaningful coupling. The argument parser is already extracted as a small independently tested helper. Extract project discovery or REPL behavior only when it gains a stable interface and direct tests.
+
+## Manual platform checks
+
+Headless CI cannot exercise a user's terminal emulator, external toolchain, clipboard, or GUI. Run the relevant checks on each platform you actually use:
+
+| Platform | Manual checks |
+|---|---|
+| Windows | PowerShell 7 resolution and ToggleTerm; clangd; LLDB DAP; C build/run; clipboard |
+| WSL | Linux shell and compiler; Windows clipboard bridge; projects under the mounted Windows filesystem; LLDB DAP |
+| Linux | Native shell and clipboard; clangd; LLDB DAP; C build/run; Mini Files and terminal behavior |
+| macOS | POSIX shell; available compiler/debugger; clipboard; C build/run |
+| Termux | Platform detection; available shell/compiler; project paths and terminal behavior |
+| Neovide | GUI startup, font, transparency, borders, cursor/scroll behavior, and window lifecycle |
+
+Do not treat a platform as tested merely because its configuration module imports successfully. Record unavailable external tools as untested rather than silently counting them as passes.

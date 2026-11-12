@@ -10,15 +10,17 @@ The configuration checks its Neovim minimum at startup and stops with a clear er
 
 ## Compatibility checks
 
-The GitHub Actions workflow tests the latest Neovim stable release and nightly build. It runs:
+The GitHub Actions workflow tests the latest Neovim stable release and nightly build on Windows and Linux, and the stable release on macOS. It runs:
 
 1. Lua 5.1 syntax parsing for every repository Lua file.
 2. JSON validation for the plugin lockfile and LuaLS settings.
 3. A static scan for known deprecated Neovim APIs.
 4. A static rule that keeps private Neovim APIs out of the core configuration.
 5. A headless Neovim smoke test that loads core modules and every plugin specification without bootstrapping plugins or accessing the network.
+6. A headless integration test for the custom DAP setup and floating-output window lifecycle, using controlled stubs for external plugin APIs.
+7. A full-repository StyLua formatting check.
 
-These checks catch syntax errors, removed core APIs, and broken module imports. They cannot prove that every external plugin, language server, terminal, operating system, or graphical Neovide session works. Those still need real-world testing.
+These checks catch syntax errors, removed core APIs, broken module imports, and regressions in the configuration's integration contracts. They cannot prove that every external plugin, language server, terminal, clipboard provider, debugger installation, or graphical Neovide session works. Those still need real-world testing on the platforms actually used.
 
 ## Experimental UI2 integration
 

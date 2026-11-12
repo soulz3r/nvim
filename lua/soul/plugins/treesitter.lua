@@ -100,9 +100,7 @@ function M.config()
 		end
 
 		for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-			if vim.api.nvim_buf_is_loaded(buf)
-				and vim.tbl_contains(filetypes, vim.bo[buf].filetype)
-			then
+			if vim.api.nvim_buf_is_loaded(buf) and vim.tbl_contains(filetypes, vim.bo[buf].filetype) then
 				start_buffer(buf)
 			end
 		end

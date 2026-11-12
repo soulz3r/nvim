@@ -50,9 +50,7 @@ M.config = function()
 	end
 
 	local function is_executable(path)
-		return type(path) == "string"
-			and path ~= ""
-			and fn.executable(path) == 1
+		return type(path) == "string" and path ~= "" and fn.executable(path) == 1
 	end
 
 	local function is_within(path, root)
@@ -97,10 +95,7 @@ M.config = function()
 
 		local raw_data, read_error = read_json(path)
 		if not raw_data then
-			vim.notify(
-				"Could not migrate DAP registry (" .. read_error .. "):\n" .. path,
-				vim.log.levels.ERROR
-			)
+			vim.notify("Could not migrate DAP registry (" .. read_error .. "):\n" .. path, vim.log.levels.ERROR)
 			return
 		end
 
@@ -122,10 +117,7 @@ M.config = function()
 					local ok, saved = pcall(project_registry.update, root, fields)
 					if not ok or saved ~= true then
 						failed = true
-						vim.notify(
-							"Could not migrate DAP project metadata for:\n" .. root,
-							vim.log.levels.ERROR
-						)
+						vim.notify("Could not migrate DAP project metadata for:\n" .. root, vim.log.levels.ERROR)
 					end
 				end
 			end
@@ -145,8 +137,7 @@ M.config = function()
 		local moved, move_error = vim.uv.fs_rename(path, backup)
 		if not moved then
 			vim.notify(
-				"Imported DAP settings, but could not move the old registry to a backup:\n"
-					.. tostring(move_error),
+				"Imported DAP settings, but could not move the old registry to a backup:\n" .. tostring(move_error),
 				vim.log.levels.WARN
 			)
 			return
@@ -180,10 +171,7 @@ M.config = function()
 	local function load_projects()
 		local ok, entries = pcall(project_registry.list)
 		if not ok or type(entries) ~= "table" then
-			vim.notify(
-				"Could not read the YAP project registry: " .. tostring(entries),
-				vim.log.levels.ERROR
-			)
+			vim.notify("Could not read the YAP project registry: " .. tostring(entries), vim.log.levels.ERROR)
 			return {}
 		end
 
@@ -233,8 +221,7 @@ M.config = function()
 		local ok, saved = pcall(project_registry.update, root, fields)
 		if not ok or saved ~= true then
 			vim.notify(
-				"Could not save DAP project metadata for:\n" .. root
-					.. (not ok and ("\n" .. tostring(saved)) or ""),
+				"Could not save DAP project metadata for:\n" .. root .. (not ok and ("\n" .. tostring(saved)) or ""),
 				vim.log.levels.ERROR
 			)
 			return nil
@@ -371,7 +358,9 @@ M.config = function()
 		local entry = key and projects[key] or nil
 		local ok, shared = pcall(project_registry.get, root)
 
-		if ok and type(shared) == "table"
+		if
+			ok
+			and type(shared) == "table"
 			and (
 				shared.dap_enabled
 				or shared.debug_executable
@@ -444,9 +433,7 @@ M.config = function()
 
 				if kind == "file" then
 					add(path)
-				elseif recursive and kind == "directory"
-					and depth < 3 and not ignored_directories[name]
-				then
+				elseif recursive and kind == "directory" and depth < 3 and not ignored_directories[name] then
 					scan(path, depth + 1, true)
 				end
 			end
@@ -468,13 +455,9 @@ M.config = function()
 			local function rank(path)
 				local lower = path:lower()
 
-				if lower:find("/bin/", 1, true)
-					or lower:find("\\bin\\", 1, true)
-				then
+				if lower:find("/bin/", 1, true) or lower:find("\\bin\\", 1, true) then
 					return 1
-				elseif lower:find("/build/", 1, true)
-					or lower:find("\\build\\", 1, true)
-				then
+				elseif lower:find("/build/", 1, true) or lower:find("\\build\\", 1, true) then
 					return 2
 				end
 
@@ -517,10 +500,7 @@ M.config = function()
 		end)
 
 		if #entries == 0 then
-			vim.notify(
-				"No saved DAP projects were found in the YAP project registry.",
-				vim.log.levels.WARN
-			)
+			vim.notify("No saved DAP projects were found in the YAP project registry.", vim.log.levels.WARN)
 			return
 		end
 
@@ -541,10 +521,7 @@ M.config = function()
 			local entry = entries[index]
 
 			if fn.isdirectory(entry.root) ~= 1 then
-				vim.notify(
-					"Project directory does not exist:\n" .. entry.root,
-					vim.log.levels.ERROR
-				)
+				vim.notify("Project directory does not exist:\n" .. entry.root, vim.log.levels.ERROR)
 				return
 			end
 
@@ -563,7 +540,8 @@ M.config = function()
 			end
 
 			vim.notify(
-				"Selected project:\n" .. entry.root
+				"Selected project:\n"
+					.. entry.root
 					.. "\nExecutable: "
 					.. (entry.executable and entry.executable ~= "" and entry.executable or "Not configured"),
 				vim.log.levels.INFO,
@@ -576,10 +554,7 @@ M.config = function()
 		local entry, root = current_project()
 
 		if not entry or not root then
-			vim.notify(
-				"Could not resolve the current project's root.",
-				vim.log.levels.ERROR
-			)
+			vim.notify("Could not resolve the current project's root.", vim.log.levels.ERROR)
 			return
 		end
 
@@ -598,10 +573,7 @@ M.config = function()
 			local executable = normalize(input)
 
 			if not is_executable(executable) then
-				vim.notify(
-					"Executable not found:\n" .. tostring(executable),
-					vim.log.levels.ERROR
-				)
+				vim.notify("Executable not found:\n" .. tostring(executable), vim.log.levels.ERROR)
 				return
 			end
 
@@ -609,11 +581,7 @@ M.config = function()
 				return
 			end
 
-			vim.notify(
-				"Executable saved for:\n" .. root .. "\n" .. executable,
-				vim.log.levels.INFO,
-				{ title = "DAP" }
-			)
+			vim.notify("Executable saved for:\n" .. root .. "\n" .. executable, vim.log.levels.INFO, { title = "DAP" })
 		end)
 	end
 
@@ -647,8 +615,7 @@ M.config = function()
 
 		if not ok or saved ~= true then
 			vim.notify(
-				"Could not save launch arguments for project:\n" .. root
-					.. (not ok and ("\n" .. tostring(saved)) or ""),
+				"Could not save launch arguments for project:\n" .. root .. (not ok and ("\n" .. tostring(saved)) or ""),
 				vim.log.levels.ERROR
 			)
 			return false
@@ -665,10 +632,7 @@ M.config = function()
 		local entry, root = current_project()
 
 		if not entry or not root then
-			vim.notify(
-				"Could not resolve a project for launch arguments.",
-				vim.log.levels.ERROR
-			)
+			vim.notify("Could not resolve a project for launch arguments.", vim.log.levels.ERROR)
 			return
 		end
 
@@ -732,8 +696,7 @@ M.config = function()
 		end
 
 		vim.notify(
-			#candidates > 1
-				and "Multiple executables found. Use <leader>dc to choose one."
+			#candidates > 1 and "Multiple executables found. Use <leader>dc to choose one."
 				or "No executable found for this project. Use <leader>de to configure one.",
 			vim.log.levels.WARN
 		)
@@ -889,31 +852,20 @@ M.config = function()
 		local entry, root = current_project()
 
 		if not entry or not root then
-			vim.notify(
-				"Could not resolve a project for the current file.",
-				vim.log.levels.ERROR
-			)
+			vim.notify("Could not resolve a project for the current file.", vim.log.levels.ERROR)
 			return
 		end
 
 		local function launch(executable)
 			if not is_executable(executable) then
-				vim.notify(
-					"Executable not found:\n" .. tostring(executable),
-					vim.log.levels.ERROR
-				)
+				vim.notify("Executable not found:\n" .. tostring(executable), vim.log.levels.ERROR)
 				return
 			end
 
 			save_project(root, executable)
 
 			prompt_arguments(function(args)
-				local config = make_launch_config(
-					root,
-					executable,
-					args,
-					"Launch " .. fn.fnamemodify(executable, ":t")
-				)
+				local config = make_launch_config(root, executable, args, "Launch " .. fn.fnamemodify(executable, ":t"))
 
 				dap.run(config)
 			end)
@@ -972,10 +924,7 @@ M.config = function()
 		local callback = dap[name]
 
 		if type(callback) ~= "function" then
-			vim.notify(
-				"nvim-dap does not provide dap." .. name,
-				vim.log.levels.ERROR
-			)
+			vim.notify("nvim-dap does not provide dap." .. name, vim.log.levels.ERROR)
 			return
 		end
 
@@ -988,9 +937,7 @@ M.config = function()
 
 	local function get_repl_buffer()
 		for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-			if vim.api.nvim_buf_is_valid(buf)
-				and vim.bo[buf].filetype == "dap-repl"
-			then
+			if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == "dap-repl" then
 				return buf
 			end
 		end
@@ -1030,9 +977,7 @@ M.config = function()
 			end
 
 			for _, win in ipairs(vim.api.nvim_list_wins()) do
-				if vim.api.nvim_win_is_valid(win)
-					and vim.api.nvim_win_get_buf(win) == repl_buf
-				then
+				if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == repl_buf then
 					vim.api.nvim_set_current_win(win)
 					vim.api.nvim_win_set_cursor(win, { line_number, 0 })
 					return
@@ -1064,33 +1009,35 @@ M.config = function()
 		local actions = require("telescope.actions")
 		local action_state = require("telescope.actions.state")
 
-		pickers.new({}, {
-			prompt_title = "DAP REPL",
-			finder = finders.new_table({
-				results = entries,
-				entry_maker = function(entry)
-					return {
-						value = entry,
-						display = string.format("%4d  %s", entry.lnum, entry.line),
-						ordinal = entry.line,
-						lnum = entry.lnum,
-					}
+		pickers
+			.new({}, {
+				prompt_title = "DAP REPL",
+				finder = finders.new_table({
+					results = entries,
+					entry_maker = function(entry)
+						return {
+							value = entry,
+							display = string.format("%4d  %s", entry.lnum, entry.line),
+							ordinal = entry.line,
+							lnum = entry.lnum,
+						}
+					end,
+				}),
+				sorter = conf.generic_sorter({}),
+				attach_mappings = function(prompt_bufnr)
+					actions.select_default:replace(function()
+						local selection = action_state.get_selected_entry()
+						actions.close(prompt_bufnr)
+
+						if selection then
+							jump_to_line(selection.value.lnum)
+						end
+					end)
+
+					return true
 				end,
-			}),
-			sorter = conf.generic_sorter({}),
-			attach_mappings = function(prompt_bufnr)
-				actions.select_default:replace(function()
-					local selection = action_state.get_selected_entry()
-					actions.close(prompt_bufnr)
-
-					if selection then
-						jump_to_line(selection.value.lnum)
-					end
-				end)
-
-				return true
-			end,
-		}):find()
+			})
+			:find()
 	end
 
 	local function open_or_focus_repl()
@@ -1098,9 +1045,7 @@ M.config = function()
 
 		if repl_buf then
 			for _, win in ipairs(vim.api.nvim_list_wins()) do
-				if vim.api.nvim_win_is_valid(win)
-					and vim.api.nvim_win_get_buf(win) == repl_buf
-				then
+				if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == repl_buf then
 					vim.api.nvim_set_current_win(win)
 					return
 				end

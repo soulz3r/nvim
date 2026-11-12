@@ -34,11 +34,7 @@ function M.build(dashboard)
 
 	local function create_button(item)
 		local icon = icons[item.icon_group][item.icon]
-		local button = dashboard.button(
-			item.key,
-			icon .. " " .. item.label,
-			item.command
-		)
+		local button = dashboard.button(item.key, icon .. " " .. item.label, item.command)
 
 		button.opts.hl_shortcut = "Include"
 		button.opts.hl = {

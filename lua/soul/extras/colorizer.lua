@@ -4,7 +4,7 @@ local M = {
 }
 
 function M.config()
-	require("colorizer").setup {
+	require("colorizer").setup({
 		filetypes = {
 			"typescript",
 			"typescriptreact",
@@ -22,7 +22,7 @@ function M.config()
 			tailwind = "both",
 		},
 		buftypes = {},
-	}
+	})
 end
 
 return M

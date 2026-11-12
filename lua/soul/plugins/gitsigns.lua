@@ -13,8 +13,8 @@ M.config = function()
 		desc = "Select Git hunk",
 	})
 
-	local wk = require "which-key"
-	wk.add {
+	local wk = require("which-key")
+	wk.add({
 		{ "<leader>gj", "<cmd>lua require 'gitsigns'.next_hunk({navigation_message = false})<cr>", desc = "Next Hunk" },
 		{ "<leader>gk", "<cmd>lua require 'gitsigns'.prev_hunk({navigation_message = false})<cr>", desc = "Prev Hunk" },
 		{ "<leader>gp", "<cmd>lua require 'gitsigns'.preview_hunk()<cr>", desc = "Preview Hunk" },
@@ -24,9 +24,9 @@ M.config = function()
 		{ "<leader>gs", "<cmd>lua require 'gitsigns'.stage_hunk()<cr>", desc = "Stage Hunk" },
 		{ "<leader>gu", "<cmd>lua require 'gitsigns'.undo_stage_hunk()<cr>", desc = "Undo Stage Hunk" },
 		{ "<leader>gd", "<cmd>Gitsigns diffthis HEAD<cr>", desc = "Git Diff" },
-	}
+	})
 
-	require("gitsigns").setup {
+	require("gitsigns").setup({
 		signs = {
 
 			add = {
@@ -75,7 +75,7 @@ M.config = function()
 			row = 0,
 			col = 1,
 		},
-	}
+	})
 end
 
 return M

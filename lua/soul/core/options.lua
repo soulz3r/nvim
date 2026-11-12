@@ -105,4 +105,3 @@ if platform.is_windows then
 	vim.opt.shellquote = ""
 	vim.opt.shellxquote = ""
 end
-

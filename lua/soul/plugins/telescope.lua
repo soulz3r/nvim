@@ -18,7 +18,8 @@ local M = {
 				local function clean_build()
 					local result = fn.delete(build_dir, "rf")
 					if result ~= 0 and vim.uv.fs_stat(build_dir) then
-						return false, "Could not remove the previous native build directory. Restart Neovim before rebuilding."
+						return false,
+							"Could not remove the previous native build directory. Restart Neovim before rebuilding."
 					end
 					return true
 				end
@@ -41,10 +42,11 @@ local M = {
 						return false, "Build timed out after 120 seconds."
 					end
 
-					return result.code == 0, table.concat({
-						result.stdout or "",
-						result.stderr or "",
-					}, "\n")
+					return result.code == 0,
+						table.concat({
+							result.stdout or "",
+							result.stderr or "",
+						}, "\n")
 				end
 
 				local errors = {}
@@ -59,7 +61,11 @@ local M = {
 					local cmake = fn.exepath("cmake")
 					if cmake ~= "" then
 						local configure_ok, configure_output = run({
-							cmake, "-S", ".", "-B", "build",
+							cmake,
+							"-S",
+							".",
+							"-B",
+							"build",
 							"-DCMAKE_BUILD_TYPE=Release",
 							"-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
 							"-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
@@ -67,12 +73,22 @@ local M = {
 
 						if configure_ok then
 							local build_ok, build_output = run({
-								cmake, "--build", "build", "--config", "Release",
+								cmake,
+								"--build",
+								"build",
+								"--config",
+								"Release",
 							})
 
 							if build_ok then
 								local install_ok, install_output = run({
-									cmake, "--install", "build", "--config", "Release", "--prefix", "build",
+									cmake,
+									"--install",
+									"build",
+									"--config",
+									"Release",
+									"--prefix",
+									"build",
 								})
 
 								if install_ok and vim.uv.fs_stat(library) then
@@ -128,8 +144,14 @@ local M = {
 						if clang_cl ~= "" then
 							local ok, output = run({
 								clang_cl,
-								"/nologo", "/O2", "/W4", "/MT", "/LD", "/std:c11",
-								"src/fzf.c", "/Fe:build/libfzf.dll",
+								"/nologo",
+								"/O2",
+								"/W4",
+								"/MT",
+								"/LD",
+								"/std:c11",
+								"src/fzf.c",
+								"/Fe:build/libfzf.dll",
 							})
 
 							if ok and vim.uv.fs_stat(library) then
@@ -142,8 +164,14 @@ local M = {
 						if clang and clang ~= "" then
 							local ok, output = run({
 								clang,
-								"-O3", "-Wall", "-fpic", "-std=gnu99", "-shared",
-								"src/fzf.c", "-o", "build/libfzf.dll",
+								"-O3",
+								"-Wall",
+								"-fpic",
+								"-std=gnu99",
+								"-shared",
+								"src/fzf.c",
+								"-o",
+								"build/libfzf.dll",
 							})
 
 							if ok and vim.uv.fs_stat(library) then
@@ -168,7 +196,6 @@ local M = {
 }
 
 function M.config()
-
 	local telescope = require("telescope")
 	local actions = require("telescope.actions")
 	local actions_layout = require("telescope.actions.layout")
@@ -397,175 +424,53 @@ function M.config()
 
 	local keymap = vim.keymap.set
 
-	keymap(
-		"n",
-		"<leader>fb",
-		"<cmd>Telescope buffers previewer=false<CR>",
-		OPTS("Buffers")
-	)
+	keymap("n", "<leader>fb", "<cmd>Telescope buffers previewer=false<CR>", OPTS("Buffers"))
 
-	keymap(
-		"n",
-		"<leader>fC",
-		"<cmd>Telescope colorscheme<CR>",
-		OPTS("Colorscheme")
-	)
+	keymap("n", "<leader>fC", "<cmd>Telescope colorscheme<CR>", OPTS("Colorscheme"))
 
-	keymap(
-		"n",
-		"<leader>ff",
-		"<cmd>Telescope find_files<CR>",
-		OPTS("Find Files")
-	)
+	keymap("n", "<leader>ff", "<cmd>Telescope find_files<CR>", OPTS("Find Files"))
 
-	keymap(
-		"n",
-		"<leader>ft",
-		"<cmd>Telescope live_grep<CR>",
-		OPTS("Live Grep")
-	)
+	keymap("n", "<leader>ft", "<cmd>Telescope live_grep<CR>", OPTS("Live Grep"))
 
-	keymap(
-		"n",
-		"<leader>fh",
-		"<cmd>Telescope help_tags<CR>",
-		OPTS("Help")
-	)
+	keymap("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", OPTS("Help"))
 
-	keymap(
-		"n",
-		"<leader>fr",
-		"<cmd>Telescope resume<CR>",
-		OPTS("Resume")
-	)
+	keymap("n", "<leader>fr", "<cmd>Telescope resume<CR>", OPTS("Resume"))
 
-	keymap(
-		"n",
-		"<leader>fo",
-		"<cmd>Telescope oldfiles<CR>",
-		OPTS("Recent Files")
-	)
+	keymap("n", "<leader>fo", "<cmd>Telescope oldfiles<CR>", OPTS("Recent Files"))
 
-	keymap(
-		"n",
-		"<leader>flr",
-		"<cmd>Telescope lsp_references<CR>",
-		OPTS("LSP References")
-	)
+	keymap("n", "<leader>flr", "<cmd>Telescope lsp_references<CR>", OPTS("LSP References"))
 
-	keymap(
-		"n",
-		"<leader>fld",
-		"<cmd>Telescope lsp_definitions<CR>",
-		OPTS("LSP Definitions")
-	)
+	keymap("n", "<leader>fld", "<cmd>Telescope lsp_definitions<CR>", OPTS("LSP Definitions"))
 
-	keymap(
-		"n",
-		"<leader>flD",
-		"<cmd>Telescope lsp_declarations<CR>",
-		OPTS("LSP Declarations")
-	)
+	keymap("n", "<leader>flD", "<cmd>Telescope lsp_declarations<CR>", OPTS("LSP Declarations"))
 
-	keymap(
-		"n",
-		"<leader>fli",
-		"<cmd>Telescope lsp_implementations<CR>",
-		OPTS("LSP Implementations")
-	)
+	keymap("n", "<leader>fli", "<cmd>Telescope lsp_implementations<CR>", OPTS("LSP Implementations"))
 
-	keymap(
-		"n",
-		"<leader>flt",
-		"<cmd>Telescope lsp_type_definitions<CR>",
-		OPTS("LSP Type Definitions")
-	)
+	keymap("n", "<leader>flt", "<cmd>Telescope lsp_type_definitions<CR>", OPTS("LSP Type Definitions"))
 
-	keymap(
-		"n",
-		"<leader>fgb",
-		"<cmd>Telescope git_branches<CR>",
-		OPTS("Git Branches")
-	)
+	keymap("n", "<leader>fgb", "<cmd>Telescope git_branches<CR>", OPTS("Git Branches"))
 
-	keymap(
-		"n",
-		"<leader>fgc",
-		"<cmd>Telescope git_commits<CR>",
-		OPTS("Git Commits")
-	)
+	keymap("n", "<leader>fgc", "<cmd>Telescope git_commits<CR>", OPTS("Git Commits"))
 
-	keymap(
-		"n",
-		"<leader>fgs",
-		"<cmd>Telescope git_status<CR>",
-		OPTS("Git Status")
-	)
+	keymap("n", "<leader>fgs", "<cmd>Telescope git_status<CR>", OPTS("Git Status"))
 
-	keymap(
-		"n",
-		"<leader>fgS",
-		"<cmd>Telescope git_stash<CR>",
-		OPTS("Git Stash")
-	)
+	keymap("n", "<leader>fgS", "<cmd>Telescope git_stash<CR>", OPTS("Git Stash"))
 
-	keymap(
-		"n",
-		"<leader>fgf",
-		"<cmd>Telescope git_files<CR>",
-		OPTS("Git Files")
-	)
+	keymap("n", "<leader>fgf", "<cmd>Telescope git_files<CR>", OPTS("Git Files"))
 
-	keymap(
-		"n",
-		"<leader>fgB",
-		"<cmd>Telescope git_bcommits<CR>",
-		OPTS("Git Buffer Commits")
-	)
+	keymap("n", "<leader>fgB", "<cmd>Telescope git_bcommits<CR>", OPTS("Git Buffer Commits"))
 
-	keymap(
-		"n",
-		"<leader>fs",
-		"<cmd>Telescope treesitter<CR>",
-		OPTS("Treesitter Symbols")
-	)
+	keymap("n", "<leader>fs", "<cmd>Telescope treesitter<CR>", OPTS("Treesitter Symbols"))
 
-	keymap(
-		"n",
-		"<leader>fx",
-		"<cmd>Telescope diagnostics<CR>",
-		OPTS("Diagnostics")
-	)
+	keymap("n", "<leader>fx", "<cmd>Telescope diagnostics<CR>", OPTS("Diagnostics"))
 
-	keymap(
-		"n",
-		"<leader>fch",
-		"<cmd>Telescope command_history<CR>",
-		OPTS("Command History")
-	)
+	keymap("n", "<leader>fch", "<cmd>Telescope command_history<CR>", OPTS("Command History"))
 
-	keymap(
-		"n",
-		"<leader>fcc",
-		"<cmd>Telescope commands<CR>",
-		OPTS("Commands")
-	)
+	keymap("n", "<leader>fcc", "<cmd>Telescope commands<CR>", OPTS("Commands"))
 
-	keymap(
-		"n",
-		"<leader>fy",
-		"<cmd>Telescope registers<CR>",
-		OPTS("Registers")
-	)
+	keymap("n", "<leader>fy", "<cmd>Telescope registers<CR>", OPTS("Registers"))
 
-	keymap(
-		"n",
-		"<leader>fm",
-		"<cmd>Telescope marks<CR>",
-		OPTS("Marks")
-	)
-
-
+	keymap("n", "<leader>fm", "<cmd>Telescope marks<CR>", OPTS("Marks"))
 end
 
 return M

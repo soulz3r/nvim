@@ -74,10 +74,7 @@ function M.setup()
 			return
 		end
 
-		if level ~= vim.log.levels.ERROR
-			and level ~= vim.log.levels.WARN
-			and level ~= vim.log.levels.INFO
-		then
+		if level ~= vim.log.levels.ERROR and level ~= vim.log.levels.WARN and level ~= vim.log.levels.INFO then
 			return
 		end
 
@@ -115,7 +112,8 @@ function M.setup()
 			local cleanup_generation = server_state.cleanup_generation
 
 			vim.defer_fn(function()
-				if progress_by_server[server_name] ~= server_state
+				if
+					progress_by_server[server_name] ~= server_state
 					or server_state.cleanup_generation ~= cleanup_generation
 				then
 					return
@@ -178,12 +176,7 @@ function M.setup()
 		end
 
 		if not server_state.notification_id then
-			server_state.notification_id = MiniNotify.add(
-				message,
-				"INFO",
-				"MiniNotifyLspProgress",
-				data
-			)
+			server_state.notification_id = MiniNotify.add(message, "INFO", "MiniNotifyLspProgress", data)
 		end
 	end
 

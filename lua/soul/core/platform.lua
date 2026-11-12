@@ -31,10 +31,7 @@ M.is_wsl = is_linux_kernel
 	)
 M.is_termux = is_linux_kernel
 	and not M.is_wsl
-	and (
-		present(vim.env.TERMUX_VERSION)
-		or (vim.env.PREFIX or ""):find("/com.termux/", 1, true) ~= nil
-	)
+	and (present(vim.env.TERMUX_VERSION) or (vim.env.PREFIX or ""):find("/com.termux/", 1, true) ~= nil)
 M.is_linux = is_linux_kernel and not M.is_wsl and not M.is_termux
 M.is_macos = system == "darwin"
 M.is_unix = is_linux_kernel or M.is_macos or has("unix") == 1

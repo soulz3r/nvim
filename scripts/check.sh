@@ -207,9 +207,20 @@ else
   echo "Skipping Lua syntax checks (luac is not installed)."
 fi
 
+if command -v stylua >/dev/null 2>&1; then
+  stylua --check .
+elif [[ "${REQUIRE_STYLUA:-0}" == "1" ]]; then
+  echo "Missing StyLua; formatting checks are required in this environment." >&2
+  exit 1
+else
+  echo "Skipping StyLua checks (stylua is not installed)."
+fi
+
 if command -v nvim >/dev/null 2>&1; then
   nvim --headless --clean -u NONE -l scripts/check-nvim.lua
   echo "Neovim module smoke tests passed."
+  nvim --headless --clean -u NONE -l scripts/check-integration.lua
+  echo "Neovim integration smoke tests passed."
 elif [[ "${REQUIRE_NVIM:-0}" == "1" ]]; then
   echo "Missing Neovim; runtime checks are required in this environment." >&2
   exit 1

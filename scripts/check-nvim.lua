@@ -15,7 +15,30 @@ assert(type(vim.lsp.enable) == "function", "vim.lsp.enable is required")
 assert(vim.o.winborder ~= nil, "'winborder' option is required")
 
 require("soul.launch")
-local platform = require("soul.core.platform")
+local platform_module = "soul.core.platform"
+local platform = require(platform_module)
+
+-- Exercise Linux-hosted WSL and Termux detection without requiring those
+-- environments to be installed on the CI runner.
+if platform.is_linux then
+	local original_wsl_name = vim.env.WSL_DISTRO_NAME
+	local original_prefix = vim.env.PREFIX
+
+	vim.env.WSL_DISTRO_NAME = "nvim-ci-wsl"
+	package.loaded[platform_module] = nil
+	local simulated_wsl = require(platform_module)
+	assert(simulated_wsl.is_wsl and not simulated_wsl.is_linux, "WSL environment detection failed")
+
+	vim.env.WSL_DISTRO_NAME = original_wsl_name
+	vim.env.PREFIX = "/data/data/com.termux/files/usr"
+	package.loaded[platform_module] = nil
+	local simulated_termux = require(platform_module)
+	assert(simulated_termux.is_termux and not simulated_termux.is_linux, "Termux environment detection failed")
+
+	vim.env.PREFIX = original_prefix
+	package.loaded[platform_module] = platform
+end
+
 local paths_module = "soul.core.helpers.paths"
 local original_pwsh = vim.env.PWSH
 local original_paths = package.loaded[paths_module]
@@ -28,7 +51,13 @@ if platform.is_windows then
 	package.loaded[paths_module] = nil
 end
 
+local pwsh_started = vim.uv.hrtime()
 local resolved_paths = require(paths_module)
+local pwsh_elapsed_ms = (vim.uv.hrtime() - pwsh_started) / 1e6
+
+if vim.env.PROFILE_PWSH == "1" then
+	print(("PowerShell resolver completed in %.2f ms (%s)"):format(pwsh_elapsed_ms, tostring(resolved_paths.pwsh)))
+end
 
 if platform.is_windows then
 	if vim.env.REQUIRE_PWSH == "1" then

@@ -1,14 +1,14 @@
 local M = {
-	'saghen/blink.cmp',
-	dependencies = { 'rafamadriz/friendly-snippets' },
-	version = '1.*',
+	"saghen/blink.cmp",
+	dependencies = { "rafamadriz/friendly-snippets" },
+	version = "1.*",
 
 	---@module 'blink.cmp'
 	opts = {
 		keymap = {
-			preset = 'default',
-			['<C-b>'] = { 'scroll_documentation_up', 'fallback' },
-			['<C-f>'] = { 'scroll_documentation_down', 'fallback' },
+			preset = "default",
+			["<C-b>"] = { "scroll_documentation_up", "fallback" },
+			["<C-f>"] = { "scroll_documentation_down", "fallback" },
 		},
 		completion = {
 			ghost_text = { enabled = false },
@@ -26,16 +26,16 @@ local M = {
 			},
 		},
 		appearance = {
-			nerd_font_variant = 'nerd',
+			nerd_font_variant = "nerd",
 		},
 		sources = {
-			default = { 'lsp', 'path', 'snippets', 'buffer' },
+			default = { "lsp", "path", "snippets", "buffer" },
 		},
 		cmdline = {
 			completion = {
 				menu = { auto_show = true },
 			},
-			sources = { 'cmdline', 'buffer' },
+			sources = { "cmdline", "buffer" },
 		},
 		signature = {
 			enabled = true,

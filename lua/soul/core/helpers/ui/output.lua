@@ -149,7 +149,8 @@ function M.terminal(title, command, opts)
 		end
 
 		vim.schedule(function()
-			if vim.api.nvim_buf_is_valid(buf)
+			if
+				vim.api.nvim_buf_is_valid(buf)
 				and vim.api.nvim_get_current_buf() == buf
 				and vim.fn.mode(1):sub(1, 1) == "t"
 			then

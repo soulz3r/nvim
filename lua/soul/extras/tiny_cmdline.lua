@@ -74,9 +74,7 @@ function M.config()
 				return
 			end
 
-			if message:find("W10", 1, true)
-				or message:find("Changing a readonly file", 1, true)
-			then
+			if message:find("W10", 1, true) or message:find("Changing a readonly file", 1, true) then
 				message = "This buffer is read-only. Changes are disabled."
 				level = vim.log.levels.WARN
 			end
