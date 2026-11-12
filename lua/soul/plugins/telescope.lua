@@ -75,6 +75,7 @@ local M = {
               cmake, "-S", ".", "-B", "build",
               "-DCMAKE_BUILD_TYPE=Release",
               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+              "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
             })
 
             if configure_ok then

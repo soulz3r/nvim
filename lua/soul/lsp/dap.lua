@@ -275,6 +275,18 @@ M.config = function()
 	-- An explicit project selection wins over the still-open buffer until
 	-- the user moves to another buffer.
 	local selected_project
+	local project_selection_group = vim.api.nvim_create_augroup("SoulDapProjectSelection", {
+		clear = true,
+	})
+
+	vim.api.nvim_create_autocmd("BufEnter", {
+		group = project_selection_group,
+		callback = function(args)
+			if selected_project and args.buf ~= selected_project.buf then
+				selected_project = nil
+			end
+		end,
+	})
 
 	local function current_file()
 		local name = vim.api.nvim_buf_get_name(0)

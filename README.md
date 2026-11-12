@@ -242,7 +242,7 @@ The script validates JSON configuration, plugin lockfile revisions, deprecated/p
 - If DAP cannot start, check `LLDB_DAP` and confirm that the executable exists.
 - If C diagnostics are missing or use the wrong standard, check the project's `compile_commands.json` or `compile_flags.txt`.
 - If Treesitter highlighting is missing after first install, run `:TSUpdate` and reopen the buffer.
-- If Telescope reports that the `fzf` extension or `libfzf.dll` is missing, run `:Lazy build telescope-fzf-native.nvim` to rebuild the native library.
+- If Telescope reports that the `fzf` extension or `libfzf.dll` is missing, run `:Lazy build telescope-fzf-native.nvim` to rebuild the native library, then restart Neovim so Telescope can load it.
 
 ## License
 
