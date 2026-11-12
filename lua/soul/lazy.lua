@@ -57,7 +57,7 @@ require("lazy").setup({
 		hererocks = false,
 	},
 	install = {
-		colorscheme = { "darkplus", "everforest", "catppuccin", "default" },
+		colorscheme = { "everforest", "default" },
 	},
 	ui = {
 		border = "rounded",
