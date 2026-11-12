@@ -250,6 +250,21 @@ compatibility_checks() {
     return 1
   fi
 
+  if grep -nE 'soulz3r/yap.nvim|require\\(["'\\'' ]yap' lua/soul/lsp/dap.lua lua/soul/core/helpers/dap; then
+    echo "DAP must not depend on YAP's plugin or Lua modules."
+    return 1
+  fi
+
+  if grep -q 'dependencies = { "soulz3r/yap.nvim" }' lua/soul/plugins/lualine.lua; then
+    echo "Lualine's YAP project label must remain optional."
+    return 1
+  fi
+
+  if ! grep -q 'pcall(require, "yap.project_registry")' lua/soul/plugins/lualine.lua; then
+    echo "Lualine must guard its optional YAP project-status integration."
+    return 1
+  fi
+
   if grep -Eq 'nui-components|nui\.nvim' lua/soul/plugins/yap.lua; then
     echo "YAP no longer uses Nui dependencies; remove stale UI dependencies."
     return 1
