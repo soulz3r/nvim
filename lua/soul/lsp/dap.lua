@@ -69,89 +69,9 @@ M.config = function()
 		return path:sub(1, #prefix) == prefix
 	end
 
-	local function read_json(path)
-		local file = io.open(path, "r")
-		if not file then
-			return nil, "could not open file"
-		end
-
-		local content = file:read("*a")
-		file:close()
-
-		local ok, data = pcall(fn.json_decode, content)
-		if not ok or type(data) ~= "table" then
-			return nil, "invalid JSON"
-		end
-
-		return data
-	end
-
-	-- Merge older DAP-only registries into YAP's registry. Keep a backup
-	-- after a successful migration rather than deleting the user's old data.
-	local function migrate_registry_file(path)
-		if fn.filereadable(path) ~= 1 then
-			return
-		end
-
-		local raw_data, read_error = read_json(path)
-		if not raw_data then
-			vim.notify("Could not migrate DAP registry (" .. read_error .. "):\n" .. path, vim.log.levels.ERROR)
-			return
-		end
-
-		local entries = type(raw_data.projects) == "table" and raw_data.projects or raw_data
-		local failed = false
-
-		for key, entry in pairs(entries) do
-			if type(entry) == "table" then
-				local root = normalize(entry.root or key)
-				if root then
-					local fields = { dap_enabled = true }
-					local executable = normalize(entry.executable)
-
-					if executable then
-						fields.debug_executable = executable
-						fields.last_executable = executable
-					end
-
-					local ok, saved = pcall(project_registry.update, root, fields)
-					if not ok or saved ~= true then
-						failed = true
-						vim.notify("Could not migrate DAP project metadata for:\n" .. root, vim.log.levels.ERROR)
-					end
-				end
-			end
-		end
-
-		if failed then
-			return
-		end
-
-		local backup = path .. ".migrated"
-		local suffix = 0
-		while fn.filereadable(backup) == 1 do
-			suffix = suffix + 1
-			backup = path .. ".migrated." .. os.time() .. "." .. suffix
-		end
-
-		local moved, move_error = vim.uv.fs_rename(path, backup)
-		if not moved then
-			vim.notify(
-				"Imported DAP settings, but could not move the old registry to a backup:\n" .. tostring(move_error),
-				vim.log.levels.WARN
-			)
-			return
-		end
-
-		vim.notify(
-			"Migrated DAP project settings into the YAP project registry. Backup:\n" .. backup,
-			vim.log.levels.INFO,
-			{ title = "DAP Registry" }
-		)
-	end
-
+	local dap_registry = require("soul.core.helpers.dap.registry")
 	for _, legacy_path in ipairs(legacy_state_files) do
-		migrate_registry_file(legacy_path)
+		dap_registry.migrate_file(legacy_path, project_registry, normalize)
 	end
 
 	local function copy_args(args)
