@@ -17,22 +17,24 @@ local function find_executable(names)
 end
 
 local function is_runnable_powershell(path)
-	if type(path) ~= "string" or path == "" or fn.executable(path) ~= 1 then
+	if type(path) ~= "string" or path == "" then
 		return false
 	end
 
-	-- An App Execution Alias can exist and still fail to launch. Verify the
-	-- candidate itself rather than trusting PATH or where.exe output.
+	-- Test the candidate by launching it. executable() can reject valid
+	-- Windows paths in some environments, while App Execution Aliases can
+	-- pass executable() and still fail to start.
 	local ok, result = pcall(function()
 		local process = vim.system({
 			path,
 			"-NoLogo",
 			"-NoProfile",
+			"-NonInteractive",
 			"-Command",
-			"Write-Output $PSVersionTable.PSVersion.Major",
+			"[Console]::Out.Write([int]$PSVersionTable.PSVersion.Major)",
 		}, { text = true })
 
-		local completed = process:wait(2000)
+		local completed = process:wait(3000)
 		if not completed then
 			pcall(process.kill, process, 9)
 		end
@@ -40,11 +42,12 @@ local function is_runnable_powershell(path)
 		return completed
 	end)
 
-	local major = ok and type(result) == "table"
-		and result.code == 0
-		and tonumber(vim.trim(result.stdout or ""))
+	if not ok or type(result) ~= "table" or result.code ~= 0 then
+		return false
+	end
 
-	return type(major) == "number" and major >= 7
+	local major = tonumber((result.stdout or ""):match("%d+"))
+	return major ~= nil and major >= 7
 end
 
 local function find_powershell()
@@ -65,6 +68,7 @@ local function find_powershell()
 
 	add_candidate(vim.env.PWSH)
 	add_candidate(fn.exepath("pwsh"))
+	add_candidate(fn.exepath("pwsh.exe"))
 
 	if platform.is_windows then
 		-- where.exe may list package-specific aliases that cannot be spawned.
