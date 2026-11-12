@@ -26,4 +26,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: 2.6.0
-          args: --check lua/soul/core/autocmds.lua lua/soul/core/helpers/dashboard/alpha/autocmds.lua lua/soul/core/helpers/dashboard/footer.lua lua/soul/core/helpers/mini/files.lua lua/soul/core/helpers/paths.lua lua/soul/core/keymaps.lua lua/soul/lazy.lua lua/soul/lsp/dap.lua lua/soul/lsp/lsp.lua lua/soul/plugins/lualine.lua lua/soul/plugins/undotree.lua lua/soul/plugins/whichkey.lua lua/soul/plugins/yap.lua scripts/check-fzf-build.lua scripts/check-nvim.lua
+          args: --check lua/soul/core/autocmds.lua lua/soul/core/helpers/dashboard/alpha/autocmds.lua lua/soul/core/helpers/dashboard/footer.lua lua/soul/core/helpers/mini/files.lua lua/soul/core/helpers/paths.lua lua/soul/core/keymaps.lua lua/soul/lazy.lua lua/soul/lsp/lsp.lua lua/soul/plugins/lualine.lua lua/soul/plugins/undotree.lua lua/soul/plugins/whichkey.lua lua/soul/plugins/yap.lua scripts/check-fzf-build.lua scripts/check-nvim.lua
