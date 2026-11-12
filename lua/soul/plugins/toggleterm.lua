@@ -43,7 +43,7 @@ function M.config()
 			local buf_sizes = get_buf_size()
 			local buf_size = direction == "horizontal" and buf_sizes.height or buf_sizes.width
 
-			return math.floor(buf_size * size)
+			return math.max(1, math.floor(buf_size * size))
 		end
 
 		return size
