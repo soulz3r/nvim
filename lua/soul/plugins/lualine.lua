@@ -1,7 +1,6 @@
 local M = {
 	"nvim-lualine/lualine.nvim",
 	event = "VeryLazy",
-	dependencies = { "soulz3r/yap.nvim" },
 }
 
 function M.config()
@@ -10,7 +9,19 @@ function M.config()
 	local attached_clients = {}
 
 	local function has_project_status()
-		project_status = require("yap.project_registry").status()
+		local registry = package.loaded["yap.project_registry"]
+		if type(registry) ~= "table" or type(registry.status) ~= "function" then
+			project_status = ""
+			return false
+		end
+
+		local status_ok, status = pcall(registry.status)
+		if not status_ok or type(status) ~= "string" then
+			project_status = ""
+			return false
+		end
+
+		project_status = status
 		return project_status ~= ""
 	end
 

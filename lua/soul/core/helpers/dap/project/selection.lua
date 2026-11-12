@@ -23,7 +23,7 @@ function M.setup(store, resolver, path)
 		end)
 
 		if #entries == 0 then
-			vim.notify("No saved DAP projects were found in the YAP project registry.", vim.log.levels.WARN)
+			vim.notify("No saved DAP projects were found.", vim.log.levels.WARN)
 			return
 		end
 

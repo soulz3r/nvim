@@ -368,6 +368,15 @@ assert(
 	"YAP must declare the Telescope project extension"
 )
 
+local dap_spec = require("soul.lsp.dap")
+assert(not vim.tbl_contains(dap_spec.dependencies or {}, "soulz3r/yap.nvim"), "DAP must not depend on YAP")
+
+local lualine_spec = require("soul.plugins.lualine")
+assert(
+	not vim.tbl_contains(lualine_spec.dependencies or {}, "soulz3r/yap.nvim"),
+	"Lualine's YAP project label must remain optional"
+)
+
 local undotree_spec = require("soul.plugins.undotree")
 assert(undotree_spec[1] == "jiaoshijie/undotree", "Undotree plugin repository is incorrect")
 assert(type(undotree_spec.keys) == "table", "Undotree must be lazy-loaded from its keymap")

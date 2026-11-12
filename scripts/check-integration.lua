@@ -88,8 +88,30 @@ end
 
 function dapui.float_element() end
 
-package.preload["yap.project_registry"] = function()
-	return registry
+package.preload["soul.core.helpers.dap.project.registry"] = function()
+	return {
+		setup = function()
+			return registry
+		end,
+	}
+end
+package.preload["soul.core.helpers.dap.registry"] = function()
+	return {
+		import_yap_file = function()
+			return true
+		end,
+		migrate_file = function()
+			return true
+		end,
+	}
+end
+local lualine_config
+package.preload["lualine"] = function()
+	return {
+		setup = function(opts)
+			lualine_config = opts
+		end,
+	}
 end
 package.preload["dap"] = function()
 	return dap
@@ -106,6 +128,15 @@ end
 local dap_spec = require("soul.lsp.dap")
 assert(type(dap_spec.config) == "function", "DAP plugin config callback is missing")
 dap_spec.config()
+assert(package.loaded["yap.project_registry"] == nil, "DAP must not load YAP's project registry")
+
+-- Lualine's project label must disappear cleanly when YAP is not installed.
+local lualine_spec = require("soul.plugins.lualine")
+lualine_spec.config()
+local project_component = lualine_config.sections.lualine_y[1]
+assert(type(project_component.cond) == "function", "Lualine project status must have a condition")
+assert(not project_component.cond(), "Lualine must hide the optional project label without YAP")
+assert(package.loaded["yap.project_registry"] == nil, "Optional Lualine status must not require YAP")
 
 local paths = require("soul.core.helpers.paths")
 assert(dap.adapters.lldb, "LLDB adapter was not configured")
@@ -136,8 +167,8 @@ assert(vim.fn.executable(test_executable) == 1, "Neovim test executable must be 
 registry_state[project_root] = {
 	root = project_root,
 	dap_enabled = true,
-	debug_executable = test_executable,
-	dap_args = { "--previous" },
+	executable = test_executable,
+	args = { "--previous" },
 }
 
 local start_mapping = find_mapping("DAP: Start / continue with arguments")
@@ -154,8 +185,8 @@ assert(dap.last_config, "DAP start mapping did not launch the configured executa
 assert(dap.last_config.program == test_executable, "DAP launch used the wrong project executable")
 assert(vim.deep_equal(dap.last_config.args, { "--name", "two words" }), "DAP launch arguments were parsed incorrectly")
 assert(
-	vim.deep_equal(registry_state[project_root].dap_args, { "--name", "two words" }),
-	"DAP launch arguments were not persisted to the shared project registry"
+	vim.deep_equal(registry_state[project_root].args, { "--name", "two words" }),
+	"DAP launch arguments were not persisted to its independent project registry"
 )
 
 local launch_count = dap.launch_count

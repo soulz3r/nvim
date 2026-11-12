@@ -19,12 +19,13 @@ The entry point is `init.lua`. It loads the core modules, registers plugin group
 | `lua/soul/core/helpers/process.lua` | Child-process timeout, termination, and reaping |
 | `lua/soul/core/helpers/dap/path.lua` | Shared DAP path normalization, project keys, containment, and executable checks |
 | `lua/soul/core/helpers/dap/project.lua` | Composes the focused DAP project modules and exposes their public API |
-| `lua/soul/core/helpers/dap/project/store.lua` | YAP registry loading, metadata persistence, and registered-project lookup |
+| `lua/soul/core/helpers/dap/project/store.lua` | DAP project metadata, executable/argument persistence, and registered-project lookup |
+| `lua/soul/core/helpers/dap/project/registry.lua` | Independent, atomic DAP project registry under Neovim's state directory |
 | `lua/soul/core/helpers/dap/project/resolver.lua` | Buffer-aware project-root detection and manual project activation |
-| `lua/soul/core/helpers/dap/project/selection.lua` | Saved-project picker and executable-path selection UI |
+| `lua/soul/core/helpers/dap/project/selection.lua` | Saved DAP project picker and executable-path selection UI |
 | `lua/soul/core/helpers/dap/launch.lua` | LLDB adapter, launch configurations, executable selection, and argument prompting |
 | `lua/soul/core/helpers/dap/keymaps.lua` | DAP session, breakpoint, stepping, evaluation, REPL, and UI mappings |
-| `lua/soul/core/helpers/dap/registry.lua` | Safe migration of legacy DAP project registries |
+| `lua/soul/core/helpers/dap/registry.lua` | Safe migration of legacy DAP state and one-time import of old DAP fields from YAP's registry |
 | `lua/soul/core/helpers/dap/executables.lua` | Bounded project executable discovery and ranking |
 | `lua/soul/core/options.lua` | Editor options, shell, clipboard, and UI defaults |
 | `lua/soul/core/keymaps.lua` | Global keymaps and shared keymap helpers |
@@ -45,16 +46,16 @@ Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 - `lua/soul/plugins/telescope.lua` owns general Telescope setup and pickers.
 - `lua/soul/plugins/undotree.lua` lazily loads the Lua Undotree visualizer when `<leader>u` is pressed. Mini Files is the sole configured file manager; the unused Oil specification is intentionally absent.
 - `lua/soul/plugins/yap.lua` configures YAP, its project directory, highlights, and the Telescope project integration.
-- `soulz3r/yap.nvim` owns C project detection, build/clean/run execution, executable selection, argument history, project metadata, compiler diagnostics, C helpers, and the Telescope project picker actions.
-- `lua/soul/plugins/lualine.lua` reads the current project label from `yap.project_registry`; YAP is declared as a dependency so the registry is available before the statusline uses it.
-- `lua/soul/lsp/dap.lua` also depends on YAP because it shares project executable metadata and per-project launch arguments through `yap.project_registry`.
+- `soulz3r/yap.nvim` owns C project workflows: project discovery, build/clean/run execution, executable selection, argument history, compiler diagnostics, C helpers, and its Telescope project picker actions.
+- `lua/soul/plugins/lualine.lua` optionally reads the current project label from `yap.project_registry`. It has no hard dependency on YAP and omits the project label when YAP is unavailable.
+- `lua/soul/lsp/dap.lua` does not depend on YAP. DAP owns its project selection, executable/argument metadata, root resolution, and persistent registry.
 - `lua/soul/plugins/gitsigns.lua` registers Git mappings with WhichKey.
 - `lua/soul/plugins/breadcrumbs.lua` configures breadcrumbs.nvim and declares its nvim-lspconfig and nvim-navic dependencies. `lua/soul/lsp/lsp.lua` initializes Navic before enabling servers and attaches it to clients that support document symbols.
 - LSP capabilities use Blink.cmp when it is available. LSP keymaps are attached per buffer when a server attaches. The LSP attach callback connects nvim-navic to clients that support document symbols, which supplies the context rendered by breadcrumbs.nvim.
 - Render Markdown declares Treesitter and Mini Icons as dependencies. Mini Files also declares Mini Icons as a dependency so its icon integration is ready whenever the file browser loads.
 - ToggleTerm uses the configured shell and shared float border helpers.
 
-YAP's project picker is provided through `telescope-project.nvim`, with runner actions supplied by YAP. Its project registry is shared by the picker, Lualine, and DAP. Runner output uses YAP's own Neovim floating-window helpers. The registry and other runtime state are stored outside the repository.
+YAP's project picker is provided through `telescope-project.nvim`, with runner actions supplied by YAP. YAP's registry stores YAP project metadata and is used by its own project workflows. Lualine may read its project label as an optional integration. DAP uses a separate registry under `stdpath("state")/soul/dap/projects.json`; a one-time migration imports existing DAP-specific fields from the former YAP registry without modifying YAP's file. Runner output uses YAP's own Neovim floating-window helpers. Runtime state is stored outside the repository.
 
 ## Platform handling
 
@@ -76,7 +77,7 @@ Machine-specific tool paths belong in `lua/soul/core/helpers/paths.lua`. Use `PR
 - `lua/soul/lsp/lsp.lua` configures native Neovim LSP capabilities, keymaps, formatting, and diagnostics.
 - Server definitions are supplied by nvim-lspconfig and enabled through `vim.lsp.enable()`.
 - `lua/soul/lsp/dap.lua` is intentionally a thin composition layer: it loads the project, launch, UI, and keymap modules.
-- `project.lua` composes the project store, root resolver, and selection UI behind one stable public API. `project/store.lua` owns YAP registry reads and writes, `project/resolver.lua` owns buffer-aware root detection and manual activation, and `project/selection.lua` owns the project and executable pickers.
+- `project.lua` composes the DAP-owned project registry, root resolver, and selection UI behind one stable public API. `project/store.lua` owns DAP metadata reads and writes; `project/registry.lua` owns independent JSON persistence; `project/resolver.lua` owns buffer-aware root detection and manual activation; and `project/selection.lua` owns the project and executable pickers.
 - `launch.lua` owns LLDB launch configuration and argument parsing/persistence orchestration.
 - `keymaps.lua` owns the DAP mapping groups; `ui.lua` owns DAP UI setup and source-window restoration, while `repl.lua` owns REPL discovery, focus, and search.
 - `path.lua` is the shared normalization/key/containment/executable utility used by project resolution and executable discovery. Argument parsing, registry migration, and bounded executable discovery remain independently testable helpers.

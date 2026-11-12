@@ -47,7 +47,7 @@ This file records why each plugin is part of the configuration. It is an archite
 | `alpha-nvim` | Startup dashboard |
 | `everforest` | Main colorscheme |
 | `nvim-web-devicons` | Filetype icons |
-| `lualine.nvim` | Statusline |
+| `lualine.nvim` | Statusline with an optional YAP project label |
 | `breadcrumbs.nvim` | Symbol breadcrumbs in the winbar |
 | `nvim-navic` | LSP document-symbol context for breadcrumbs |
 | `statuscol.nvim` | Status column and diagnostic/sign display |
@@ -61,7 +61,7 @@ This file records why each plugin is part of the configuration. It is an archite
 
 | Plugin | Purpose |
 |---|---|
-| `nvim-dap` | Debug Adapter Protocol client |
+| `nvim-dap` | Debug Adapter Protocol client; uses the configuration's independent DAP project registry |
 | `nvim-dap-ui` | Debug session panels and controls |
 | `nvim-nio` | Async dependency used by nvim-dap-ui |
 

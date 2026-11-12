@@ -14,23 +14,46 @@ local function copy_args(args)
 	return result
 end
 
-function M.setup(project_registry, path)
-	local projects = {}
+function M.setup(path, project_registry)
+	local owns_registry = project_registry == nil
+	project_registry = project_registry or require("soul.core.helpers.dap.project.registry").setup(path)
 
-	local legacy_state_files = {
-		fn.stdpath("config") .. "/lsp/dap-projects.json",
-		fn.stdpath("state") .. "/soul/dap-projects.json",
-	}
+	if owns_registry then
+		local registry_migration = require("soul.core.helpers.dap.registry")
+		local state_dir = fn.stdpath("state") .. "/soul/dap"
+		local yap_registry_path = fn.stdpath("state") .. "/yap/projects.json"
 
-	local registry_migration = require("soul.core.helpers.dap.registry")
-	for _, legacy_path in ipairs(legacy_state_files) do
-		registry_migration.migrate_file(legacy_path, project_registry, path.normalize)
+		if fn.filereadable(yap_registry_path) ~= 1 then
+			yap_registry_path = fn.stdpath("state") .. "/soul/projects.json"
+		end
+
+		registry_migration.import_yap_file(
+			yap_registry_path,
+			project_registry,
+			path.normalize,
+			state_dir .. "/yap-registry-imported"
+		)
+
+		local legacy_state_files = {
+			fn.stdpath("config") .. "/lsp/dap-projects.json",
+			fn.stdpath("state") .. "/soul/dap-projects.json",
+		}
+
+		for _, legacy_path in ipairs(legacy_state_files) do
+			registry_migration.migrate_file(legacy_path, project_registry, path.normalize)
+		end
 	end
 
+	local projects = {}
+
 	local function load_projects()
-		local ok, entries = pcall(project_registry.list)
+		local ok, entries, read_error = pcall(project_registry.list)
 		if not ok or type(entries) ~= "table" then
-			vim.notify("Could not read the YAP project registry: " .. tostring(entries), vim.log.levels.ERROR)
+			local detail = not ok and entries or read_error or entries
+			vim.notify(
+				"Could not read the independent DAP project registry: " .. tostring(detail),
+				vim.log.levels.ERROR
+			)
 			return {}
 		end
 
@@ -38,14 +61,15 @@ function M.setup(project_registry, path)
 		for _, entry in ipairs(entries) do
 			if type(entry) == "table" and type(entry.root) == "string" then
 				local root = path.normalize(entry.root)
-				local executable = entry.debug_executable or entry.last_executable
+				local executable = entry.executable or entry.debug_executable or entry.last_executable
+				local args = entry.args or entry.dap_args
 				local key = path.key(root)
 
-				if key and (entry.dap_enabled or executable or type(entry.dap_args) == "table") then
+				if key and (entry.dap_enabled or executable or type(args) == "table") then
 					loaded[key] = {
 						root = root,
 						executable = path.normalize(executable),
-						args = copy_args(entry.dap_args),
+						args = copy_args(args),
 					}
 				end
 			end
@@ -67,14 +91,14 @@ function M.setup(project_registry, path)
 
 		local fields = { dap_enabled = true }
 		if normalized_executable then
-			fields.debug_executable = normalized_executable
-			fields.last_executable = normalized_executable
+			fields.executable = normalized_executable
 		end
 
-		local ok, saved = pcall(project_registry.update, root, fields)
+		local ok, saved, save_error = pcall(project_registry.update, root, fields)
 		if not ok or saved ~= true then
+			local detail = not ok and saved or save_error
 			vim.notify(
-				"Could not save DAP project metadata for:\n" .. root .. (not ok and ("\n" .. tostring(saved)) or ""),
+				"Could not save DAP project metadata for:\n" .. root .. (detail and ("\n" .. tostring(detail)) or ""),
 				vim.log.levels.ERROR
 			)
 			return nil
@@ -97,14 +121,17 @@ function M.setup(project_registry, path)
 		end
 
 		local normalized_args = copy_args(args)
-		local ok, saved = pcall(project_registry.update, root, {
+		local ok, saved, save_error = pcall(project_registry.update, root, {
 			dap_enabled = true,
-			dap_args = normalized_args,
+			args = normalized_args,
 		})
 
 		if not ok or saved ~= true then
+			local detail = not ok and saved or save_error
 			vim.notify(
-				"Could not save launch arguments for project:\n" .. root .. (not ok and ("\n" .. tostring(saved)) or ""),
+				"Could not save launch arguments for project:\n"
+					.. root
+					.. (detail and ("\n" .. tostring(detail)) or ""),
 				vim.log.levels.ERROR
 			)
 			return false
@@ -121,7 +148,7 @@ function M.setup(project_registry, path)
 			return nil
 		end
 
-		-- Refresh shared metadata so projects added by YAP or another Neovim
+		-- Refresh DAP-owned metadata so projects added by another Neovim
 		-- instance are visible without restarting this session.
 		projects = load_projects()
 
@@ -149,17 +176,12 @@ function M.setup(project_registry, path)
 		if
 			ok
 			and type(shared) == "table"
-			and (
-				shared.dap_enabled
-				or shared.debug_executable
-				or shared.last_executable
-				or type(shared.dap_args) == "table"
-			)
+			and (shared.dap_enabled or shared.executable or type(shared.args) == "table")
 		then
 			entry = entry or { root = root }
-			entry.executable = shared.debug_executable or shared.last_executable or entry.executable
-			if type(shared.dap_args) == "table" then
-				entry.args = copy_args(shared.dap_args)
+			entry.executable = shared.executable or entry.executable
+			if type(shared.args) == "table" then
+				entry.args = copy_args(shared.args)
 			end
 			projects[key] = entry
 		end
