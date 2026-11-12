@@ -205,8 +205,7 @@ local function find_powershell()
 
 		if is_runnable_powershell(candidate, deadline) then
 			local normalized = candidate:gsub("\\", "/"):lower()
-			local is_store_alias = platform.is_windows
-				and normalized:find("/windowsapps/", 1, true) ~= nil
+			local is_store_alias = platform.is_windows and normalized:find("/windowsapps/", 1, true) ~= nil
 
 			if is_store_alias then
 				-- Store execution aliases can be spawned but are not reliable

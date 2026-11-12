@@ -43,10 +43,20 @@ local float_win = vim.api.nvim_open_win(float_buf, true, {
 	col = 0,
 	style = "minimal",
 })
-assert(vim.wait(100, function() return vim.o.laststatus == 0 end, 10), "float did not hide the global statusline")
+assert(
+	vim.wait(100, function()
+		return vim.o.laststatus == 0
+	end, 10),
+	"float did not hide the global statusline"
+)
 dofile(root .. "/lua/soul/core/autocmds.lua")
 vim.api.nvim_win_close(float_win, true)
-assert(vim.wait(100, function() return vim.o.laststatus == 2 end, 10), "reloading autocmds lost the original statusline setting")
+assert(
+	vim.wait(100, function()
+		return vim.o.laststatus == 2
+	end, 10),
+	"reloading autocmds lost the original statusline setting"
+)
 vim.o.laststatus = original_laststatus
 local alpha_autocmds = require("soul.core.helpers.dashboard.alpha.autocmds")
 local alpha_state = {
