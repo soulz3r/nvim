@@ -68,6 +68,8 @@ Machine-specific tool paths belong in `lua/soul/core/helpers/paths.lua`. Use `PR
 
 - `lua/soul/lsp/lsp.lua` configures native Neovim LSP capabilities, keymaps, formatting, and diagnostics.
 - Server definitions are supplied by nvim-lspconfig and enabled through `vim.lsp.enable()`.
-- `lua/soul/lsp/dap.lua` configures the LLDB DAP adapter, project selection, launch arguments, REPL helpers, and DAP UI. Its session, project-selection, and UI callbacks share runtime state, so it remains the orchestration boundary. Legacy registry migration and bounded executable discovery are isolated under `lua/soul/core/helpers/dap/` and tested independently; argument parsing remains isolated under `lua/soul/core/helpers/dap/args.lua`.
+- `lua/soul/lsp/dap.lua` is the DAP orchestration entry point. It connects project state, LLDB launch configuration, and keymaps.
+- `lua/soul/core/helpers/dap/ui.lua` owns DAP UI setup and source-window restoration; `repl.lua` owns REPL discovery, focusing, and search.
+- Registry migration, bounded executable discovery, and argument parsing remain isolated under `lua/soul/core/helpers/dap/` and are tested independently.
 
 The configuration targets Neovim 0.12 or newer. The optional tiny-cmdline integration is isolated in `lua/soul/extras/tiny_cmdline.lua`; it relies on private, experimental UI2 internals and falls back to Neovim's native command line when the required UI2 entry point is unavailable or setup fails. The rest of the configuration does not depend on UI2.
