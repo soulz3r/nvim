@@ -1,6 +1,11 @@
 local M = {}
+local configured = false
 
 function M.setup()
+	if configured then
+		return
+	end
+
 	local MiniNotify = require("mini.notify")
 	local floats = require("soul.core.helpers.ui.floats")
 
@@ -249,8 +254,8 @@ function M.setup()
 	})
 
 	local function show_notification_history()
-		local width = math.floor(vim.o.columns * 0.70)
-		local height = math.floor(vim.o.lines * 0.60)
+		local width = math.max(1, math.min(math.floor(vim.o.columns * 0.70), vim.o.columns - 4))
+		local height = math.max(1, math.min(math.floor(vim.o.lines * 0.60), vim.o.lines - 4))
 		local row = math.floor((vim.o.lines - height) / 2 - 1)
 		local col = math.floor((vim.o.columns - width) / 2)
 		local notifications = MiniNotify.default_sort(vim.tbl_values(MiniNotify.get_all()))
@@ -291,11 +296,28 @@ function M.setup()
 
 		vim.wo[win].wrap = true
 		vim.wo[win].cursorline = true
+
+		local function close_history()
+			if vim.api.nvim_win_is_valid(win) then
+				vim.api.nvim_win_close(win, true)
+			end
+		end
+
+		vim.keymap.set("n", "q", close_history, {
+			buffer = buf,
+			desc = "Close notification history",
+		})
+		vim.keymap.set("n", "<Esc>", close_history, {
+			buffer = buf,
+			desc = "Close notification history",
+		})
 	end
 
 	vim.keymap.set("n", "<leader>nh", show_notification_history, {
 		desc = "Show notification history",
 	})
+
+	configured = true
 end
 
 return M
