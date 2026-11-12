@@ -27,7 +27,6 @@ function M.setup()
 		})
 	end
 
-
 	MiniFiles.setup({
 		mappings = {
 			go_in = "<CR>",
