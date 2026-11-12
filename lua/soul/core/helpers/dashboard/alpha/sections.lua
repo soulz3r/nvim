@@ -17,17 +17,14 @@ local function build_animation_timeline(animation, content_width)
 		local code_line = scene.lines[cursor_source_line] or ""
 		local target = scene.cursor_token and code_line:find(scene.cursor_token, 1, true)
 
-		assert(target, ("dashboard caret token %q was not found in: %s"):format(
-			tostring(scene.cursor_token),
-			code_line
-		))
+		assert(
+			target,
+			("dashboard caret token %q was not found in: %s"):format(tostring(scene.cursor_token), code_line)
+		)
 
 		local block_width = 0
 		for line_index = 1, 3 do
-			block_width = math.max(
-				block_width,
-				vim.fn.strdisplaywidth(scene.lines[line_index] or "")
-			)
+			block_width = math.max(block_width, vim.fn.strdisplaywidth(scene.lines[line_index] or ""))
 		end
 		if scene.extra_line then
 			block_width = math.max(block_width, vim.fn.strdisplaywidth(scene.extra_line))
@@ -55,8 +52,7 @@ local function build_animation_timeline(animation, content_width)
 
 				if line_index == cursor_source_line then
 					local caret_offset = math.min(column, target - 1)
-					local caret_column = padding
-						+ vim.fn.strdisplaywidth(line:sub(1, caret_offset))
+					local caret_column = padding + vim.fn.strdisplaywidth(line:sub(1, caret_offset))
 					visible[4] = string.rep(" ", caret_column) .. "^"
 				end
 
@@ -71,8 +67,7 @@ local function build_animation_timeline(animation, content_width)
 			end
 
 			-- Keep the caret anchored to its target while the closing line types.
-			local caret_column = padding
-				+ vim.fn.strdisplaywidth(code_line:sub(1, target - 1))
+			local caret_column = padding + vim.fn.strdisplaywidth(code_line:sub(1, target - 1))
 			visible[4] = string.rep(" ", caret_column) .. "^"
 			push(visible)
 		end
@@ -81,10 +76,7 @@ local function build_animation_timeline(animation, content_width)
 		push(visible)
 
 		local explanation = scene.lines[6] or ""
-		local explanation_padding = math.max(
-			0,
-			math.floor((content_width - vim.fn.strdisplaywidth(explanation)) / 2)
-		)
+		local explanation_padding = math.max(0, math.floor((content_width - vim.fn.strdisplaywidth(explanation)) / 2))
 		local explanation_indent = string.rep(" ", explanation_padding)
 
 		for column = 1, #explanation do
@@ -174,38 +166,75 @@ local topic_highlights = {
 }
 
 local c_types = {
-	int = true, char = true, float = true, double = true, void = true,
-	short = true, long = true, signed = true, unsigned = true, const = true,
-	size_t = true, FILE = true, bool = true, Point = true,
+	int = true,
+	char = true,
+	float = true,
+	double = true,
+	void = true,
+	short = true,
+	long = true,
+	signed = true,
+	unsigned = true,
+	const = true,
+	size_t = true,
+	FILE = true,
+	bool = true,
+	Point = true,
 }
 
 local c_keywords = {
-	["return"] = true, ["if"] = true, ["else"] = true, ["for"] = true,
-	["while"] = true, ["do"] = true, ["switch"] = true, ["case"] = true,
-	["break"] = true, ["continue"] = true, ["struct"] = true, ["union"] = true,
-	["enum"] = true, ["typedef"] = true, ["sizeof"] = true, ["goto"] = true,
+	["return"] = true,
+	["if"] = true,
+	["else"] = true,
+	["for"] = true,
+	["while"] = true,
+	["do"] = true,
+	["switch"] = true,
+	["case"] = true,
+	["break"] = true,
+	["continue"] = true,
+	["struct"] = true,
+	["union"] = true,
+	["enum"] = true,
+	["typedef"] = true,
+	["sizeof"] = true,
+	["goto"] = true,
 	["default"] = true,
 }
 
 local c_storage = {
-	static = true, extern = true, register = true, auto = true, _Thread_local = true,
+	static = true,
+	extern = true,
+	register = true,
+	auto = true,
+	_Thread_local = true,
 }
 
 local c_constants = {
-	["true"] = true, ["false"] = true, NULL = true, nullptr = true, MAX = true,
+	["true"] = true,
+	["false"] = true,
+	NULL = true,
+	nullptr = true,
+	MAX = true,
 }
 
 -- Macro names shown by the tutorial. Keeping them explicit prevents
 -- uppercase enum constants from being mistaken for preprocessor macros.
 local c_macros = {
-	DEBUG = true, SQR = true,
+	DEBUG = true,
+	SQR = true,
 }
 
 -- Function names used by the tutorial. Recognizing their prefixes lets the
 -- function color appear while the identifier is still being typed.
 local c_functions = {
-	main = true, puts = true, add = true, malloc = true,
-	free = true, fopen = true, fclose = true,
+	main = true,
+	puts = true,
+	add = true,
+	malloc = true,
+	free = true,
+	fopen = true,
+	fclose = true,
 }
 
 local function has_prefix(tokens, word)
@@ -542,10 +571,7 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 
 	-- Representation labels and values use the same role colors regardless
 	-- of whether the value is decimal, hexadecimal, or binary.
-	if line:find("decimal", 1, true)
-		or line:find("hexadecimal", 1, true)
-		or line:find("binary", 1, true)
-	then
+	if line:find("decimal", 1, true) or line:find("hexadecimal", 1, true) or line:find("binary", 1, true) then
 		add_range(ranges, "AlphaCodeText", line_number, 0, #line)
 
 		local label_start, label_end = line:find("%a+")
@@ -594,7 +620,7 @@ function M.build(dashboard)
 	local logo_data = require("soul.core.helpers.dashboard.logo")
 	local logo = logo_data.build()
 
-	--------------------------------------------------------------------------- 
+	---------------------------------------------------------------------------
 	-- Header
 	---------------------------------------------------------------------------
 
@@ -622,7 +648,7 @@ function M.build(dashboard)
 		hl = static_byte_highlights,
 	}
 
-	--------------------------------------------------------------------------- 
+	---------------------------------------------------------------------------
 	-- Buttons
 	---------------------------------------------------------------------------
 
@@ -647,7 +673,7 @@ function M.build(dashboard)
 	dashboard.section.buttons.val = vim.tbl_map(create_button, button_data.items)
 	dashboard.section.buttons.opts.hl = "Include"
 
-	--------------------------------------------------------------------------- 
+	---------------------------------------------------------------------------
 	-- Footer
 	---------------------------------------------------------------------------
 
@@ -702,7 +728,7 @@ function M.build(dashboard)
 
 	local footer = footer_data.new(set_footer)
 
-	--------------------------------------------------------------------------- 
+	---------------------------------------------------------------------------
 	-- Layout
 	---------------------------------------------------------------------------
 
@@ -728,7 +754,7 @@ function M.build(dashboard)
 		noautocmd = true,
 	}
 
-	--------------------------------------------------------------------------- 
+	---------------------------------------------------------------------------
 	-- Animation timeline
 	---------------------------------------------------------------------------
 

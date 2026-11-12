@@ -15,15 +15,14 @@ local TAGLINE_START = math.floor((WIDTH - #TAGLINE) / 2) + 1
 
 local WORDMARK = {
 	"               ▄▄▄                 ",
-	" ▄▒▓▄   ▄▄▄  ▄▓▒▓▒▀ ▓▒▓▒▄▄         ",
-	" ▒░▒░▌ ▐▒▓▒▓  ▒░▒░  ▒░▒░▓▒▄▄▄▒▄▄   ",
-	" ░░░░   ░▒░█▌ ░█░█  ░█░▄ ▀▒▓▒░▒░░▄ ",
-	" ▐░█░▌  ░████▓████░▓░░██  ░▒ ▀░██░▌",
-	"░▒███▓ ▐██░█▌▓░░██ ▓███░▓ ▀░  ▓░░██",
-	" ▄ ███▄████▀ ▐██░░▓░████  ▄▄▄  ████",
-	"▒▓█▄▀▀██▀▀▄▄█████▌ ░███▀ █████▄▀███",
-	"██████▄▄▄█████▀▄▄▄██▄▄▄▄████████▄▄▀",
-	"███████████████████████████████████",
+	" ▄▒▓▄   ▄▄▄   ▄▓▒▓▒▀  ▓▒▓▒▄▄         ",
+	" ▒░▒░▌ ▐▒▓▒▓  ▒░▒░   ▒░▒░▓▒▄▄▄▒▄▄   ",
+	" ░░░░   ░▒░█▌ ░█░█   ░█░▄ ▀▒▓▒░▒░░▄ ",
+	" ▐░█░▌  ░████ ▓████░ ▓░░██  ░▒ ▀░██░▌",
+	"░▒███▓ ▐██░█▌ ▓░░██  ▓███░▓ ▀░  ▓░░██",
+	"   ███▄████▀  ▐██░░▓ ░████      ████",
+	"    ▀▀██▀▀    ████▌  ░███▀       ▀███",
+	"",
 }
 
 local glyphs = { ".", ":", "-", "=", "+", "*", "#", "%", "@" }
@@ -106,7 +105,11 @@ local function render_frame(frame, glitch_frame)
 			local column = math.floor(CENTER_X + projected_x * 9 + 0.5)
 			local row = math.floor(CENTER_Y - y * 5 + 0.5)
 
-			if column >= 1 and column <= C_WIDTH and row >= 1 and row <= C_HEIGHT
+			if
+				column >= 1
+				and column <= C_WIDTH
+				and row >= 1
+				and row <= C_HEIGHT
 				and projected_z > depth[row][column]
 			then
 				depth[row][column] = projected_z
@@ -117,19 +120,13 @@ local function render_frame(frame, glitch_frame)
 				local rotated_normal_x = normal_x * cosine + normal_z * sine
 				local rotated_normal_z = -normal_x * sine + normal_z * cosine
 
-				local diffuse = math.max(
-					0,
-					rotated_normal_x * light_x
-						+ normal_y * light_y
-						+ rotated_normal_z * light_z
-				)
+				local diffuse =
+					math.max(0, rotated_normal_x * light_x + normal_y * light_y + rotated_normal_z * light_z)
 				local shade = 0.2 + diffuse * 0.8
 				local glyph_index = math.floor(shade * (#glyphs - 1)) + 1
 
 				pixels[row][column] = glyphs[glyph_index]
-				groups[row][column] = shade > 0.72 and "AlphaAqua"
-					or shade > 0.46 and "AlphaTeal"
-					or "AlphaGreen"
+				groups[row][column] = shade > 0.72 and "AlphaAqua" or shade > 0.46 and "AlphaTeal" or "AlphaGreen"
 			end
 		end
 	end
@@ -189,9 +186,7 @@ local function render_frame(frame, glitch_frame)
 					local ghost = art_chars[art_column - ghost_offset]
 					if ghost and ghost ~= " " then
 						char = ghost
-						group = (art_column + glitch_phase) % 2 == 0
-							and "AlphaAqua"
-							or "AlphaYellow"
+						group = (art_column + glitch_phase) % 2 == 0 and "AlphaAqua" or "AlphaYellow"
 					end
 				end
 
@@ -200,7 +195,6 @@ local function render_frame(frame, glitch_frame)
 					char = GLITCH_BLOCKS[(art_column + art_row) % #GLITCH_BLOCKS + 1]
 					group = GLITCH_COLORS[(art_column + glitch_phase) % #GLITCH_COLORS + 1]
 				end
-
 			end
 
 			cells[column] = char
