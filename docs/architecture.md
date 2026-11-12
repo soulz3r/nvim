@@ -18,7 +18,10 @@ The entry point is `init.lua`. It loads the core modules, registers plugin group
 | `lua/soul/core/helpers/keymaps.lua` | Shared options for keymap definitions |
 | `lua/soul/core/helpers/process.lua` | Child-process timeout, termination, and reaping |
 | `lua/soul/core/helpers/dap/path.lua` | Shared DAP path normalization, project keys, containment, and executable checks |
-| `lua/soul/core/helpers/dap/project.lua` | YAP-backed project resolution, selection, and DAP metadata |
+| `lua/soul/core/helpers/dap/project.lua` | Composes the focused DAP project modules and exposes their public API |
+| `lua/soul/core/helpers/dap/project/store.lua` | YAP registry loading, metadata persistence, and registered-project lookup |
+| `lua/soul/core/helpers/dap/project/resolver.lua` | Buffer-aware project-root detection and manual project activation |
+| `lua/soul/core/helpers/dap/project/selection.lua` | Saved-project picker and executable-path selection UI |
 | `lua/soul/core/helpers/dap/launch.lua` | LLDB adapter, launch configurations, executable selection, and argument prompting |
 | `lua/soul/core/helpers/dap/keymaps.lua` | DAP session, breakpoint, stepping, evaluation, REPL, and UI mappings |
 | `lua/soul/core/helpers/dap/registry.lua` | Safe migration of legacy DAP project registries |
@@ -73,7 +76,7 @@ Machine-specific tool paths belong in `lua/soul/core/helpers/paths.lua`. Use `PR
 - `lua/soul/lsp/lsp.lua` configures native Neovim LSP capabilities, keymaps, formatting, and diagnostics.
 - Server definitions are supplied by nvim-lspconfig and enabled through `vim.lsp.enable()`.
 - `lua/soul/lsp/dap.lua` is intentionally a thin composition layer: it loads the project, launch, UI, and keymap modules.
-- `project.lua` owns project-root detection, registered-ancestor matching, selection, and YAP registry updates.
+- `project.lua` composes the project store, root resolver, and selection UI behind one stable public API. `project/store.lua` owns YAP registry reads and writes, `project/resolver.lua` owns buffer-aware root detection and manual activation, and `project/selection.lua` owns the project and executable pickers.
 - `launch.lua` owns LLDB launch configuration and argument parsing/persistence orchestration.
 - `keymaps.lua` owns the DAP mapping groups; `ui.lua` owns DAP UI setup and source-window restoration, while `repl.lua` owns REPL discovery, focus, and search.
 - `path.lua` is the shared normalization/key/containment/executable utility used by project resolution and executable discovery. Argument parsing, registry migration, and bounded executable discovery remain independently testable helpers.
