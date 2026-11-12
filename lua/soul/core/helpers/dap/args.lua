@@ -6,11 +6,7 @@ function M.format(args)
 	for _, arg in ipairs(args or {}) do
 		if arg == "" then
 			table.insert(formatted, '""')
-		elseif arg:find("%s")
-			or arg:find('"', 1, true)
-			or arg:find("'", 1, true)
-			or arg:find("\\", 1, true)
-		then
+		elseif arg:find("%s") or arg:find('"', 1, true) or arg:find("'", 1, true) or arg:find("\\", 1, true) then
 			local escaped = arg:gsub("\\", "\\\\"):gsub('"', '\\"')
 			table.insert(formatted, '"' .. escaped .. '"')
 		else
@@ -42,11 +38,7 @@ function M.parse(input, is_windows)
 		elseif char == "\\" and quote ~= "'" then
 			local next_char = input:sub(i + 1, i + 1)
 
-			if not is_windows
-				or next_char == '"'
-				or next_char == "\\"
-				or next_char:match("%s")
-			then
+			if not is_windows or next_char == '"' or next_char == "\\" or next_char:match("%s") then
 				escaped = true
 			else
 				table.insert(current, char)
