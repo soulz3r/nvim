@@ -106,6 +106,25 @@ local highlights = {
 	AlphaAqua = { fg = P.aqua },
 	AlphaPurple = { fg = P.purple },
 	AlphaOrange = { fg = P.orange },
+
+	-- Alpha dashboard animation: topic, prose, and C syntax roles.
+	AlphaTopicPointers = { fg = P.green, bold = true },
+	AlphaTopicDereference = { fg = P.purple, bold = true },
+	AlphaTopicMemory = { fg = P.teal, bold = true },
+	AlphaTopicCompilation = { fg = P.orange, bold = true },
+	AlphaTopicRepresentations = { fg = P.aqua, bold = true },
+	AlphaMessage = { fg = P.muted },
+	AlphaMessageKey = { fg = P.yellow, bold = true },
+	AlphaCodeType = { fg = P.teal },
+	AlphaCodeKeyword = { fg = P.purple },
+	AlphaCodeIdentifier = { fg = P.foreground },
+	AlphaCodeNumber = { fg = P.yellow },
+	AlphaCodeOperator = { fg = P.orange },
+	AlphaCodePunctuation = { fg = P.muted },
+	AlphaCodeFile = { fg = P.green },
+	AlphaCodeStage = { fg = P.aqua },
+	AlphaCodeCursor = { fg = P.red, bold = true },
+	AlphaCodeText = { fg = P.foreground },
 }
 
 function M.apply()
