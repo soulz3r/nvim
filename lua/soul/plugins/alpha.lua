@@ -152,38 +152,71 @@ function M.config()
 		}
 	end
 
-	local function get_git_branch()
+	local git_branch_cache = {}
+	local git_branch_pending = {}
+	local update_footer
+
+	local function get_git_branch(cwd)
+		local cached = git_branch_cache[cwd]
+		if cached ~= nil then
+			return cached or nil
+		end
+
+		if git_branch_pending[cwd] then
+			return nil
+		end
+
 		local ok, process = pcall(vim.system, {
 			"git",
 			"-C",
-			vim.fn.getcwd(),
+			cwd,
 			"branch",
 			"--show-current",
 		}, {
 			text = true,
-		})
+		}, function(result)
+			vim.schedule(function()
+				git_branch_pending[cwd] = nil
 
-		if not ok then
-			return nil
+				local branch
+				if result and result.code == 0 then
+					branch = vim.trim(result.stdout or "")
+					if branch == "" then
+						branch = nil
+					end
+				end
+
+				-- false is cached too, so non-Git directories are not queried
+				-- repeatedly every time Alpha redraws.
+				git_branch_cache[cwd] = branch or false
+
+				if update_footer then
+					update_footer()
+					if vim.bo.filetype == "alpha" then
+						pcall(vim.cmd.AlphaRedraw)
+					end
+				end
+			end)
+		end)
+
+		if ok then
+			git_branch_pending[cwd] = process
+		else
+			git_branch_cache[cwd] = false
 		end
 
-		local result = process:wait()
-
-		if result.code ~= 0 then
-			return nil
-		end
-
-		local branch = vim.trim(result.stdout or "")
-		return branch ~= "" and branch or nil
+		return nil
 	end
+
 	local function footer()
 		local stats = require("lazy").stats()
 
 		local ms = math.floor(stats.startuptime * 100 + 0.5) / 100
 		local nvim = vim.version()
 
-		local cwd = vim.fn.fnamemodify(vim.fn.getcwd(), ":~")
-		local branch = get_git_branch()
+		local current_dir = vim.fn.getcwd()
+		local cwd = vim.fn.fnamemodify(current_dir, ":~")
+		local branch = get_git_branch(current_dir)
 
 		local line1 = " Neovim " .. nvim.major .. "." .. nvim.minor .. "." .. nvim.patch
 
@@ -242,7 +275,7 @@ function M.config()
 		},
 	}
 
-	local function update_footer()
+	update_footer = function()
 		local lines = footer()
 
 		dashboard.section.footer.val[1].val = lines[1]
@@ -436,6 +469,8 @@ function M.config()
 	vim.api.nvim_create_autocmd("BufEnter", {
 		callback = function(args)
 			if vim.bo[args.buf].filetype == "alpha" then
+				update_footer()
+				pcall(vim.cmd.AlphaRedraw)
 				start_animation()
 			end
 		end,
