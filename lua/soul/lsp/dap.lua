@@ -572,8 +572,6 @@ M.config = function()
 
 	require("soul.core.helpers.dap.ui").setup(dap, dapui)
 
-
-
 	-- =========================================================
 	-- Start/continue: resolve the current project's executable
 	-- =========================================================
