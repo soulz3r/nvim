@@ -30,7 +30,7 @@ The entry point is `init.lua`. It loads the core modules, registers plugin group
 
 Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 
-- `lua/soul/plugins/mini/init.lua` returns the Mini.nvim plugin specifications from the `mini/` directory. The main config imports the group once with `GET("soul.plugins.mini")`.
+- `lua/soul/plugins/mini.lua` returns the individual Mini plugin specifications. Each specification delegates setup to its matching helper under `lua/soul/core/helpers/mini/`; the main config imports the group once with `GET("soul.plugins.mini")`.
 - `lua/soul/plugins/alpha.lua` uses Telescope for file search, Mini Files for browsing, and YAP's project picker for project switching.
 - `lua/soul/plugins/telescope.lua` owns general Telescope setup and pickers.
 - `lua/soul/plugins/yap.lua` configures YAP, its project directory, highlights, and direct UI dependencies.
