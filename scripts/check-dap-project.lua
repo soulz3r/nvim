@@ -104,5 +104,75 @@ vim.api.nvim_buf_set_name(fallback_buf, fallback_file)
 vim.api.nvim_set_current_buf(fallback_buf)
 assert(projects.resolve_root() == fallback_dir, "Unregistered files must fall back to their containing directory")
 
+vim.api.nvim_set_current_buf(buf)
+
+-- Project settings must be persisted through the shared YAP registry.
+local saved_args = { "--input", "sample file.c", 42, "--verbose" }
+assert(projects.save_args(inner, saved_args), "Project launch arguments should be saved")
+assert(
+	vim.deep_equal(registry_state[inner].dap_args, { "--input", "sample file.c", "--verbose" }),
+	"Launch arguments must retain strings and ignore unsupported values"
+)
+
+assert(projects.save_executable(inner, vim.v.progpath), "A valid executable should be saved")
+assert(
+	registry_state[inner].debug_executable == path.normalize(vim.v.progpath),
+	"The debug executable must be persisted in the registry"
+)
+assert(
+	registry_state[inner].last_executable == path.normalize(vim.v.progpath),
+	"Saving a debug executable must also update the last executable"
+)
+local saved_entry, saved_root = projects.current()
+assert(saved_root == inner, "Saved settings must remain associated with the resolved project")
+assert(
+	vim.deep_equal(saved_entry.args, { "--input", "sample file.c", "--verbose" }),
+	"Current project must expose the saved launch arguments"
+)
+assert(
+	saved_entry.executable == path.normalize(vim.v.progpath),
+	"Current project must expose the saved executable"
+)
+
+-- Cancelling project selection must leave the working directory unchanged.
+local original_cwd = vim.fn.getcwd()
+local original_select = vim.ui.select
+local selection_callback
+local selection_choices
+vim.ui.select = function(items, opts, callback)
+	selection_choices = items
+	selection_callback = callback
+end
+
+projects.select()
+assert(type(selection_callback) == "function", "Project selection must invoke the UI selector")
+assert(#selection_choices == 2, "Project selection must list the saved projects")
+selection_callback(nil, nil)
+assert(vim.fn.getcwd() == original_cwd, "Cancelling project selection must not change the working directory")
+
+-- Selecting a saved project activates it for the current buffer.
+selection_callback = nil
+projects.select()
+local inner_index
+for index, choice in ipairs(selection_choices) do
+	if choice:find(inner, 1, true) == 1 then
+		inner_index = index
+		break
+	end
+end
+assert(inner_index, "The saved nested project must appear in the selection list")
+selection_callback(selection_choices[inner_index], inner_index)
+assert(path.normalize(vim.fn.getcwd()) == inner, "Selecting a project must change the working directory")
+assert(projects.resolve_root() == inner, "The selected project must become active for the current buffer")
+
+-- A manually selected project is scoped to its buffer and must clear on BufEnter.
+vim.api.nvim_set_current_buf(marker_buf)
+assert(
+	projects.resolve_root() == path.normalize(marker_root),
+	"Entering another buffer must clear the previous manual project selection"
+)
+vim.ui.select = original_select
+vim.api.nvim_set_current_dir(original_cwd)
+
 vim.fn.delete(temp_dir, "rf")
 print("DAP path and project resolution tests passed.")
