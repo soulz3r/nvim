@@ -4,7 +4,7 @@ local M = {
 }
 
 function M.config()
-	require("soul.plugins.alpha.init").setup()
+	require("soul.config.alpha.init").setup()
 end
 
 return M
