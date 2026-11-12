@@ -3,7 +3,6 @@ local M = {
 	dependencies = {
 		"nvim-neotest/nvim-nio",
 		"rcarriga/nvim-dap-ui",
-		"soulz3r/yap.nvim",
 	},
 }
 
@@ -13,9 +12,8 @@ M.config = function()
 	local dap_widgets = require("dap.ui.widgets")
 	local paths = require("soul.core.helpers.paths")
 	local platform = require("soul.core.platform")
-	local project_registry = require("yap.project_registry")
 
-	local projects = require("soul.core.helpers.dap.project").setup(project_registry)
+	local projects = require("soul.core.helpers.dap.project").setup()
 	local launch = require("soul.core.helpers.dap.launch").setup(
 		dap,
 		projects,
