@@ -13,6 +13,7 @@ function M.config()
     "cpp",
     "lua",
     "vim",
+    "help",
     "bash",
     "json",
     "yaml",
