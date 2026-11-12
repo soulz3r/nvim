@@ -15,8 +15,21 @@ assert(type(vim.lsp.enable) == "function", "vim.lsp.enable is required")
 assert(vim.o.winborder ~= nil, "'winborder' option is required")
 
 require("soul.launch")
-require("soul.core.platform")
-require("soul.core.helpers.paths")
+local platform = require("soul.core.platform")
+local original_pwsh = vim.env.PWSH
+
+if platform.is_windows then
+	vim.env.PWSH = "pwsh"
+end
+
+local resolved_paths = require("soul.core.helpers.paths")
+
+if platform.is_windows and vim.fn.exepath("pwsh") ~= "" then
+	assert(resolved_paths.pwsh ~= "pwsh", "PWSH=pwsh must resolve to a concrete Windows executable path")
+end
+
+vim.env.PWSH = original_pwsh
+
 require("soul.core.options")
 require("soul.core.keymaps")
 local keymap_helpers = require("soul.core.helpers.keymaps")
