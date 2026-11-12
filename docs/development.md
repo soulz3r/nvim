@@ -30,6 +30,10 @@ The runner uses YAP's own floating-window helpers and retains ANSI colors and co
 
 `lua/soul/core/helpers/ui/init.lua` provides shared floating-window geometry, text-buffer windows, and highlight links. New custom windows should use these helpers rather than reimplementing sizing and close mappings. YAP owns its runner presentation and its `Yap*` highlight namespace.
 
+## Lua formatting
+
+Lua source uses hard tabs with a display width of four, as defined in `.stylua.toml`. Keep indentation consistent and run `stylua .` before committing formatting changes. The repository check rejects space-based Lua indentation; the multiline Ex command in `lua/soul/core/keymaps.lua` is intentionally excluded because its spaces are part of the command text.
+
 ## Checks
 
 Run `bash scripts/check.sh` for JSON validation, lockfile validation, regression guards for known configuration invariants, deprecated/private API scans, Lua syntax checks, and a headless core/plugin-spec smoke test. Use `stylua .` to apply the repository formatting rules from `.stylua.toml`; CI checks formatting for files touched by the core maintenance workflow. GitHub Actions runs these checks against the latest Neovim stable release and nightly build on Windows and Linux. The smoke test does not install or execute third-party plugin configurations, so it cannot replace interactive checks of plugin behavior.
