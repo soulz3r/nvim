@@ -62,6 +62,21 @@ end
 local malformed, malformed_error = dap_args.parse('"unterminated', false)
 assert(malformed == nil and malformed_error, "DAP argument parser must reject unclosed quotes")
 
+local dashboard_buttons = require("soul.core.helpers.dashboard.buttons").items
+local buttons_by_key = {}
+for _, item in ipairs(dashboard_buttons) do
+	buttons_by_key[item.key] = item
+end
+assert(
+	buttons_by_key.e.command:find("require('lazy').load", 1, true),
+	"Dashboard Explorer button must load lazy Mini Files before requiring it"
+)
+assert(
+	buttons_by_key.c.command
+		== "<cmd>edit " .. vim.fn.fnameescape(vim.fn.stdpath("config") .. "/init.lua") .. "<CR>",
+	"Dashboard Config button must escape config paths"
+)
+
 assert(type(keymap_helpers.opts) == "function", "shared keymap options helper is missing")
 assert(rawget(_G, "OPTS") == nil, "OPTS must not leak into the global namespace")
 
