@@ -16,7 +16,9 @@ function M.new(on_update)
 			return nil
 		end
 
-		local ok, process = pcall(vim.system, {
+		local process
+		local ok
+		ok, process = pcall(vim.system, {
 			"git",
 			"-C",
 			cwd,
