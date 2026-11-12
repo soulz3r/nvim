@@ -21,6 +21,7 @@ GET("soul.plugins.telescope")
 GET("soul.plugins.yap")
 GET("soul.plugins.toggleterm")
 GET("soul.plugins.treesitter")
+GET("soul.plugins.undotree")
 GET("soul.plugins.whichkey")
 
 GET("soul.lsp.lsp")
