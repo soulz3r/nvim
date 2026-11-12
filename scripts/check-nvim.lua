@@ -45,7 +45,7 @@ local dap_args = require("soul.core.helpers.dap.args")
 local argument_cases = {
 	{},
 	{ "" },
-	{ "simple", "two words", "it's", "a\\\"b" },
+	{ "simple", "two words", "it's", 'a\\"b' },
 	{ "single'quote", "quote\\\"and'quote", "trailing\\" },
 	{ "C:\\Program Files\\app\\", "--name", "value with spaces" },
 }
@@ -71,11 +71,7 @@ local icon_registry = require("soul.core.helpers.icons")
 for _, item in ipairs(dashboard_buttons) do
 	assert(
 		icon_registry[item.icon_group] and icon_registry[item.icon_group][item.icon],
-		("Dashboard button '%s' references a missing icon: %s.%s"):format(
-			item.key,
-			item.icon_group,
-			item.icon
-		)
+		("Dashboard button '%s' references a missing icon: %s.%s"):format(item.key, item.icon_group, item.icon)
 	)
 end
 
@@ -84,8 +80,7 @@ assert(
 	"Dashboard Explorer button must load lazy Mini Files before requiring it"
 )
 assert(
-	buttons_by_key.c.command
-		== "<cmd>edit " .. vim.fn.fnameescape(vim.fn.stdpath("config") .. "/init.lua") .. "<CR>",
+	buttons_by_key.c.command == "<cmd>edit " .. vim.fn.fnameescape(vim.fn.stdpath("config") .. "/init.lua") .. "<CR>",
 	"Dashboard Config button must escape config paths"
 )
 
