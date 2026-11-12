@@ -152,7 +152,7 @@ See [docs/debugging.md](docs/debugging.md) for setup, mappings, and registry det
 
 | Variable | Purpose | Default |
 |---|---|---|
-| `PROJECTS_DIR` | Base directory for YAP project picker and project discovery | Windows: `D:/projects/`; Linux: `~/projects` |
+| `PROJECTS_DIR` | Base directory for YAP project picker and project discovery | `~/projects` on all platforms |
 | `LLDB_DAP` | Full path or command name for `lldb-dap` | Windows LLVM path; Linux `lldb-dap` |
 | `PWSH` | PowerShell executable used by the configured shell and C runner | `pwsh` or `pwsh.exe` |
 | `CLANG` | Clang executable used by the C compile/run keymap | `clang` from `PATH` |

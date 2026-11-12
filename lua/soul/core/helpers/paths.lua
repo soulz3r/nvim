@@ -5,9 +5,7 @@ local process_helper = require("soul.core.helpers.process")
 local fn = vim.fn
 
 local projects_dir = vim.env.PROJECTS_DIR
-M.projects = projects_dir and vim.trim(projects_dir) ~= "" and vim.trim(projects_dir)
-	or (platform.is_windows and "D:/projects/")
-	or fn.expand("~/projects")
+M.projects = projects_dir and vim.trim(projects_dir) ~= "" and vim.trim(projects_dir) or fn.expand("~/projects")
 
 local function find_executable(names)
 	for _, name in ipairs(names) do

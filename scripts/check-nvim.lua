@@ -53,6 +53,12 @@ end
 
 local pwsh_started = vim.uv.hrtime()
 local resolved_paths = require(paths_module)
+local configured_projects_dir = vim.env.PROJECTS_DIR and vim.trim(vim.env.PROJECTS_DIR) or ""
+local expected_projects_dir = configured_projects_dir ~= "" and configured_projects_dir or vim.fn.expand("~/projects")
+assert(
+	resolved_paths.projects == expected_projects_dir,
+	"Project directory must honor PROJECTS_DIR and otherwise default to ~/projects"
+)
 local pwsh_elapsed_ms = (vim.uv.hrtime() - pwsh_started) / 1e6
 
 if vim.env.PROFILE_PWSH == "1" then
