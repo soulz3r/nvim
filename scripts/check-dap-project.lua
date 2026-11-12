@@ -30,6 +30,29 @@ assert(path.is_within(inner, inner), "A project root must contain itself")
 assert(not path.is_within(outer .. "-sibling/file.c", outer), "Path containment must respect directory boundaries")
 assert(path.is_executable(vim.v.progpath), "The current Neovim executable must be recognized")
 
+-- The standalone DAP registry must persist independently of YAP.
+local registry_file = temp_dir .. "/state/soul/dap/projects.json"
+local disk_registry = require("soul.core.helpers.dap.project.registry").setup(path, registry_file)
+assert(
+	disk_registry.update(inner, {
+		dap_enabled = true,
+		executable = vim.v.progpath,
+		args = { "--from-disk", "sample file.c" },
+	}),
+	"Standalone DAP registry should persist project metadata"
+)
+local reloaded_registry = require("soul.core.helpers.dap.project.registry").setup(path, registry_file)
+local disk_entry = reloaded_registry.get(inner)
+assert(type(disk_entry) == "table", "Standalone DAP registry should reload saved projects")
+assert(
+	disk_entry.executable == path.normalize(vim.v.progpath),
+	"Standalone DAP registry lost the executable"
+)
+assert(
+	vim.deep_equal(disk_entry.args, { "--from-disk", "sample file.c" }),
+	"Standalone DAP registry lost launch arguments"
+)
+
 local registry_state = {
 	[inner] = {
 		root = inner,
@@ -69,7 +92,7 @@ local resolved_project = projects.resolve_root()
 assert(resolved_project == inner, "Expected " .. inner .. ", got " .. tostring(resolved_project))
 local entry, resolved_root = projects.current()
 assert(resolved_root == inner, "Current project returned the wrong registered root")
-assert(vim.deep_equal(entry.args, { "--from-registry" }), "Current project did not load shared launch arguments")
+assert(vim.deep_equal(entry.args, { "--from-registry" }), "Current project did not load saved launch arguments")
 
 -- Root markers must be resolved from the current file path, not Neovim's cwd.
 local marker_root = temp_dir .. "/marker-project"
@@ -89,7 +112,7 @@ assert(
 	"Project marker lookup must start from the current buffer path"
 )
 
--- A file with no marker or registered ancestor falls back to its own directory,
+-- A file with no marker or DAP-registered ancestor falls back to its own directory,
 -- not whichever unrelated directory Neovim happens to use as its cwd.
 local fallback_dir = temp_dir .. "/unregistered/src"
 assert(vim.fn.mkdir(fallback_dir, "p") == 1, "Could not create fallback source directory")
@@ -106,22 +129,18 @@ assert(projects.resolve_root() == fallback_dir, "Unregistered files must fall ba
 
 vim.api.nvim_set_current_buf(buf)
 
--- Project settings must be persisted through the shared YAP registry.
+-- Project settings must be persisted through the independent DAP registry.
 local saved_args = { "--input", "sample file.c", 42, "--verbose" }
 assert(projects.save_args(inner, saved_args), "Project launch arguments should be saved")
 assert(
-	vim.deep_equal(registry_state[inner].dap_args, { "--input", "sample file.c", "--verbose" }),
+	vim.deep_equal(registry_state[inner].args, { "--input", "sample file.c", "--verbose" }),
 	"Launch arguments must retain strings and ignore unsupported values"
 )
 
 assert(projects.save_executable(inner, vim.v.progpath), "A valid executable should be saved")
 assert(
-	registry_state[inner].debug_executable == path.normalize(vim.v.progpath),
-	"The debug executable must be persisted in the registry"
-)
-assert(
-	registry_state[inner].last_executable == path.normalize(vim.v.progpath),
-	"Saving a debug executable must also update the last executable"
+	registry_state[inner].executable == path.normalize(vim.v.progpath),
+	"The debug executable must be persisted in the DAP registry"
 )
 local saved_entry, saved_root = projects.current()
 assert(saved_root == inner, "Saved settings must remain associated with the resolved project")
