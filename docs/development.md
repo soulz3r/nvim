@@ -2,7 +2,7 @@
 
 ## Project metadata
 
-YAP stores project metadata outside the repository at `stdpath("state")/yap/projects.json`. It records the last executable, arguments, run time, and last-opened time per normalized project root. It can read the previous `stdpath("state")/soul/projects.json` location as a migration fallback.
+YAP stores its own project metadata outside the repository at `stdpath("state")/yap/projects.json`, including its last executable, run arguments, run time, and last-opened time per normalized project root. It can read the previous `stdpath("state")/soul/projects.json` location as a migration fallback. DAP-specific executable and launch-argument settings are no longer written to this registry.
 
 Project run records and argument history are stored under `stdpath("data")/yap`. These are runtime state and should not be committed.
 
@@ -38,7 +38,7 @@ Lua source uses hard tabs with a display width of four, as defined in `.stylua.t
 
 Run `bash scripts/check.sh` for JSON and lockfile validation, Python checker unit tests, Lua indentation and line-ending checks, regression guards, deprecated/private API scans, Lua syntax checks, full-repository StyLua validation (when StyLua is installed), and headless Neovim smoke/integration tests. Python 3 is required for this script. Set `REQUIRE_LUA=1`, `REQUIRE_NVIM=1`, and `REQUIRE_STYLUA=1` in environments where all three tools must be present. Use `stylua .` to apply the formatting rules from `.stylua.toml`.
 
-The headless integration test exercises the custom DAP plugin configuration with stubbed external plugin APIs, verifies launch argument persistence and cancellation, and tests the shared floating-output window lifecycle. Separate Mini Notify tests exercise concurrent progress from multiple clients, delayed cleanup invalidation, and client detach behavior. DAP registry migration tests verify successful imports, backup collision handling, malformed JSON preservation, failed-write preservation, and missing-file handling. DAP executable discovery tests cover root and common build directories, output ranking, ignored dependency directories, and traversal depth limits. DAP path/project tests cover canonical normalization, path-boundary checks, nearest registered ancestor resolution, and fallback to the current file's directory. The core smoke test also verifies child-process timeout cleanup and confirms that a completed process exit code of 124 is not mistaken for a timeout. These tests verify integration contracts without downloading plugins. They do not prove that LLDB, language servers, Telescope, Mini Files, ToggleTerm, or Neovide work on a particular machine.
+The headless integration test exercises the custom DAP plugin configuration with stubbed external plugin APIs, verifies launch argument persistence and cancellation, and tests the shared floating-output window lifecycle. DAP project persistence is tested against its own JSON registry, independently of YAP. Separate Mini Notify tests exercise concurrent progress from multiple clients, delayed cleanup invalidation, and client detach behavior. DAP registry migration tests verify successful imports, backup collision handling, malformed JSON preservation, failed-write preservation, and missing-file handling. DAP executable discovery tests cover root and common build directories, output ranking, ignored dependency directories, and traversal depth limits. DAP path/project tests cover canonical normalization, path-boundary checks, nearest DAP-registered ancestor resolution, independent registry persistence, and fallback to the current file's directory. The core smoke test also verifies child-process timeout cleanup and confirms that a completed process exit code of 124 is not mistaken for a timeout. These tests verify integration contracts without downloading plugins. They do not prove that LLDB, language servers, Telescope, Mini Files, ToggleTerm, or Neovide work on a particular machine.
 
 GitHub Actions runs full-repository StyLua validation and static checks on Ubuntu. A separate compatibility matrix runs the headless repository/integration checks against Neovim stable and nightly on Windows and Linux. Windows CI prints the PowerShell resolver duration when profiling is enabled. Its smoke test checks invalid inherited `PWSH` and `PSHOME` hints, rejection of Windows PowerShell 5.1 when PowerShell 7 is available, and a PowerShell 7 executable path with spaces. The resolver checks an inherited `PSHOME` executable before running slower WindowsApps and AppX discovery probes.
 
@@ -47,12 +47,12 @@ GitHub Actions runs full-repository StyLua validation and static checks on Ubunt
 The DAP plugin specification in `lua/soul/lsp/dap.lua` is the composition layer. Keep it limited to loading the dependencies and wiring their setup functions. Focused helpers own independent concerns:
 
 - `lua/soul/core/helpers/dap/path.lua`: shared path normalization, case-aware project keys, containment checks, and executable checks.
-- `lua/soul/core/helpers/dap/project.lua`: project-root resolution, registered-ancestor matching, project selection, and YAP registry metadata.
+- `lua/soul/core/helpers/dap/project.lua`: project-root resolution, DAP-registered ancestor matching, project selection, and composition of the independent DAP store.
 - `lua/soul/core/helpers/dap/launch.lua`: LLDB adapter/configuration, executable choice, and launch argument prompting/persistence.
 - `lua/soul/core/helpers/dap/keymaps.lua`: grouped session/project, breakpoint, stepping, evaluation/REPL, and UI mappings.
 - `lua/soul/core/helpers/dap/args.lua`: portable launch-argument parsing and formatting.
 - `lua/soul/core/helpers/dap/executables.lua`: bounded project executable discovery and ranking.
-- `lua/soul/core/helpers/dap/registry.lua`: safe migration of legacy project registries.
+- `lua/soul/core/helpers/dap/project/registry.lua`: independent DAP project persistence. `lua/soul/core/helpers/dap/registry.lua`: safe migration of legacy DAP files and one-time import of old DAP-specific fields from YAP's former registry.
 - `lua/soul/core/helpers/dap/repl.lua`: REPL discovery, focus, and Telescope-backed search.
 - `lua/soul/core/helpers/dap/ui.lua`: DAP UI setup and restoration of the original source window after a session.
 
