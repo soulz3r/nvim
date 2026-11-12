@@ -67,3 +67,15 @@ jobs:
           REQUIRE_LUA: ${{ runner.os == 'Linux' && '1' || '0' }}
           REQUIRE_NVIM: "1"
         run: bash scripts/check.sh
+
+      - name: Build and load the configured fzf-native DLL
+        if: runner.os == 'Windows' && matrix.channel == 'stable'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          $source = Join-Path $env:RUNNER_TEMP "telescope-fzf-native"
+          git clone https://github.com/nvim-telescope/telescope-fzf-native.nvim.git $source
+          git -C $source checkout b25b749b9db64d375d782094e2b9dce53ad53a40
+          $env:FZF_NATIVE_DIR = $source
+          nvim --headless --clean -l scripts/check-fzf-build.lua
