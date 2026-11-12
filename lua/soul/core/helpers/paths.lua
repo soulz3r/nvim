@@ -21,9 +21,14 @@ local function is_runnable_powershell(path)
 		return false
 	end
 
-	-- Test the candidate by launching it. executable() can reject valid
-	-- Windows paths in some environments, while App Execution Aliases can
-	-- pass executable() and still fail to start.
+	-- termopen() requires a path Neovim recognizes as executable.
+	-- Windows App Execution Aliases can launch through vim.system(), but
+	-- are rejected by termopen(), so they must not be selected here.
+	if fn.executable(path) ~= 1 then
+		return false
+	end
+
+	-- Verify that the executable is PowerShell 7 or newer before selecting it.
 	local ok, result = pcall(function()
 		local process = vim.system({
 			path,
