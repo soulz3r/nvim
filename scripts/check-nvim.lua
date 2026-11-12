@@ -28,6 +28,26 @@ local lua_globals = lua_ls.settings.Lua.diagnostics.globals
 assert(not vim.tbl_contains(lua_globals, "OPTS"), "LuaLS must not declare OPTS as a global")
 require("soul.core.autocmds")
 assert(#vim.api.nvim_get_autocmds({ group = "SoulCore" }) > 0, "core autocmd group was not registered")
+local alpha_autocmds = require("soul.core.helpers.dashboard.alpha.autocmds")
+local alpha_state = {
+	animation = {
+		start = function() end,
+		stop = function() end,
+	},
+	footer = {
+		invalidate = function() end,
+		update = function() end,
+	},
+}
+alpha_autocmds.register(alpha_state)
+local alpha_autocmd_count = #vim.api.nvim_get_autocmds({ group = "SoulAlpha" })
+assert(alpha_autocmd_count > 0, "Alpha autocmd group was not registered")
+alpha_autocmds.register(alpha_state)
+assert(
+	#vim.api.nvim_get_autocmds({ group = "SoulAlpha" }) == alpha_autocmd_count,
+	"Alpha autocmd registration must be idempotent"
+)
+
 require("soul.core.helpers.ui")
 require("soul.core.helpers.ui.output")
 require("soul.core.neovide")
