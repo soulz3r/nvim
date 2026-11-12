@@ -12,8 +12,7 @@ function M.build(plugin)
 	local function clean_build()
 		local result = fn.delete(build_dir, "rf")
 		if result ~= 0 and vim.uv.fs_stat(build_dir) then
-			return false,
-				"Could not remove the previous native build directory. Restart Neovim before rebuilding."
+			return false, "Could not remove the previous native build directory. Restart Neovim before rebuilding."
 		end
 		return true
 	end
