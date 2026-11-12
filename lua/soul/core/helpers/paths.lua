@@ -17,38 +17,51 @@ local function find_executable(names)
 	end
 end
 
-local function is_runnable_powershell(path)
-	if type(path) ~= "string" or path == "" then
+local probe_budget_ms = 6000
+local probe_timeout_ms = 1500
+
+local function remaining_probe_time(deadline)
+	return math.max(0, math.floor((deadline - vim.uv.hrtime()) / 1e6))
+end
+
+local function run_probe(command, deadline)
+	local remaining = remaining_probe_time(deadline)
+	if remaining <= 0 then
+		return
+	end
+
+	local ok, process = pcall(vim.system, command, { text = true })
+	if not ok then
+		return
+	end
+
+	local result = process:wait(math.min(remaining, probe_timeout_ms))
+	if not result then
+		pcall(function()
+			process:kill(9)
+		end)
+	end
+
+	return result
+end
+
+local function is_runnable_powershell(path, deadline)
+	if type(path) ~= "string" or path == "" or fn.executable(path) ~= 1 then
 		return false
 	end
 
-	-- termopen() requires a path Neovim recognizes as executable.
-	-- Windows App Execution Aliases can launch through vim.system(), but
-	-- are rejected by termopen(), so they must not be selected here.
-	if fn.executable(path) ~= 1 then
-		return false
-	end
+	-- Store App Execution Aliases can launch through vim.system(), but
+	-- termopen() needs a real executable path.
+	local result = run_probe({
+		path,
+		"-NoLogo",
+		"-NoProfile",
+		"-NonInteractive",
+		"-Command",
+		"[Console]::Out.Write([int]$PSVersionTable.PSVersion.Major)",
+	}, deadline)
 
-	-- Verify that the executable is PowerShell 7 or newer before selecting it.
-	local ok, result = pcall(function()
-		local process = vim.system({
-			path,
-			"-NoLogo",
-			"-NoProfile",
-			"-NonInteractive",
-			"-Command",
-			"[Console]::Out.Write([int]$PSVersionTable.PSVersion.Major)",
-		}, { text = true })
-
-		local completed = process:wait(3000)
-		if not completed then
-			pcall(process.kill, process, 9)
-		end
-
-		return completed
-	end)
-
-	if not ok or type(result) ~= "table" or result.code ~= 0 then
+	if type(result) ~= "table" or result.code ~= 0 then
 		return false
 	end
 
@@ -56,30 +69,21 @@ local function is_runnable_powershell(path)
 	return major ~= nil and major >= 7
 end
 
-local function powershell_home(path)
+local function powershell_home(path, deadline)
 	if type(path) ~= "string" or path == "" then
 		return
 	end
 
-	local ok, result = pcall(function()
-		local process = vim.system({
-			path,
-			"-NoLogo",
-			"-NoProfile",
-			"-NonInteractive",
-			"-Command",
-			"[Console]::Out.Write($PSHOME)",
-		}, { text = true })
+	local result = run_probe({
+		path,
+		"-NoLogo",
+		"-NoProfile",
+		"-NonInteractive",
+		"-Command",
+		"[Console]::Out.Write($PSHOME)",
+	}, deadline)
 
-		local completed = process:wait(3000)
-		if not completed then
-			pcall(process.kill, process, 9)
-		end
-
-		return completed
-	end)
-
-	if ok and type(result) == "table" and result.code == 0 then
+	if type(result) == "table" and result.code == 0 then
 		local home = vim.trim(result.stdout or "")
 		if home ~= "" then
 			return home
@@ -88,6 +92,7 @@ local function powershell_home(path)
 end
 
 local function find_powershell()
+	local deadline = vim.uv.hrtime() + probe_budget_ms * 1e6
 	local candidates = {}
 	local seen = {}
 
@@ -120,7 +125,7 @@ local function find_powershell()
 	-- accepted by termopen(). Ask it for the real package executable instead.
 	if platform.is_windows then
 		local alias = pwsh ~= "" and pwsh or pwsh_exe
-		local home = powershell_home(alias)
+		local home = powershell_home(alias, deadline)
 		if home then
 			add_candidate(home .. "/pwsh.exe")
 		end
@@ -130,25 +135,16 @@ local function find_powershell()
 		-- the Store package location; it is never selected as the shell.
 		local windows_powershell = fn.exepath("powershell.exe")
 		if windows_powershell ~= "" then
-			local ok, result = pcall(function()
-				local process = vim.system({
-					windows_powershell,
-					"-NoLogo",
-					"-NoProfile",
-					"-NonInteractive",
-					"-Command",
-					"(Get-AppxPackage -Name Microsoft.PowerShell | Select-Object -First 1 -ExpandProperty InstallLocation)",
-				}, { text = true })
+			local result = run_probe({
+				windows_powershell,
+				"-NoLogo",
+				"-NoProfile",
+				"-NonInteractive",
+				"-Command",
+				"(Get-AppxPackage -Name Microsoft.PowerShell | Select-Object -First 1 -ExpandProperty InstallLocation)",
+			}, deadline)
 
-				local completed = process:wait(3000)
-				if not completed then
-					pcall(process.kill, process, 9)
-				end
-
-				return completed
-			end)
-
-			if ok and type(result) == "table" and result.code == 0 then
+			if type(result) == "table" and result.code == 0 then
 				local install_location = vim.trim(result.stdout or "")
 				if install_location ~= "" then
 					add_candidate(install_location .. "/pwsh.exe")
@@ -160,8 +156,11 @@ local function find_powershell()
 	if platform.is_windows then
 		-- where.exe may list package-specific aliases that cannot be spawned.
 		-- Keep the preferred reverse ordering, but validate every candidate.
-		local matches = fn.systemlist({ "where.exe", "pwsh.exe" })
-		if vim.v.shell_error == 0 then
+		local where_result = run_probe({ "where.exe", "pwsh.exe" }, deadline)
+		if type(where_result) == "table" and where_result.code == 0 then
+			local matches = vim.split(vim.trim(where_result.stdout or ""), "\\n", {
+				trimempty = true,
+			})
 			for i = #matches, 1, -1 do
 				add_candidate(vim.trim(matches[i]))
 			end
@@ -191,7 +190,10 @@ local function find_powershell()
 	end
 
 	for _, candidate in ipairs(candidates) do
-		if is_runnable_powershell(candidate) then
+		if remaining_probe_time(deadline) <= 0 then
+			break
+		end
+		if is_runnable_powershell(candidate, deadline) then
 			return candidate
 		end
 	end
