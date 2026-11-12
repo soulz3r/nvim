@@ -5,9 +5,9 @@ local M = {
 
 function M.config()
 	local dashboard = require("alpha.themes.dashboard")
-	local sections = require("soul.core.helpers.alpha.sections")
+	local sections = require("soul.core.helpers.dashboard.alpha.sections")
 	local animation_helper = require("soul.core.helpers.dashboard.animation")
-	local autocmds = require("soul.core.helpers.alpha.autocmds")
+	local autocmds = require("soul.core.helpers.dashboard.alpha.autocmds")
 
 	local state = sections.build(dashboard)
 
