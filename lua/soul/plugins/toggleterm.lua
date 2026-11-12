@@ -14,7 +14,7 @@ function M.config()
 		-- Invoke the resolved executable explicitly so Store paths containing
 		-- spaces are not split into separate command tokens.
 		local quoted_powershell = "'" .. paths.pwsh:gsub("'", "''") .. "'"
-		terminal_shell = "& " .. quoted_powershell .. " -NoLogo -NoProfile -NoExit"
+		terminal_shell = "& " .. quoted_powershell .. " -NoLogo -NoExit"
 	end
 	local execs = {
 		{ nil, "<M-1>", "Horizontal Terminal", "horizontal", 0.3 },
