@@ -162,6 +162,20 @@ M.config = function()
 		migrate_registry_file(legacy_path)
 	end
 
+	local function copy_args(args)
+		local result = {}
+
+		if type(args) == "table" then
+			for _, arg in ipairs(args) do
+				if type(arg) == "string" then
+					table.insert(result, arg)
+				end
+			end
+		end
+
+		return result
+	end
+
 	local function load_projects()
 		local ok, entries = pcall(project_registry.list)
 		if not ok or type(entries) ~= "table" then
@@ -177,12 +191,14 @@ M.config = function()
 			if type(entry) == "table" and type(entry.root) == "string" then
 				local root = normalize(entry.root)
 				local executable = entry.debug_executable or entry.last_executable
+				local args = copy_args(entry.dap_args)
 				local key = project_key(root)
 
-				if key and (entry.dap_enabled or executable) then
+				if key and (entry.dap_enabled or executable or type(entry.dap_args) == "table") then
 					projects[key] = {
 						root = root,
 						executable = normalize(executable),
+						args = args,
 					}
 				end
 			end
@@ -327,10 +343,18 @@ M.config = function()
 		local ok, shared = pcall(project_registry.get, root)
 
 		if ok and type(shared) == "table"
-			and (shared.dap_enabled or shared.debug_executable or shared.last_executable)
+			and (
+				shared.dap_enabled
+				or shared.debug_executable
+				or shared.last_executable
+				or type(shared.dap_args) == "table"
+			)
 		then
 			entry = entry or { root = root }
 			entry.executable = shared.debug_executable or shared.last_executable or entry.executable
+			if type(shared.dap_args) == "table" then
+				entry.args = copy_args(shared.dap_args)
+			end
 			projects[key] = entry
 		end
 
@@ -564,8 +588,6 @@ M.config = function()
 	-- Launch arguments
 	-- =========================================================
 
-	local launch_args = {}
-
 	local function format_args(args)
 		local formatted = {}
 
@@ -649,10 +671,50 @@ M.config = function()
 		return args
 	end
 
+	local function save_launch_args(root, args)
+		root = normalize(root)
+		local key = project_key(root)
+
+		if not key then
+			return false
+		end
+
+		local normalized_args = copy_args(args)
+		local ok, saved = pcall(project_registry.update, root, {
+			dap_enabled = true,
+			dap_args = normalized_args,
+		})
+
+		if not ok or saved ~= true then
+			vim.notify(
+				"Could not save launch arguments for project:\n" .. root
+					.. (not ok and ("\n" .. tostring(saved)) or ""),
+				vim.log.levels.ERROR
+			)
+			return false
+		end
+
+		local entry = projects[key] or { root = root }
+		entry.args = normalized_args
+		projects[key] = entry
+
+		return true
+	end
+
 	local function prompt_arguments(callback)
+		local entry, root = current_project()
+
+		if not entry or not root then
+			vim.notify(
+				"Could not resolve a project for launch arguments.",
+				vim.log.levels.ERROR
+			)
+			return
+		end
+
 		vim.ui.input({
 			prompt = "Program arguments: ",
-			default = format_args(launch_args),
+			default = format_args(entry.args or {}),
 		}, function(input)
 			if input == nil then
 				return
@@ -660,11 +722,10 @@ M.config = function()
 
 			local parsed = parse_args(input)
 
-			if not parsed then
+			if not parsed or not save_launch_args(root, parsed) then
 				return
 			end
 
-			launch_args = parsed
 			callback(parsed)
 		end)
 	end
