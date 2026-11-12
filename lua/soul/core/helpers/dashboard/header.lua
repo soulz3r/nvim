@@ -1,53 +1,24 @@
 local M = {}
 
 M.lines = {
-	"███████╗ ██████╗ ██╗   ██╗██╗灵魂",
-	"██╔════╝██╔═══██╗██║   ██║██║士兵",
-	"███████╗██║no ██║██║   ██║██║国王",
-	"╚════██║██║me ██║██║   ██║██║没了",
-	"███████║╚██████╔╝╚████╔╝███████╗",
-	"╚══════╝ ╚═════╝  ╚═════╝ ╚══════╝",
+	" ██████╗██╗   ██╗██╗███╗   ███╗",
+	"██╔════╝██║   ██║██║████╗ ████║",
+	"██║     ██║   ██║██║██╔████╔██║",
+	"██║     ╚██████╔╝██║██║╚██╔╝██║",
+	"╚██████╗ ╚═════╝ ╚═╝██║ ╚═╝ ██║",
+	" ╚═════╝",
+	"   C, with a better editor.",
 }
 
 -- Character-based highlight ranges. Alpha converts these to byte positions.
 M.highlights = {
-	{
-		{ "AlphaGreen", 0, 29 },
-		{ "AlphaYellow", 29, 31 },
-	},
-
-	{
-		{ "AlphaGreen", 0, 20 },
-		{ "AlphaRed", 20, 22 },
-		{ "AlphaGreen", 22, 29 },
-		{ "AlphaYellow", 29, 31 },
-	},
-
-	{
-		{ "AlphaGreen", 0, 11 },
-		{ "AlphaYellow", 11, 13 },
-		{ "AlphaGreen", 13, 20 },
-		{ "AlphaRed", 20, 22 },
-		{ "AlphaGreen", 22, 29 },
-		{ "AlphaYellow", 29, 31 },
-	},
-
-	{
-		{ "AlphaGreen", 0, 11 },
-		{ "AlphaYellow", 11, 13 },
-		{ "AlphaGreen", 13, 20 },
-		{ "AlphaRed", 20, 22 },
-		{ "AlphaGreen", 22, 29 },
-		{ "AlphaYellow", 29, 31 },
-	},
-
-	{
-		{ "AlphaGreen", 0, 34 },
-	},
-
-	{
-		{ "AlphaGreen", 0, 34 },
-	},
+	{ { "AlphaGreen", 0, 31 } },
+	{ { "AlphaGreen", 0, 31 } },
+	{ { "AlphaGreen", 0, 31 } },
+	{ { "AlphaGreen", 0, 31 } },
+	{ { "AlphaGreen", 0, 31 } },
+	{ { "AlphaGreen", 0, 8 } },
+	{ { "AlphaYellow", 0, 27 } },
 }
 
 -- Animation data is kept separate from the Alpha section that consumes it.
