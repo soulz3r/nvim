@@ -47,16 +47,15 @@ from pathlib import Path
 import sys
 
 for path in Path(".").rglob("*.lua"):
-    if (
-        not path.is_file()
-        or ".git" in path.parts
-        or path.as_posix() == "lua/soul/core/keymaps.lua"
-    ):
+    if not path.is_file() or ".git" in path.parts:
         continue
 
     content = path.read_bytes()
     if b"\r" in content:
         sys.exit(f"{path}: Lua files must use LF line endings.")
+
+    if path.as_posix() == "lua/soul/core/keymaps.lua":
+        continue
 
     for line_number, line in enumerate(content.decode("utf-8").splitlines(), 1):
         prefix = line[: len(line) - len(line.lstrip(" " + chr(9)))]
