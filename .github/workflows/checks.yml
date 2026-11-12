@@ -13,7 +13,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Install Lua parser and JSON validator
+      - name: Install Python for JSON validation
         run: |
           sudo apt-get update
           sudo apt-get install -y python3
