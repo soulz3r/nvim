@@ -36,6 +36,27 @@ function M.config()
 		})
 	end
 
+	local function synchronize_without_confirmation()
+		local original_confirm = vim.fn.confirm
+
+		vim.fn.confirm = function(message, choices, default, kind)
+			if choices == "&Yes\n&No\n&Cancel" and default == 1 and kind == "Question" then
+				return 1
+			end
+
+			return original_confirm(message, choices, default, kind)
+		end
+
+		local ok, result = xpcall(MiniFiles.synchronize, debug.traceback)
+		vim.fn.confirm = original_confirm
+
+		if not ok then
+			error(result, 0)
+		end
+
+		return result
+	end
+
 	MiniFiles.setup({
 		mappings = {
 			go_in = "<CR>",
@@ -46,7 +67,7 @@ function M.config()
 		},
 		options = {
 			use_as_default_explorer = true,
-			permanent_delete = true,
+			permanent_delete = false,
 		},
 		windows = {
 			preview = true,
@@ -105,6 +126,11 @@ function M.config()
 			vim.keymap.set("n", "gx", open_entry, {
 				buffer = buf,
 				desc = "Open with system application",
+			})
+
+			vim.keymap.set("n", "<leader>w", synchronize_without_confirmation, {
+				buffer = buf,
+				desc = "Synchronize changes without confirmation",
 			})
 
 			vim.keymap.set("n", "<CR>", function()
