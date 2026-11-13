@@ -1,8 +1,654 @@
 local M = {}
 
-function M.build(dashboard)
+local horizontal_rule = require("soul.core.helpers.dashboard.horizontal_rule").build
+
+local function build_animation_timeline(animation, content_width)
+	local timeline = {}
+	local hold_ticks = math.max(0, animation.hold_ticks or 0)
+
+	local function push(lines)
+		local frame = vim.deepcopy(lines)
+
+		-- Keep every animated row at the logo's fixed width. Alpha can then
+		-- center the whole block without recentering short partial lines.
+		for index, line in ipairs(frame) do
+			local width = vim.fn.strdisplaywidth(line)
+			if width < content_width then
+				frame[index] = line .. string.rep(" ", content_width - width)
+			end
+		end
+
+		timeline[#timeline + 1] = frame
+	end
+
+	for _, scene in ipairs(animation.scenes) do
+		-- Every scene uses the same seven-row layout:
+		-- heading, two code lines, caret, optional closing line,
+		-- separator, explanation.
+		local visible = { "", "", "", "", "", "", "" }
+		local cursor_source_line = scene.cursor_source_line or 3
+		local code_line = scene.lines[cursor_source_line] or ""
+		local target = scene.cursor_token and code_line:find(scene.cursor_token, 1, true)
+
+		assert(
+			target,
+			("dashboard caret token %q was not found in: %s"):format(tostring(scene.cursor_token), code_line)
+		)
+
+		local block_width = 0
+		for line_index = 1, 3 do
+			block_width = math.max(block_width, vim.fn.strdisplaywidth(scene.lines[line_index] or ""))
+		end
+		if scene.extra_line then
+			block_width = math.max(block_width, vim.fn.strdisplaywidth(scene.extra_line))
+		end
+
+		local block_indent = vim.fn.strdisplaywidth((scene.lines[1] or ""):match("^%s*"))
+		local visible_width = math.max(0, block_width - block_indent)
+		local padding = math.max(0, math.floor((content_width - visible_width) / 2) - block_indent)
+		local indent = string.rep(" ", padding)
+
+		local heading = scene.lines[1] or ""
+		for column = 1, #heading do
+			visible[1] = indent .. heading:sub(1, column)
+			push(visible)
+		end
+
+		for line_index = 2, 3 do
+			local line = scene.lines[line_index] or ""
+
+			if line_index == cursor_source_line then
+				visible[4] = indent .. "^"
+				push(visible)
+			end
+
+			for column = 1, #line do
+				visible[line_index] = indent .. line:sub(1, column)
+
+				if line_index == cursor_source_line then
+					local caret_offset = math.min(column, target - 1)
+					local caret_column = padding + vim.fn.strdisplaywidth(line:sub(1, caret_offset))
+					visible[4] = string.rep(" ", caret_column) .. "^"
+				end
+
+				push(visible)
+			end
+		end
+
+		if scene.extra_line then
+			for column = 1, #scene.extra_line do
+				visible[5] = indent .. scene.extra_line:sub(1, column)
+				push(visible)
+			end
+
+			-- Keep the caret anchored to its target while the closing line types.
+			local caret_column = padding + vim.fn.strdisplaywidth(code_line:sub(1, target - 1))
+			visible[4] = string.rep(" ", caret_column) .. "^"
+			push(visible)
+		end
+
+		local code_indent = vim.fn.strdisplaywidth((scene.lines[2] or ""):match("^%s*"))
+		local rule_indent = string.rep(" ", padding + code_indent)
+		local rule_width = math.max(0, block_width - code_indent)
+
+		visible[6] = rule_indent .. horizontal_rule(rule_width)
+		push(visible)
+
+		local explanation = scene.lines[6] or ""
+		local explanation_leading = vim.fn.strdisplaywidth(explanation:match("^%s*"))
+		local explanation_width = math.max(0, vim.fn.strdisplaywidth(explanation) - explanation_leading)
+		local explanation_padding =
+			math.max(0, math.floor((content_width - explanation_width) / 2) - explanation_leading)
+		local explanation_indent = string.rep(" ", explanation_padding)
+
+		for column = 1, #explanation do
+			visible[7] = explanation_indent .. explanation:sub(1, column)
+			push(visible)
+		end
+
+		for _ = 1, hold_ticks do
+			push(visible)
+		end
+	end
+
+	return timeline
+end
+
+local function add_range(ranges, group, line_number, first, last)
+	if first < last then
+		ranges[line_number] = ranges[line_number] or {}
+		ranges[line_number][#ranges[line_number] + 1] = { group, first, last }
+	end
+end
+
+-- Animated ranges use byte offsets, matching Alpha's native API.
+-- Resolve overlaps by preferring the narrowest range (the most specific
+-- token); when widths match, the later range wins.
+local function normalize_line_ranges(ranges, line_number, line)
+	local source = ranges[line_number]
+	if not source or #source < 2 then
+		return
+	end
+
+	local normalized = {}
+	local active_group
+	local active_start
+
+	for column = 0, #line - 1 do
+		local best_group
+		local best_width = math.huge
+
+		for _, range in ipairs(source) do
+			local group, first, last = range[1], range[2], range[3]
+			if column >= first and column < last then
+				local width = last - first
+				if width <= best_width then
+					best_group = group
+					best_width = width
+				end
+			end
+		end
+
+		if best_group ~= active_group then
+			if active_group then
+				add_range(normalized, active_group, line_number, active_start, column)
+			end
+			active_group = best_group
+			active_start = best_group and column or nil
+		end
+	end
+
+	if active_group then
+		add_range(normalized, active_group, line_number, active_start, #line)
+	end
+
+	ranges[line_number] = normalized[line_number] or {}
+end
+
+local topic_highlights = {
+	["FIRST PROGRAM"] = "AlphaTopicCompilation",
+	COMPILATION = "AlphaTopicCompilation",
+	OUTPUT = "AlphaTopicRepresentations",
+	TYPES = "AlphaTopicRepresentations",
+	CONSTANTS = "AlphaTopicMemory",
+	OPERATORS = "AlphaTopicMemory",
+	["CONTROL FLOW"] = "AlphaTopicMemory",
+	FUNCTIONS = "AlphaTopicMemory",
+	ARRAYS = "AlphaTopicDereference",
+	STRINGS = "AlphaTopicDereference",
+	STRUCTURES = "AlphaTopicDereference",
+	POINTERS = "AlphaTopicPointers",
+	DEREFERENCE = "AlphaTopicPointers",
+	MEMORY = "AlphaTopicPointers",
+	PREPROCESSOR = "AlphaTopicMemory",
+	MACROS = "AlphaTopicDereference",
+	["DYNAMIC MEMORY"] = "AlphaTopicPointers",
+	["FILE I O"] = "AlphaTopicDereference",
+	BITWISE = "AlphaTopicPointers",
+}
+
+local c_types = {
+	int = true,
+	char = true,
+	float = true,
+	double = true,
+	void = true,
+	short = true,
+	long = true,
+	signed = true,
+	unsigned = true,
+	const = true,
+	size_t = true,
+	FILE = true,
+	bool = true,
+	Point = true,
+}
+
+local c_keywords = {
+	["return"] = true,
+	["if"] = true,
+	["else"] = true,
+	["for"] = true,
+	["while"] = true,
+	["do"] = true,
+	["switch"] = true,
+	["case"] = true,
+	["break"] = true,
+	["continue"] = true,
+	["struct"] = true,
+	["union"] = true,
+	["enum"] = true,
+	["typedef"] = true,
+	["sizeof"] = true,
+	["goto"] = true,
+	["default"] = true,
+}
+
+local c_storage = {
+	static = true,
+	extern = true,
+	register = true,
+	auto = true,
+	_Thread_local = true,
+}
+
+local c_constants = {
+	["true"] = true,
+	["false"] = true,
+	NULL = true,
+	nullptr = true,
+	MAX = true,
+}
+
+-- Macro names shown by the tutorial. Keeping them explicit prevents
+-- uppercase enum constants from being mistaken for preprocessor macros.
+local c_macros = {
+	DEBUG = true,
+	SQR = true,
+}
+
+-- Function names used by the tutorial. Recognizing their prefixes lets the
+-- function color appear while the identifier is still being typed.
+local c_functions = {
+	main = true,
+	puts = true,
+	add = true,
+	malloc = true,
+	free = true,
+	fopen = true,
+	fclose = true,
+}
+
+local function has_prefix(tokens, word)
+	for token in pairs(tokens) do
+		if token:sub(1, #word) == word then
+			return true
+		end
+	end
+
+	return false
+end
+
+local partial_token_groups = {
+	{ tokens = c_types, group = "AlphaCodeType" },
+	{ tokens = c_keywords, group = "AlphaCodeKeyword" },
+	{ tokens = c_storage, group = "AlphaCodeStorage" },
+	{ tokens = c_constants, group = "AlphaCodeConstant" },
+	{ tokens = c_macros, group = "AlphaCodeMacro" },
+	{ tokens = c_functions, group = "AlphaCodeFunction" },
+}
+
+local function partial_token_group(word)
+	local matched_group
+
+	for _, candidate in ipairs(partial_token_groups) do
+		if has_prefix(candidate.tokens, word) then
+			if matched_group and matched_group ~= candidate.group then
+				return nil
+			end
+			matched_group = candidate.group
+		end
+	end
+
+	return matched_group
+end
+
+local function highlight_c_code(ranges, line_number, line)
+	add_range(ranges, "AlphaCodeText", line_number, 0, #line)
+
+	local index = 1
+	while index <= #line do
+		local char = line:sub(index, index)
+		local pair = line:sub(index, index + 1)
+
+		if pair == "//" then
+			add_range(ranges, "AlphaCodeComment", line_number, index - 1, #line)
+			break
+		elseif pair == "/*" then
+			local finish = line:find("*/", index + 2, true)
+			add_range(ranges, "AlphaCodeComment", line_number, index - 1, finish and finish + 1 or #line)
+			break
+		elseif char == '"' or char == "'" then
+			local finish = index + 1
+			while finish <= #line do
+				if line:sub(finish, finish) == "\\" then
+					finish = finish + 2
+				elseif line:sub(finish, finish) == char then
+					finish = finish + 1
+					break
+				else
+					finish = finish + 1
+				end
+			end
+			add_range(ranges, "AlphaCodeString", line_number, index - 1, math.min(finish - 1, #line))
+			index = finish
+		elseif char:match("[%a_]") then
+			local finish = line:find("[^%w_]", index) or (#line + 1)
+			local word = line:sub(index, finish - 1)
+			local next_char = line:sub(finish):match("^%s*(.)")
+			local partial = finish > #line
+			local group = c_types[word] and "AlphaCodeType"
+				or c_keywords[word] and "AlphaCodeKeyword"
+				or c_storage[word] and "AlphaCodeStorage"
+				or c_constants[word] and "AlphaCodeConstant"
+				or c_macros[word] and "AlphaCodeMacro"
+				or next_char == "(" and "AlphaCodeFunction"
+				or partial and partial_token_group(word)
+				or "AlphaCodeIdentifier"
+			add_range(ranges, group, line_number, index - 1, finish - 1)
+			index = finish
+		elseif char:match("%d") then
+			local number = line:sub(index):match("^0[xX][%da-fA-F]+[uUlL]*")
+				or line:sub(index):match("^0[bB][01]+[uUlL]*")
+				or line:sub(index):match("^%d+%.?%d*[eE]?[+-]?%d*[fFlLuU]*")
+				or line:sub(index):match("^%d+")
+			local finish = index + #number
+			add_range(ranges, "AlphaCodeNumber", line_number, index - 1, finish - 1)
+			index = finish
+		elseif char == "#" and line:sub(1, index - 1):match("^%s*$") then
+			add_range(ranges, "AlphaCodePreprocessor", line_number, index - 1, index)
+			local directive_start, directive_end = line:find("[%a_]+", index + 1)
+			if directive_start then
+				add_range(ranges, "AlphaCodePreprocessor", line_number, directive_start - 1, directive_end)
+				index = directive_end + 1
+			else
+				index = index + 1
+			end
+		elseif char:match("[@*&=+%-%/%<>!|%%~^]") then
+			local finish = index + 1
+			while finish <= #line and line:sub(finish, finish):match("[=&|<>]") do
+				finish = finish + 1
+			end
+			add_range(ranges, "AlphaCodeOperator", line_number, index - 1, finish - 1)
+			index = finish
+		elseif char:match("[;:,%.%(%)%[%]{}]") then
+			add_range(ranges, "AlphaCodePunctuation", line_number, index - 1, index)
+			index = index + 1
+		else
+			index = index + 1
+		end
+	end
+end
+
+local function highlight_preprocessor(ranges, line_number, line)
+	highlight_c_code(ranges, line_number, line)
+	local directive_start, directive_end = line:find("#%s*[%a_]+")
+	if directive_start then
+		add_range(ranges, "AlphaCodePreprocessor", line_number, directive_start - 1, directive_end)
+	end
+
+	local _, define_end = line:find("#%s*define%s+")
+	if define_end then
+		local name_start, name_end = line:find("[%a_][%w_]*", define_end + 1)
+		if name_start then
+			add_range(ranges, "AlphaCodeMacro", line_number, name_start - 1, name_end)
+		end
+	end
+
+	local include_start, include_end = line:find("<[^>]+>")
+	if include_start then
+		add_range(ranges, "AlphaCodeString", line_number, include_start - 1, include_end)
+	end
+end
+
+-- Explanation vocabulary uses the same semantic roles as the C snippets.
+-- Keep this list focused on the concepts actually taught by the dashboard.
+-- Unknown prose remains neutral instead of receiving arbitrary rainbow colors.
+local explanation_roles = {
+	-- First program and compilation.
+	["return"] = "AlphaCodeKeyword",
+	["exits"] = "AlphaCodeKeyword",
+	["main"] = "AlphaCodeFunction",
+	["compiler"] = "AlphaCodeStage",
+	["translates"] = "AlphaCodeOperator",
+	["stages"] = "AlphaCodeType",
+
+	-- Output and types.
+	["puts"] = "AlphaCodeFunction",
+	["writes"] = "AlphaCodeOperator",
+	["stdout"] = "AlphaCodeFile",
+	["double"] = "AlphaCodeType",
+	["stores"] = "AlphaCodeFunction",
+	["decimals"] = "AlphaCodeNumber",
+	["floating"] = "AlphaCodeType",
+	["point"] = "AlphaCodeType",
+	["newline"] = "AlphaCodeString",
+	["null"] = "AlphaCodeConstant",
+	["allocated"] = "AlphaCodeStage",
+	["storage"] = "AlphaCodeStage",
+
+	-- Constants and operators.
+	["enum"] = "AlphaCodeKeyword",
+	["names"] = "AlphaMessageConcept",
+	["integer"] = "AlphaCodeType",
+	["constants"] = "AlphaCodeConstant",
+	["updates"] = "AlphaCodeOperator",
+	["existing"] = "AlphaMessageConcept",
+	["value"] = "AlphaMessageConcept",
+
+	-- Control flow and functions.
+	["if"] = "AlphaCodeKeyword",
+	["runs"] = "AlphaCodeFunction",
+	["true"] = "AlphaCodeConstant",
+	["sends"] = "AlphaCodeFunction",
+
+	-- Arrays, strings, and structures.
+	["index"] = "AlphaCodeNumber",
+	["zero"] = "AlphaCodeNumber",
+	["selects"] = "AlphaCodeOperator",
+	["first"] = "AlphaCodeConstant",
+	["item"] = "AlphaMessageConcept",
+	["strings"] = "AlphaCodeString",
+	["character"] = "AlphaCodeType",
+	["arrays"] = "AlphaCodeType",
+	["structs"] = "AlphaCodeType",
+	["group"] = "AlphaCodeFunction",
+	["related"] = "AlphaMessageConcept",
+	["fields"] = "AlphaMessageConcept",
+
+	-- Pointers and memory.
+	["gives"] = "AlphaCodeFunction",
+	["address"] = "AlphaCodeOperator",
+	["reads"] = "AlphaCodeFunction",
+	["pointed"] = "AlphaMessageConcept",
+	["ptr"] = "AlphaCodeType",
+	["directives"] = "AlphaCodePreprocessor",
+	["run"] = "AlphaCodeFunction",
+	["compile"] = "AlphaCodeStage",
+	["macros"] = "AlphaCodeMacro",
+	["expand"] = "AlphaCodePreprocessor",
+	["build"] = "AlphaCodeStage",
+	["free"] = "AlphaCodeFunction",
+	["releases"] = "AlphaCodeFunction",
+	["memory"] = "AlphaTopicPointers",
+
+	-- Files and bitwise operations.
+	["close"] = "AlphaCodeFunction",
+	["opened"] = "AlphaCodeFunction",
+	["file"] = "AlphaCodeFile",
+	["masks"] = "AlphaCodeConstant",
+	["select"] = "AlphaCodeOperator",
+	["individual"] = "AlphaCodeConstant",
+	["bits"] = "AlphaCodeNumber",
+}
+
+local function explanation_role(word, is_final_word)
+	local exact = explanation_roles[word]
+	if exact then
+		return exact
+	end
+
+	-- Do not color one- or two-letter prefixes: they are too common in prose.
+	-- Once a prefix is long enough, color it only if every matching term has
+	-- the same semantic role. For a known vocabulary word, each later prefix
+	-- remains inside that same candidate set and therefore keeps its role.
+	if not is_final_word or #word < 3 then
+		return nil
+	end
+
+	local matched_group
+
+	for term, group in pairs(explanation_roles) do
+		if term:sub(1, #word) == word then
+			if matched_group and matched_group ~= group then
+				return nil
+			end
+			matched_group = group
+		end
+	end
+
+	return matched_group
+end
+
+local function highlight_message(ranges, line_number, line)
+	if #line == 0 then
+		return
+	end
+
+	-- Keep ranges disjoint so each explanation token has exactly one role.
+	local cursor = 0
+
+	for first, word in line:gmatch("()([%a_]+)") do
+		local start_column = first - 1
+		local end_column = start_column + #word
+
+		if cursor < start_column then
+			add_range(ranges, "AlphaMessage", line_number, cursor, start_column)
+		end
+
+		local is_final_word = line:sub(end_column + 1):match("^%s*[%p]*$") ~= nil
+		local role = explanation_role(word, is_final_word)
+		add_range(ranges, role or "AlphaMessage", line_number, start_column, end_column)
+		cursor = end_column
+	end
+
+	if cursor < #line then
+		add_range(ranges, "AlphaMessage", line_number, cursor, #line)
+	end
+
+	for _, term in ipairs({ "&value", "*ptr", "+=" }) do
+		local first = 1
+		while true do
+			local start_index, end_index = line:find(term, first, true)
+			if not start_index then
+				break
+			end
+			if term ~= "+=" then
+				add_range(ranges, "AlphaCodeOperator", line_number, start_index - 1, start_index)
+			else
+				add_range(ranges, "AlphaCodeOperator", line_number, start_index - 1, end_index)
+			end
+			first = end_index + 1
+		end
+	end
+end
+
+local function highlight_animation_line(ranges, line_number, line, line_index)
+	local heading = line:match("^%s*(.-)%s*$")
+	local topic_group = topic_highlights[heading]
+
+	-- A partial heading can match several topics. Only apply a color while
+	-- every matching topic agrees, avoiding arbitrary color changes from pairs().
+	if not topic_group and #heading > 0 and heading:match("^[A-Z ]+$") then
+		local candidate_group
+		local ambiguous = false
+
+		for title, group in pairs(topic_highlights) do
+			if title:sub(1, #heading) == heading then
+				if candidate_group and candidate_group ~= group then
+					ambiguous = true
+					break
+				end
+				candidate_group = group
+			end
+		end
+
+		if not ambiguous then
+			topic_group = candidate_group
+		end
+	end
+
+	if topic_group then
+		add_range(ranges, topic_group, line_number, 0, #line)
+		return
+	end
+
+	if line:match("^%s*%^") then
+		local caret = line:find("%^")
+		add_range(ranges, "AlphaCodeCursor", line_number, caret - 1, caret)
+		return
+	end
+
+	if line:match("^%s*#") then
+		highlight_preprocessor(ranges, line_number, line)
+		return
+	end
+
+	if line:match("^%s*main%.[ciso]+") or line:match("%->%s*cvim") then
+		add_range(ranges, "AlphaCodeFile", line_number, 0, #line)
+		local arrow = line:find("%-%>")
+		if arrow then
+			add_range(ranges, "AlphaCodeOperator", line_number, arrow - 1, arrow + 1)
+			local target = line:find("cvim", arrow, true)
+			if target then
+				add_range(ranges, "AlphaCodeStage", line_number, target - 1, target + 3)
+			end
+		end
+		return
+	end
+
+	-- Representation labels and values use the same role colors regardless
+	-- of whether the value is decimal, hexadecimal, or binary.
+	if line:find("decimal", 1, true) or line:find("hexadecimal", 1, true) or line:find("binary", 1, true) then
+		add_range(ranges, "AlphaCodeText", line_number, 0, #line)
+
+		local label_start, label_end = line:find("%a+")
+		if label_start then
+			add_range(ranges, "AlphaCodeStage", line_number, label_start - 1, label_end)
+		end
+
+		local value_start, value_end = line:find("0x[%da-fA-F]+")
+		if not value_start then
+			value_start, value_end = line:find("%f[%d]%d+%f[%D]")
+		end
+		if value_start then
+			add_range(ranges, "AlphaCodeNumber", line_number, value_start - 1, value_end)
+		end
+		return
+	end
+
+	if line_index == 2 or line_index == 3 or line_index == 5 then
+		highlight_c_code(ranges, line_number, line)
+		return
+	end
+
+	if line:match("^%s*%-+%s*$") or line:find("─", 1, true) then
+		add_range(ranges, "AlphaCodeSeparator", line_number, 0, #line)
+		return
+	end
+
+	if line_index == 7 then
+		highlight_message(ranges, line_number, line)
+	end
+end
+
+local function build_animation_highlights(lines, start_line)
+	local ranges = {}
+	for index, line in ipairs(lines) do
+		local line_number = start_line + index - 1
+		highlight_animation_line(ranges, line_number, line, index)
+		normalize_line_ranges(ranges, line_number, line)
+	end
+	return ranges
+end
+
+function M.build(dashboard, code_examples)
+	code_examples = code_examples ~= false
+
 	local icons = require("soul.core.helpers.icons")
 	local utils = require("alpha.utils")
+	local logo_data = require("soul.core.helpers.dashboard.logo")
+	local logo = logo_data.build()
 
 	---------------------------------------------------------------------------
 	-- Header
@@ -21,9 +667,15 @@ function M.build(dashboard)
 		"AlphaTeal"
 	)
 
+	-- Convert the static header character offsets exactly once. Animation
+	-- ranges are already byte-based (Alpha's native format).
+	local static_byte_highlights = utils.charhl_to_bytehl(header_hl, header)
+
 	dashboard.section.header.opts = {
+		-- Animated rows are padded to the logo width, so the whole block
+		-- stays centered without shifting as individual lines are typed.
 		position = "center",
-		hl = utils.charhl_to_bytehl(header_hl, header),
+		hl = static_byte_highlights,
 	}
 
 	---------------------------------------------------------------------------
@@ -101,7 +753,7 @@ function M.build(dashboard)
 			dashboard.section.footer.val[index].val = line
 		end
 
-		pcall(vim.cmd.AlphaRedraw)
+		vim.cmd.AlphaRedraw()
 	end
 
 	local footer = footer_data.new(set_footer)
@@ -113,51 +765,79 @@ function M.build(dashboard)
 	dashboard.opts.layout = {
 		{ type = "padding", val = 1 },
 
-		dashboard.section.header,
+		logo.section,
 
 		{ type = "padding", val = 1 },
-
-		dashboard.section.buttons,
-
-		{ type = "padding", val = 1 },
-
-		dashboard.section.footer,
 	}
+
+	if code_examples then
+		table.insert(dashboard.opts.layout, dashboard.section.header)
+		table.insert(dashboard.opts.layout, { type = "padding", val = 1 })
+	end
+
+	table.insert(dashboard.opts.layout, dashboard.section.buttons)
+	table.insert(dashboard.opts.layout, { type = "padding", val = 1 })
+	table.insert(dashboard.opts.layout, dashboard.section.footer)
 
 	dashboard.opts.opts = {
 		noautocmd = true,
 	}
 
 	---------------------------------------------------------------------------
-	-- Animation frame state
+	-- Animation timeline
 	---------------------------------------------------------------------------
 
 	local animation_data = header_data.animation
+	local timeline = code_examples and build_animation_timeline(animation_data, logo.width) or {}
 	local animation_step = 1
 
 	local function apply_animation_frame()
-		local state = animation_data.steps[animation_step]
+		if not code_examples then
+			return
+		end
 
-		local line = state[1]
-		local frames = animation_data.fragments[state[2]]
-		local frame = state[3]
+		local frame = timeline[animation_step]
+		local start_line = animation_data.start_line
 
-		dashboard.section.header.val[line] = animation_data.lines[line][1]
-			.. frames[frame]
-			.. animation_data.lines[line][2]
+		for index = 1, 7 do
+			dashboard.section.header.val[start_line + index - 1] = frame[index] or ""
+		end
+
+		local ranges = vim.deepcopy(static_byte_highlights)
+
+		-- Alpha detects multiline highlights by inspecting the first range.
+		-- The first two header rows are intentionally blank, so seed a
+		-- zero-width range to keep the following row-indexed ranges nested.
+		if not ranges[1] or not ranges[1][1] then
+			ranges[1] = { { "Normal", 0, 0 } }
+		end
+
+		local animated_ranges = build_animation_highlights(frame, start_line)
+
+		-- Animated ranges already use byte offsets, matching Alpha's API.
+		for line_number, line_ranges in pairs(animated_ranges) do
+			ranges[line_number] = line_ranges
+		end
+
+		dashboard.section.header.opts.hl = ranges
 	end
 
 	apply_animation_frame()
 
 	return {
+		logo = logo,
 		footer = footer,
 		animation_data = animation_data,
 		apply_animation_frame = apply_animation_frame,
 
 		next_animation_frame = function()
+			if not code_examples then
+				return
+			end
+
 			animation_step = animation_step + 1
 
-			if animation_step > #animation_data.steps then
+			if animation_step > #timeline then
 				animation_step = 1
 			end
 

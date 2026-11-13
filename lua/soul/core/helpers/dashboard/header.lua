@@ -1,109 +1,239 @@
 local M = {}
 
 M.lines = {
-	"███████╗ ██████╗ ██╗   ██╗██╗灵魂",
-	"██╔════╝██╔═══██╗██║   ██║██║士兵",
-	"███████╗██║no ██║██║   ██║██║国王",
-	"╚════██║██║me ██║██║   ██║██║没了",
-	"███████║╚██████╔╝╚████╔╝███████╗",
-	"╚══════╝ ╚═════╝  ╚═════╝ ╚══════╝",
+	"",
+	"",
+	"   FIRST PROGRAM",
+	"   int main(void) {",
+	"     return 0;",
+	"   }",
+	"     ^",
+	"",
+	"   return exits main",
 }
 
--- Character-based highlight ranges. Alpha converts these to byte positions.
-M.highlights = {
-	{
-		{ "AlphaGreen", 0, 29 },
-		{ "AlphaYellow", 29, 31 },
-	},
+M.highlights = {}
 
-	{
-		{ "AlphaGreen", 0, 20 },
-		{ "AlphaRed", 20, 22 },
-		{ "AlphaGreen", 22, 29 },
-		{ "AlphaYellow", 29, 31 },
-	},
-
-	{
-		{ "AlphaGreen", 0, 11 },
-		{ "AlphaYellow", 11, 13 },
-		{ "AlphaGreen", 13, 20 },
-		{ "AlphaRed", 20, 22 },
-		{ "AlphaGreen", 22, 29 },
-		{ "AlphaYellow", 29, 31 },
-	},
-
-	{
-		{ "AlphaGreen", 0, 11 },
-		{ "AlphaYellow", 11, 13 },
-		{ "AlphaGreen", 13, 20 },
-		{ "AlphaRed", 20, 22 },
-		{ "AlphaGreen", 22, 29 },
-		{ "AlphaYellow", 29, 31 },
-	},
-
-	{
-		{ "AlphaGreen", 0, 34 },
-	},
-
-	{
-		{ "AlphaGreen", 0, 34 },
-	},
-}
-
--- Animation data is kept separate from the Alpha section that consumes it.
+-- The logo owns its renderer and frame state. This animation only teaches C.
 M.animation = {
-	speed = 150,
+	speed = 65,
+	start_line = 3,
+	hold_ticks = 8,
 
-	fragments = {
-		DA = { "d ", "da", "da", "d ", "  " },
-		EM = { "e ", "em", "em", "e ", "  " },
-		ON = { "o ", "on", "on", "o ", "  " },
-	},
-
-	lines = {
-		[2] = {
-			"██╔════╝██╔═══██╗██║",
-			" ██║██║士兵",
+	scenes = {
+		{
+			cursor_token = "return",
+			extra_line = "  }",
+			lines = {
+				"  FIRST PROGRAM",
+				"  int main(void) {",
+				"    return 0;",
+				"",
+				"",
+				"  return exits main",
+			},
 		},
-
-		[3] = {
-			"███████╗██║no ██║██║",
-			" ██║██║国王",
+		{
+			cursor_token = "->",
+			lines = {
+				"  COMPILATION",
+				"  main.c -> main.i",
+				"  main.i -> main.s",
+				"",
+				"",
+				"  compiler translates stages",
+			},
 		},
-
-		[4] = {
-			"╚════██║██║me ██║██║",
-			" ██║██║没了",
+		{
+			cursor_token = "puts",
+			lines = {
+				"  OUTPUT",
+				"  #include <stdio.h>",
+				'  puts("Hello, C");',
+				"",
+				"",
+				"  puts writes text and a newline",
+			},
 		},
-	},
-
-	steps = {
-		-- DA
-		{ 2, "DA", 1 },
-		{ 2, "DA", 2 },
-		{ 2, "DA", 3 },
-
-		-- EM
-		{ 3, "EM", 1 },
-		{ 3, "EM", 2 },
-		{ 3, "EM", 3 },
-
-		-- ON
-		{ 4, "ON", 1 },
-		{ 4, "ON", 2 },
-		{ 4, "ON", 3 },
-
-		-- Erase ON
-		{ 4, "ON", 4 },
-		{ 4, "ON", 5 },
-
-		-- Erase EM
-		{ 3, "EM", 4 },
-		{ 3, "EM", 5 },
-
-		-- Erase DA
-		{ 2, "DA", 4 },
-		{ 2, "DA", 5 },
+		{
+			cursor_token = "double",
+			lines = {
+				"  TYPES",
+				"  int count = 42;",
+				"  double ratio = 0.75;",
+				"",
+				"",
+				"  double represents floating-point values",
+			},
+		},
+		{
+			cursor_token = "MAX",
+			lines = {
+				"  CONSTANTS",
+				"  const int limit = 64;",
+				"  enum { MAX = 32 };",
+				"",
+				"",
+				"  enum names integer constants",
+			},
+		},
+		{
+			cursor_token = "+=",
+			lines = {
+				"  OPERATORS",
+				"  int sum = count + 8;",
+				"  sum += 1;",
+				"",
+				"",
+				"  += updates the existing value",
+			},
+		},
+		{
+			cursor_token = "--",
+			extra_line = "  }",
+			lines = {
+				"  CONTROL FLOW",
+				"  if (count > 0) {",
+				"    count--;",
+				"",
+				"",
+				"  if runs only when true",
+			},
+		},
+		{
+			cursor_token = "a +",
+			extra_line = "  }",
+			lines = {
+				"  FUNCTIONS",
+				"  int add(int a, int b) {",
+				"    return a + b;",
+				"",
+				"",
+				"  return sends a value back",
+			},
+		},
+		{
+			cursor_token = "0",
+			lines = {
+				"  ARRAYS",
+				"  int values[3] = {2, 4, 6};",
+				"  values[0] = 10;",
+				"",
+				"",
+				"  index zero selects first item",
+			},
+		},
+		{
+			cursor_token = "'c'",
+			lines = {
+				"  STRINGS",
+				'  char name[] = "C lang";',
+				"  name[0] = 'c';",
+				"",
+				"",
+				"  strings end with a null character",
+			},
+		},
+		{
+			cursor_token = "Point",
+			lines = {
+				"  STRUCTURES",
+				"  struct Point { int x, y; };",
+				"  struct Point p = {2, 4};",
+				"",
+				"",
+				"  structs group related fields",
+			},
+		},
+		{
+			cursor_token = "&value",
+			lines = {
+				"  POINTERS",
+				"  int value = 42;",
+				"  int *ptr = &value;",
+				"",
+				"",
+				"  &value gives an address",
+			},
+		},
+		{
+			cursor_token = "*ptr",
+			lines = {
+				"  DEREFERENCE",
+				"  int *ptr = &value;",
+				"  int copy = *ptr;",
+				"",
+				"",
+				"  *ptr reads the pointed value",
+			},
+		},
+		{
+			cursor_token = "0x10",
+			lines = {
+				"  MEMORY",
+				"  value: 42 @ 0x10",
+				"  ptr: 0x10 @ 0x20",
+				"",
+				"",
+				"  ptr stores value's address",
+			},
+		},
+		{
+			cursor_token = "#if",
+			extra_line = "  #endif",
+			lines = {
+				"  PREPROCESSOR",
+				"  #include <stdint.h>",
+				"  #if defined(DEBUG)",
+				"",
+				"",
+				"  directives run before compile",
+			},
+		},
+		{
+			cursor_token = "SQR",
+			lines = {
+				"  MACROS",
+				"  #define SQR(x) ((x) * (x))",
+				"  int area = SQR(side);",
+				"",
+				"",
+				"  macros expand before build",
+			},
+		},
+		{
+			cursor_token = "free",
+			lines = {
+				"  DYNAMIC MEMORY",
+				"  int *p = malloc(n * sizeof *p);",
+				"  if (p != NULL) free(p);",
+				"",
+				"",
+				"  free releases allocated storage",
+			},
+		},
+		{
+			cursor_token = "fclose",
+			lines = {
+				"  FILE I O",
+				'  FILE *f = fopen(path, "r");',
+				"  if (f) fclose(f);",
+				"",
+				"",
+				"  close every opened file",
+			},
+		},
+		{
+			cursor_token = "<<",
+			lines = {
+				"  BITWISE",
+				"  unsigned flags = 0;",
+				"  flags |= 1u << 2;",
+				"",
+				"",
+				"  masks select individual bits",
+			},
+		},
 	},
 }
 

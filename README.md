@@ -1,6 +1,6 @@
-# soulz3r/nvim
+# CVIM
 
-A personal Neovim configuration for **Windows 11**, **WSL**, and **Linux** (including Arch Linux and Hyprland).
+A personal Neovim configuration for **Windows 11**, **WSL**, and **Linux** (including Arch Linux and Hyprland). CVIM is built around C development, a focused terminal workflow, and a deliberately customized editor UI.
 
 The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Telescope, Mini Files, Treesitter, custom LLDB debugging, and an Everforest-oriented UI.
 
@@ -25,7 +25,7 @@ The configuration is built around Lazy.nvim, native Neovim LSP, Blink.cmp, Teles
 - A floating single-file C23 compile/run terminal across Windows, WSL, and Linux
 - YAP's Telescope project picker, project actions, and ANSI-colored floating runner output
 - ToggleTerm with persistent horizontal, vertical, and floating terminals
-- Alpha dashboard with recent files, recent projects, quick actions, and an animated header
+- Alpha dashboard with an animated C/VIM identity, randomized cyberpunk-style wordmark glitches, quick actions, project context, and an optional animated C tutorial
 - LSP-aware breadcrumbs in the winbar
 - Minimal context-aware Lualine statusline with optional YAP project and LSP indicators
 - Shared floating-window helpers and centralized Everforest palette/highlights
@@ -72,7 +72,7 @@ Clone this repository into the directory returned by:
 The default Neovim config directory is usually `~/.config/nvim`.
 
 ```sh
-git clone https://github.com/soulz3r/nvim.git ~/.config/nvim
+git clone https://github.com/soulz3r/cvim.git ~/.config/nvim
 nvim
 ```
 
@@ -81,7 +81,7 @@ nvim
 Install Neovim inside the WSL distribution, then clone the same repository into that distribution's `~/.config/nvim`:
 
 ```sh
-git clone https://github.com/soulz3r/nvim.git ~/.config/nvim
+git clone https://github.com/soulz3r/cvim.git ~/.config/nvim
 nvim
 ```
 
@@ -92,7 +92,7 @@ WSL Neovim uses Linux binaries and POSIX build/run commands. To share a Windows 
 The standard Neovim config directory is usually `%LOCALAPPDATA%\nvim`.
 
 ```powershell
-git clone https://github.com/soulz3r/nvim.git "$env:LOCALAPPDATA\nvim"
+git clone https://github.com/soulz3r/cvim.git "$env:LOCALAPPDATA\nvim"
 nvim
 ```
 
@@ -223,7 +223,7 @@ After a successful import, each old DAP-only file is renamed with a `.migrated` 
 
 ## Repository layout
 
-See [docs/design-decisions.md](docs/design-decisions.md) for the reasoning behind the main architectural choices. See [docs/architecture.md](docs/architecture.md) for the module map, [docs/plugin-inventory.md](docs/plugin-inventory.md) for plugin ownership, [docs/development.md](docs/development.md) for project metadata and UI conventions, and [docs/contributing.md](docs/contributing.md) for maintenance rules.
+See [docs/dashboard.md](docs/dashboard.md) for the animated startup dashboard. See [docs/design-decisions.md](docs/design-decisions.md) for the reasoning behind the main architectural choices. See [docs/architecture.md](docs/architecture.md) for the module map, [docs/plugin-inventory.md](docs/plugin-inventory.md) for plugin ownership, [docs/development.md](docs/development.md) for project metadata and UI conventions, and [docs/contributing.md](docs/contributing.md) for maintenance rules.
 
 ## Compatibility
 

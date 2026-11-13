@@ -106,6 +106,36 @@ local highlights = {
 	AlphaAqua = { fg = P.aqua },
 	AlphaPurple = { fg = P.purple },
 	AlphaOrange = { fg = P.orange },
+
+	-- Alpha dashboard topics: colors progress from easy to difficult.
+	AlphaTopicCompilation = { fg = P.green, bold = true },
+	AlphaTopicRepresentations = { fg = P.aqua, bold = true },
+	AlphaTopicMemory = { fg = P.yellow, bold = true },
+	AlphaTopicDereference = { fg = P.orange, bold = true },
+	AlphaTopicPointers = { fg = P.red, bold = true },
+
+	-- Alpha dashboard prose and C syntax roles.
+	AlphaMessage = { fg = P.foreground },
+	AlphaMessageConcept = { fg = P.aqua, bold = true },
+	AlphaMessageKey = { fg = P.aqua, bold = true },
+	AlphaCodeSeparator = { fg = P.muted_inactive },
+	AlphaCodeType = { fg = P.teal },
+	AlphaCodeKeyword = { fg = P.purple },
+	AlphaCodeIdentifier = { fg = P.foreground },
+	AlphaCodeNumber = { fg = P.yellow },
+	AlphaCodeOperator = { fg = P.orange },
+	AlphaCodePunctuation = { fg = P.muted },
+	AlphaCodeFile = { fg = P.green },
+	AlphaCodeStage = { fg = P.aqua },
+	AlphaCodeCursor = { fg = P.red, bold = true },
+	AlphaCodeText = { fg = P.foreground },
+	AlphaCodePreprocessor = { fg = P.orange, bold = true },
+	AlphaCodeMacro = { fg = P.red, bold = true },
+	AlphaCodeConstant = { fg = P.yellow, bold = true },
+	AlphaCodeString = { fg = P.aqua },
+	AlphaCodeComment = { fg = P.muted, italic = true },
+	AlphaCodeFunction = { fg = P.green },
+	AlphaCodeStorage = { fg = P.purple },
 }
 
 function M.apply()

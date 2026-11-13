@@ -44,7 +44,14 @@ assert(
 local reloaded_registry = require("soul.core.helpers.dap.project.registry").setup(path, registry_file)
 local disk_entry = reloaded_registry.get(inner)
 assert(type(disk_entry) == "table", "Standalone DAP registry should reload saved projects")
-assert(disk_entry.executable == path.normalize(vim.v.progpath), "Standalone DAP registry lost the executable")
+local expected_executable = path.normalize(vim.v.progpath)
+assert(
+	disk_entry.executable == expected_executable,
+	("Standalone DAP registry lost the executable: expected %q, got %q"):format(
+		expected_executable,
+		tostring(disk_entry.executable)
+	)
+)
 assert(
 	vim.deep_equal(disk_entry.args, { "--from-disk", "sample file.c" }),
 	"Standalone DAP registry lost launch arguments"

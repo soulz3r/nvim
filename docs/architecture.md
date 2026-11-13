@@ -36,13 +36,21 @@ The entry point is `init.lua`. It loads the core modules, registers plugin group
 | `lua/soul/core/helpers/ui/colors.lua` | Everforest palette and editor/plugin highlight definitions |
 | `lua/soul/core/helpers/ui/highlights.lua` | Shared semantic highlight links |
 | `lua/soul/core/helpers/ui/floats.lua` | Shared float borders and window highlights |
+| `lua/soul/core/helpers/dashboard/logo.lua` | C-shaped logo renderer, VIM wordmark, and randomized glitch state |
+| `lua/soul/core/helpers/dashboard/alpha/sections.lua` | Alpha layout, dashboard buttons, tutorial timeline, and syntax highlighting |
+| `lua/soul/core/helpers/dashboard/header.lua` | C tutorial scenes and animation timing data |
+| `lua/soul/core/helpers/dashboard/animation.lua` | Shared timer lifecycle for dashboard animation |
+| `lua/soul/core/helpers/dashboard/alpha/autocmds.lua` | Starts and stops animation with Alpha buffer lifecycle events |
+| `lua/soul/core/helpers/dashboard/buttons.lua` | Declarative dashboard button labels, icons, mappings, and commands |
+| `lua/soul/core/helpers/dashboard/footer.lua` | Startup, working-directory, and Git branch footer data |
+| `lua/soul/core/helpers/dashboard/horizontal_rule.lua` | Width-based horizontal-rule generation shared by dashboard sections |
 
 ## Plugin groups and connections
 
 Plugin specifications live under `lua/soul/plugins` and `lua/soul/extras`.
 
 - `lua/soul/plugins/mini.lua` returns the individual Mini plugin specifications. Each specification delegates setup to its matching helper under `lua/soul/core/helpers/mini/`; the main config imports the group once with `GET("soul.plugins.mini")`.
-- `lua/soul/plugins/alpha.lua` uses Telescope for file search, Mini Files for browsing, and YAP's project picker for project switching.
+- `lua/soul/plugins/alpha.lua` configures the Alpha dashboard and its optional C tutorial. Dashboard implementation is split across focused helpers under `lua/soul/core/helpers/dashboard/`; see [dashboard.md](dashboard.md). The buttons use Telescope for file search, Mini Files for browsing, and YAP's project picker for project switching.
 - `lua/soul/plugins/telescope.lua` owns general Telescope setup and pickers.
 - `lua/soul/plugins/undotree.lua` lazily loads the Lua Undotree visualizer when `<leader>u` is pressed. Mini Files is the sole configured file manager; the unused Oil specification is intentionally absent.
 - `lua/soul/plugins/yap.lua` configures YAP, its project directory, highlights, and the Telescope project integration.
