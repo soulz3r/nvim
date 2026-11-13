@@ -443,10 +443,11 @@ benchmark_startup() {
   # installed as the user's default config. CI runners without Lazy installed
   # cannot boot the full config, so report that limitation instead of silently
   # benchmarking a clean Neovim process.
-  local data_dir lazy_entry
+  local data_dir lazy_entry alpha_entry
   data_dir="$(nvim --headless --clean -u NONE -c 'lua io.write(vim.fn.stdpath("data"))' -c 'qa!' 2>/dev/null)"
   data_dir="$(to_shell_path "$data_dir")"
   lazy_entry="$data_dir/lazy/lazy.nvim/lua/lazy/init.lua"
+  alpha_entry="$data_dir/lazy/alpha-nvim/lua/alpha/init.lua"
   alpha_entry="$data_dir/lazy/alpha-nvim/lua/alpha/init.lua"
 
   local config_path
@@ -457,7 +458,7 @@ benchmark_startup() {
     printf '      Install the CVIM plugin dependencies to benchmark the configured checkout.\n'
     return
   fi
-  
+
   if [[ ! -f "$alpha_entry" ]]; then
     print_status "CVIM startup benchmark (Alpha unavailable)" "SKIP"
     printf '      Install alpha-nvim to benchmark the first usable dashboard screen.\n'
@@ -543,16 +544,17 @@ PY
 profile_startup() {
   [[ "${CVIM_STARTUP_PROFILE:-0}" == "1" ]] || return
 
-  local data_dir lazy_entry profile_dir profile_output
+  local data_dir lazy_entry alpha_entry profile_dir profile_output
   data_dir="$(nvim --headless --clean -u NONE -c 'lua io.write(vim.fn.stdpath("data"))' -c 'qa!' 2>/dev/null)"
   data_dir="$(to_shell_path "$data_dir")"
   lazy_entry="$data_dir/lazy/lazy.nvim/lua/lazy/init.lua"
+  alpha_entry="$data_dir/lazy/alpha-nvim/lua/alpha/init.lua"
 
   if [[ ! -f "$lazy_entry" ]]; then
     print_status "CVIM module profile (Lazy unavailable)" "SKIP"
     return
   fi
-  
+
   if [[ ! -f "$alpha_entry" ]]; then
     print_status "CVIM module profile (Alpha unavailable)" "SKIP"
     return
