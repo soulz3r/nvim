@@ -485,7 +485,7 @@ benchmark_startup() {
         if ! CVIM_BENCHMARK=1 CVIM_CONFIG="$config_path" CVIM_BENCHMARK_READY_OUTPUT="$ready_output_native" nvim --headless --startuptime "$log" \
           --cmd 'lua vim.opt.rtp:prepend(vim.env.CVIM_CONFIG)' \
           -u "$ROOT/init.lua" \
-          -c 'lua if vim.g.cvim_config_loaded ~= true or vim.g.cvim_alpha_ready ~= true then vim.cmd.cquit() end' \
+          -c 'lua local ready = vim.wait(5000, function() return vim.g.cvim_config_loaded == true and vim.g.cvim_alpha_ready == true end, 10); if not ready then io.stderr:write(("CVIM startup readiness timeout: config_loaded=%s, alpha_ready=%s, filetype=%s\\n"):format(tostring(vim.g.cvim_config_loaded), tostring(vim.g.cvim_alpha_ready), vim.bo.filetype)); vim.cmd.cquit() end' \
           -c 'lua vim.fn.writefile({ tostring(vim.g.cvim_alpha_ready_ms or -1) }, vim.env.CVIM_BENCHMARK_READY_OUTPUT)' \
           -c 'qa!' >"$output" 2>&1; then
           failed=1
