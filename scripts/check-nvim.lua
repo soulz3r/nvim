@@ -100,6 +100,10 @@ if platform.is_windows and (vim.env.REQUIRE_PWSH == "1" or pwsh_on_path) then
 		vim.env.PSHOME = "C:/nvim-ci/missing/PowerShell"
 		package.loaded[paths_module] = nil
 		local rejects_legacy = require(paths_module)
+		assert(
+			rejects_legacy.pwsh ~= windows_powershell,
+			"The cheap shell hint must not select Windows PowerShell 5.1"
+		)
 		local legacy_resolved = rejects_legacy.resolve_powershell()
 		assert(
 			legacy_resolved ~= windows_powershell,
