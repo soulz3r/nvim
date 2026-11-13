@@ -97,10 +97,8 @@ local function build_animation_timeline(animation, content_width)
 		local explanation = scene.lines[6] or ""
 		local explanation_leading = vim.fn.strdisplaywidth(explanation:match("^%s*"))
 		local explanation_width = math.max(0, vim.fn.strdisplaywidth(explanation) - explanation_leading)
-		local explanation_padding = math.max(
-			0,
-			math.floor((content_width - explanation_width) / 2) - explanation_leading
-		)
+		local explanation_padding =
+			math.max(0, math.floor((content_width - explanation_width) / 2) - explanation_leading)
 		local explanation_indent = string.rep(" ", explanation_padding)
 
 		for column = 1, #explanation do
