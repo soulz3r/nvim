@@ -4,15 +4,15 @@ local M = {
 	event = { "BufReadPre", "BufNewFile" },
 	cmd = { "CProjectInfo", "CSwitchHeader" },
 	keys = {
-		{ "<leader>pp", desc = "Open YAP project picker" },
-		{ "<leader>pr", desc = "Build and run current project" },
-		{ "<leader>pb", desc = "Build current project" },
-		{ "<leader>pc", desc = "Clean current project" },
-		{ "<leader>pB", desc = "Clean and rebuild current project" },
-		{ "<leader>pS", desc = "Select project build script" },
-		{ "<leader>pe", desc = "Select project executable" },
-		{ "<leader>ps", desc = "Stop project process" },
-		{ "<leader>pR", desc = "Rerun last project executable" },
+		{ "<leader>pp", function() require("soul.core.helpers.yap.keymaps").run("<leader>pp") end, desc = "Open YAP project picker" },
+		{ "<leader>pr", function() require("soul.core.helpers.yap.keymaps").run("<leader>pr") end, desc = "Build and run current project" },
+		{ "<leader>pb", function() require("soul.core.helpers.yap.keymaps").run("<leader>pb") end, desc = "Build current project" },
+		{ "<leader>pc", function() require("soul.core.helpers.yap.keymaps").run("<leader>pc") end, desc = "Clean current project" },
+		{ "<leader>pB", function() require("soul.core.helpers.yap.keymaps").run("<leader>pB") end, desc = "Clean and rebuild current project" },
+		{ "<leader>pS", function() require("soul.core.helpers.yap.keymaps").run("<leader>pS") end, desc = "Select project build script" },
+		{ "<leader>pe", function() require("soul.core.helpers.yap.keymaps").run("<leader>pe") end, desc = "Select project executable" },
+		{ "<leader>ps", function() require("soul.core.helpers.yap.keymaps").run("<leader>ps") end, desc = "Stop project process" },
+		{ "<leader>pR", function() require("soul.core.helpers.yap.keymaps").run("<leader>pR") end, desc = "Rerun last project executable" },
 	},
 	dependencies = {
 		"nvim-telescope/telescope.nvim",
@@ -34,7 +34,7 @@ function M.config()
 		require("yap").setup({
 			projects_dir = require("soul.core.helpers.paths").projects,
 			telescope = true,
-			keymaps = true,
+			keymaps = false,
 			highlights = {
 				normal = { fg = palette.foreground, bg = "NONE" },
 				border = { fg = palette.border, bg = "NONE" },
@@ -46,6 +46,7 @@ function M.config()
 				error = { fg = palette.red },
 			},
 		})
+		require("soul.core.helpers.yap.keymaps").setup()
 	end)
 
 	-- Core owns project restoration. Remove YAP's own VimEnter callback so a
