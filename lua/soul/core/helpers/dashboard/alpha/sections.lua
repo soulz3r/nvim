@@ -731,7 +731,7 @@ function M.build(dashboard)
 	---------------------------------------------------------------------------
 
 	local animation_data = header_data.animation
-	local timeline = build_animation_timeline(animation_data, logo_data.width)
+	local timeline = build_animation_timeline(animation_data, logo.width)
 	local animation_step = 1
 
 	local function apply_animation_frame()
