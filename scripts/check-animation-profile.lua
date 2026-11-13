@@ -14,10 +14,7 @@ assert(profile.enabled, "animation profiling did not enable from its environment
 
 profile.setup()
 assert(vim.fn.exists(":CvimAnimationProfile") == 2, "animation profile command was not registered")
-assert(
-	vim.fn.exists(":CvimAnimationProfileReset") == 2,
-	"animation profile reset command was not registered"
-)
+assert(vim.fn.exists(":CvimAnimationProfileReset") == 2, "animation profile reset command was not registered")
 
 for sample = 1, 20 do
 	profile.record("test.frame", sample)
@@ -31,9 +28,6 @@ assert(report:find("19.000", 1, true), "profile report did not calculate the 95t
 assert(report:find("20.000", 1, true), "profile report did not calculate the maximum")
 
 profile.reset()
-assert(
-	profile.report():find("No dashboard animation samples", 1, true),
-	"reset did not clear animation samples"
-)
+assert(profile.report():find("No dashboard animation samples", 1, true), "reset did not clear animation samples")
 
 print("Dashboard animation profiler checks passed.")
