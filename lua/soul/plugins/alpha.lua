@@ -10,6 +10,7 @@ function M.config()
 	local autocmds = require("soul.core.helpers.dashboard.alpha.autocmds")
 
 	local state = sections.build(dashboard)
+	local logo_tick = 0
 
 	require("alpha").setup(dashboard.opts)
 
