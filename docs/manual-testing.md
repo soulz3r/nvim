@@ -37,6 +37,15 @@ These checks complement CI. They exercise real plugins and external tools that h
 6. In a disposable Windows VM with PowerShell 7 absent but Windows PowerShell 5.1 present, verify the resolver returns the documented `pwsh` fallback instead of selecting 5.1. The normal resolver also scans standard installation directories, so removing only the PATH entry is not a valid absence test.
 7. Restore environment variables and PATH after testing.
 
+## Performance lifecycle
+
+1. Start `nvim` with no arguments, wait for the dashboard, then open a file. Confirm its animation stops and the dashboard autocmd group is removed.
+2. Start `nvim path/to/file`; Alpha should not load.
+3. Open a C file and verify clangd attaches. Keep that buffer hidden in another tab while editing a non-C file; clangd must remain alive.
+4. Close all C/C++ buffers. For a short test, set `require("soul.core.lifecycle.lsp").idle_timeout = 5000` before closing the final buffer. Confirm clangd exits after the timeout.
+5. Open a new C file and verify clangd starts again and diagnostics, completion, formatting, and navigation work.
+6. Compare at least five startup samples and record idle CPU/memory before and after. Follow the repeatable procedure in [performance.md](performance.md).
+
 ## UI and platform smoke tests
 
 - Mini Files: preview, hidden files, directory navigation, working-directory change, destructive-operation confirmation, and synchronization mapping.
