@@ -150,7 +150,7 @@ M.animation = {
 				"  int copy = *ptr;",
 				"  *ptr = 99;",
 				"  read or write through ptr",
-				"  star accesses the pointed value",
+				"  star reads the pointed value",
 			},
 		},
 		{
@@ -159,7 +159,7 @@ M.animation = {
 				"  value @ 0x10 = 42",
 				"  ptr   @ 0x20 = 0x10",
 				"  *ptr -> 0x10 -> 42",
-				"  an address identifies an object",
+				"  addresses identify objects",
 			},
 		},
 		{
@@ -183,10 +183,10 @@ M.animation = {
 		{
 			lines = {
 				"  DYNAMIC MEMORY",
-				"  int *p = malloc(n * sizeof *p);",
+				"  int *p;",
+				"  p = malloc(n * sizeof *p);",
 				"  if (p) free(p);",
-				"  check allocation before use",
-				"  every allocation needs an owner",
+				"  free what you allocate",
 			},
 		},
 		{
@@ -204,7 +204,7 @@ M.animation = {
 				"  unsigned flags = 0;",
 				"  flags |= 1u << 2;",
 				"  int on = (flags & 4u) != 0;",
-				"  masks operate on individual bits",
+				"  masks select individual bits",
 			},
 		},
 	},
