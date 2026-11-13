@@ -93,7 +93,7 @@ local c_storage = {
 }
 
 local c_constants = {
-	true = true, false = true, NULL = true, nullptr = true,
+	["true"] = true, ["false"] = true, NULL = true, nullptr = true,
 }
 
 local function highlight_c_code(ranges, line_number, line)
@@ -178,9 +178,9 @@ local function highlight_preprocessor(ranges, line_number, line)
 		add_range(ranges, "AlphaCodePreprocessor", line_number, directive_start - 1, directive_end)
 	end
 
-	local macro_start, macro_end = line:find("#%s*define%s+([%a_][%w_]*)")
-	if macro_start then
-		local name_start, name_end = line:find("[%a_][%w_]*", macro_end - 1)
+	local define_start = line:find("#%s*define%s+")
+	if define_start then
+		local name_start, name_end = line:find("[%a_][%w_]*", define_start)
 		if name_start then
 			add_range(ranges, "AlphaCodeMacro", line_number, name_start - 1, name_end)
 		end
@@ -337,7 +337,7 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 		return
 	end
 
-	if line:match("^%s*[%w_]+[%s%*]") and not line:match("^%s*%d%d%s*/") then
+	if line:find("[;{}()=]") or line:match("^%s*%a+%s+[%w_*]+%s*[;=]") then
 		highlight_c_code(ranges, line_number, line)
 		return
 	end
