@@ -52,7 +52,7 @@ M.animation = {
 				'  puts("Hello, C");',
 				"",
 				"",
-				"  puts writes to stdout",
+				"  puts writes text and a newline",
 			},
 		},
 		{
@@ -63,7 +63,7 @@ M.animation = {
 				"  double ratio = 0.75;",
 				"",
 				"",
-				"  double stores decimals",
+				"  double represents floating-point values",
 			},
 		},
 		{
@@ -131,7 +131,7 @@ M.animation = {
 				"  name[0] = 'c';",
 				"",
 				"",
-				"  strings are character arrays",
+				"  strings end with a null character",
 			},
 		},
 		{
@@ -171,11 +171,11 @@ M.animation = {
 			cursor_token = "0x10",
 			lines = {
 				"  MEMORY",
-				"  value @ 0x10 = 42",
-				"  ptr @ 0x20 = 0x10",
+				"  value: 42 @ 0x10",
+				"  ptr: 0x10 @ 0x20",
 				"",
 				"",
-				"  ptr stores an address",
+				"  ptr stores value's address",
 			},
 		},
 		{
@@ -205,11 +205,11 @@ M.animation = {
 			cursor_token = "free",
 			lines = {
 				"  DYNAMIC MEMORY",
-				"  p = malloc(n * sizeof *p);",
-				"  if (p) free(p);",
+				"  int *p = malloc(n * sizeof *p);",
+				"  if (p != NULL) free(p);",
 				"",
 				"",
-				"  free releases memory",
+				"  free releases allocated storage",
 			},
 		},
 		{
