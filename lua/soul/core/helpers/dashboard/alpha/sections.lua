@@ -151,6 +151,12 @@ local c_constants = {
 	["true"] = true, ["false"] = true, NULL = true, nullptr = true, MAX = true,
 }
 
+-- Macro names shown by the tutorial. Keeping them explicit prevents
+-- uppercase enum constants from being mistaken for preprocessor macros.
+local c_macros = {
+	DEBUG = true, SQR = true,
+}
+
 -- Function names used by the tutorial. Recognizing their prefixes lets the
 -- function color appear while the identifier is still being typed.
 local c_functions = {
@@ -173,6 +179,7 @@ local partial_token_groups = {
 	{ tokens = c_keywords, group = "AlphaCodeKeyword" },
 	{ tokens = c_storage, group = "AlphaCodeStorage" },
 	{ tokens = c_constants, group = "AlphaCodeConstant" },
+	{ tokens = c_macros, group = "AlphaCodeMacro" },
 	{ tokens = c_functions, group = "AlphaCodeFunction" },
 }
 
@@ -225,12 +232,11 @@ local function highlight_c_code(ranges, line_number, line)
 			local word = line:sub(index, finish - 1)
 			local next_char = line:sub(finish):match("^%s*(.)")
 			local partial = finish > #line
-			local is_macro = word:match("^[A-Z_][A-Z%d_]*$") and (not partial or #word >= 2)
 			local group = c_types[word] and "AlphaCodeType"
 				or c_keywords[word] and "AlphaCodeKeyword"
 				or c_storage[word] and "AlphaCodeStorage"
 				or c_constants[word] and "AlphaCodeConstant"
-				or is_macro and "AlphaCodeMacro"
+				or c_macros[word] and "AlphaCodeMacro"
 				or next_char == "(" and "AlphaCodeFunction"
 				or partial and partial_token_group(word)
 				or "AlphaCodeIdentifier"
