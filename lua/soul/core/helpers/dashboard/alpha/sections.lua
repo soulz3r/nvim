@@ -418,19 +418,15 @@ local explanation_roles = {
 	-- Types, values, and data layout.
 	["type"] = "AlphaCodeType",
 	["types"] = "AlphaCodeType",
-	["integer"] = "AlphaCodeType",
 	["integers"] = "AlphaCodeType",
 	["float"] = "AlphaCodeType",
 	["floating"] = "AlphaCodeType",
 	["decimal"] = "AlphaCodeNumber",
 	["number"] = "AlphaCodeNumber",
 	["numbers"] = "AlphaCodeNumber",
-	["character"] = "AlphaCodeString",
-	["characters"] = "AlphaCodeString",
 	["array"] = "AlphaCodeType",
 	["string"] = "AlphaCodeString",
 	["struct"] = "AlphaCodeType",
-	["structs"] = "AlphaCodeType",
 	["structure"] = "AlphaCodeType",
 	["structures"] = "AlphaCodeType",
 	["field"] = "AlphaCodeIdentifier",
@@ -447,7 +443,6 @@ local explanation_roles = {
 	["items"] = "AlphaCodeIdentifier",
 
 	-- Memory and pointer vocabulary.
-	["address"] = "AlphaCodeOperator",
 	["addresses"] = "AlphaCodeOperator",
 	["dereference"] = "AlphaCodeOperator",
 	["dereferences"] = "AlphaCodeOperator",
@@ -501,9 +496,7 @@ local explanation_roles = {
 	["defined"] = "AlphaCodePreprocessor",
 	["bit"] = "AlphaCodeNumber",
 	["mask"] = "AlphaCodeConstant",
-	["binary"] = "AlphaCodeNumber",
 	["hexadecimal"] = "AlphaCodeNumber",
-	["decimal"] = "AlphaCodeNumber",
 	["false"] = "AlphaCodeConstant",
 }
 
