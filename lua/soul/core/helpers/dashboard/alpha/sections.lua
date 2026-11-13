@@ -545,9 +545,13 @@ function M.build(dashboard)
 		"AlphaTeal"
 	)
 
+	-- Convert the static logo's character offsets exactly once. Animation
+	-- ranges are already byte-based (Alpha's native format).
+	local static_byte_highlights = utils.charhl_to_bytehl(header_hl, header)
+
 	dashboard.section.header.opts = {
 		position = "center",
-		hl = utils.charhl_to_bytehl(header_hl, header),
+		hl = static_byte_highlights,
 	}
 
 	--------------------------------------------------------------------------- 
@@ -676,7 +680,7 @@ function M.build(dashboard)
 			dashboard.section.header.val[start_line + index - 1] = frame[index] or ""
 		end
 
-		local ranges = vim.deepcopy(header_data.highlights)
+		local ranges = vim.deepcopy(static_byte_highlights)
 
 		-- Alpha expects a contiguous per-line highlight table. Keep the blank
 		-- tagline separator (line 8) so ipairs does not stop before the animation.
@@ -686,11 +690,12 @@ function M.build(dashboard)
 
 		local animated_ranges = build_animation_highlights(frame, start_line)
 
+		-- Animated ranges already use byte offsets, matching Alpha's API.
 		for line_number, line_ranges in pairs(animated_ranges) do
 			ranges[line_number] = line_ranges
 		end
 
-		dashboard.section.header.opts.hl = utils.charhl_to_bytehl(ranges, dashboard.section.header.val)
+		dashboard.section.header.opts.hl = ranges
 	end
 
 	apply_animation_frame()
