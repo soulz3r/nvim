@@ -22,6 +22,11 @@ function M.config()
 
 		on_tick = function()
 			state.next_animation_frame()
+
+			logo_tick = logo_tick + 1
+			if logo_tick % state.logo.tick_divisor == 0 then
+				state.logo.next_frame()
+			end
 		end,
 
 		redraw = function()
