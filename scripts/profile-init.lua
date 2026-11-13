@@ -20,6 +20,10 @@ local stack = {}
 local records = {}
 local unpack_values = table.unpack or unpack
 
+local function pack(...)
+	return { n = select("#", ...), ... }
+end
+
 local function record_time(name, elapsed, child_ms)
 	local record = records[name]
 	if not record then
@@ -38,7 +42,7 @@ local function measure(name, callback, ...)
 	stack[#stack + 1] = frame
 
 	local started = vim.uv.hrtime()
-	local result = { pcall(callback, ...) }
+	local result = pack(pcall(callback, ...))
 	local elapsed = (vim.uv.hrtime() - started) / 1e6
 
 	stack[#stack] = nil
@@ -52,7 +56,7 @@ local function measure(name, callback, ...)
 		error(result[2], 0)
 	end
 
-	return unpack_values(result, 2, #result)
+	return unpack_values(result, 2, result.n)
 end
 
 local function instrument_module(name, module)
