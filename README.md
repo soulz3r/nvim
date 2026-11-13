@@ -223,7 +223,7 @@ After a successful import, each old DAP-only file is renamed with a `.migrated` 
 
 ## Repository layout
 
-See [docs/dashboard.md](docs/dashboard.md) for the animated startup dashboard. See [docs/design-decisions.md](docs/design-decisions.md) for the reasoning behind the main architectural choices. See [docs/architecture.md](docs/architecture.md) for the module map, [docs/performance.md](docs/performance.md) for resource lifetimes and benchmarking, [docs/plugin-inventory.md](docs/plugin-inventory.md) for plugin ownership, [docs/development.md](docs/development.md) for project metadata and UI conventions, and [docs/contributing.md](docs/contributing.md) for maintenance rules.
+See [docs/dashboard.md](docs/dashboard.md) for the animated startup dashboard. YAP project restoration is handled by a lightweight core module, while YAP and Telescope load when a file or project action needs them. See [docs/design-decisions.md](docs/design-decisions.md) for the reasoning behind the main architectural choices. See [docs/architecture.md](docs/architecture.md) for the module map, [docs/performance.md](docs/performance.md) for resource lifetimes and benchmarking, [docs/plugin-inventory.md](docs/plugin-inventory.md) for plugin ownership, [docs/development.md](docs/development.md) for project metadata and UI conventions, and [docs/contributing.md](docs/contributing.md) for maintenance rules.
 
 ## Compatibility
 
