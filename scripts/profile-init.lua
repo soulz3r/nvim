@@ -75,6 +75,41 @@ local function instrument_config(name, spec)
 	end
 end
 
+local function instrument_method(module, key, label)
+	local callback = rawget(module, key)
+	if type(callback) ~= "function" then
+		return
+	end
+
+	module[key] = function(...)
+		return measure(label, callback, ...)
+	end
+end
+
+local function instrument_lazy_module(name, module)
+	if name == "lazy.core.config" then
+		instrument_method(module, "setup", "lazy.phase.config_setup()")
+	elseif name == "lazy.core.plugin" then
+		local spec = rawget(module, "Spec")
+		if type(spec) == "table" then
+			instrument_method(spec, "new", "lazy.phase.spec_new()")
+			instrument_method(spec, "parse", "lazy.phase.spec_parse()")
+			instrument_method(spec, "normalize", "lazy.phase.spec_normalize()")
+			instrument_method(spec, "import", "lazy.phase.spec_import()")
+		end
+		instrument_method(module, "update_state", "lazy.phase.plugin_state()")
+		instrument_method(module, "load", "lazy.phase.plugin_load()")
+	elseif name == "lazy.core.loader" then
+		instrument_method(module, "setup", "lazy.phase.loader_setup()")
+		instrument_method(module, "startup", "lazy.phase.loader_startup()")
+		instrument_method(module, "install_missing", "lazy.phase.install_missing()")
+		instrument_method(module, "config", "lazy.phase.plugin_config_dispatch()")
+	elseif name == "lazy.core.handler" or name == "lazy.core.handler.init" then
+		instrument_method(module, "init", "lazy.phase.handler_init()")
+		instrument_method(module, "setup", "lazy.phase.handler_setup()")
+	end
+end
+
 local function instrument_module(name, module)
 	if type(module) ~= "table" then
 		return module
@@ -82,9 +117,17 @@ local function instrument_module(name, module)
 
 	-- Lazy accepts both single plugin specs and lists of plugin specs.
 	-- Measure either form, including the LSP and Mini spec arrays.
-	instrument_config(name, module)
-	for index, spec in ipairs(module) do
-		instrument_config(name .. "[" .. index .. "]", spec)
+	if name:match("^soul%.plugins%.") then
+		instrument_config(name, module)
+		for index, spec in ipairs(module) do
+			instrument_config(name .. "[" .. index .. "]", spec)
+		end
+	end
+
+	-- Instrument Lazy's internal setup phases without touching the installed
+	-- Lazy.nvim source or changing production startup behavior.
+	if name:match("^lazy%.core%.") then
+		instrument_lazy_module(name, module)
 	end
 
 	-- Separate Lazy's module load from its setup work. The setup call is
