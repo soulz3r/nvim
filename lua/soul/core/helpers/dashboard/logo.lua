@@ -91,6 +91,7 @@ local function render_frame(frame)
 
 	for row = 1, HEIGHT do
 		local line = {}
+		local line_ranges = {}
 		local active_group
 		local range_start
 
@@ -114,7 +115,7 @@ local function render_frame(frame)
 
 			if group ~= active_group then
 				if active_group then
-					ranges[#ranges + 1] = {
+					line_ranges[#line_ranges + 1] = {
 						active_group,
 						range_start - 1,
 						column - 1,
@@ -126,7 +127,7 @@ local function render_frame(frame)
 		end
 
 		if active_group then
-			ranges[#ranges + 1] = {
+			line_ranges[#line_ranges + 1] = {
 				active_group,
 				range_start - 1,
 				WIDTH,
@@ -134,6 +135,7 @@ local function render_frame(frame)
 		end
 
 		lines[row] = table.concat(line)
+		ranges[row] = line_ranges
 	end
 
 	return lines, ranges
