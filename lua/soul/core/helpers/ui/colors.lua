@@ -115,8 +115,9 @@ local highlights = {
 	AlphaTopicPointers = { fg = P.red, bold = true },
 
 	-- Alpha dashboard prose and C syntax roles.
-	AlphaMessage = { fg = P.muted },
-	AlphaMessageKey = { fg = P.yellow, bold = true },
+	AlphaMessage = { fg = P.foreground },
+	AlphaMessageKey = { fg = P.aqua, bold = true },
+	AlphaCodeSeparator = { fg = P.muted_inactive },
 	AlphaCodeType = { fg = P.teal },
 	AlphaCodeKeyword = { fg = P.purple },
 	AlphaCodeIdentifier = { fg = P.foreground },
