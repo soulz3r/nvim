@@ -163,12 +163,7 @@ local function write_report()
 	}
 
 	for _, row in ipairs(rows) do
-		lines[#lines + 1] = ("%.3f\t%.3f\t%d\t%s"):format(
-			row.exclusive_ms,
-			row.inclusive_ms,
-			row.calls,
-			row.name
-		)
+		lines[#lines + 1] = ("%.3f\t%.3f\t%d\t%s"):format(row.exclusive_ms, row.inclusive_ms, row.calls, row.name)
 	end
 
 	vim.fn.writefile(lines, output)
