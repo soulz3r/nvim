@@ -661,7 +661,8 @@ lua_check = (
 )
 command = (
     'export CVIM_CONFIG="$1"; '
-    'exec nvim --headless -u "$1/init.lua" "$2" -c "$3"'
+    # Neovim command-line options must come before the file argument.
+    'exec nvim --headless -u "$1/init.lua" -c "$3" "$2"'
 )
 
 try:
