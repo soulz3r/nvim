@@ -373,6 +373,7 @@ fi
 if command -v nvim >/dev/null 2>&1; then
   run_check "Neovim core and plugin-spec smoke tests" 0 nvim --headless --clean -u NONE -l scripts/check-nvim.lua
   run_check "Neovim module smoke tests" 0 nvim --headless --clean -u NONE -l scripts/check-integration.lua
+  run_check "Resource lifecycle and idle LSP cleanup" 0 nvim --headless --clean -u NONE -l scripts/check-lifecycle.lua
   run_check "Mini Notify progress lifecycle" 0 nvim --headless --clean -u NONE -l scripts/check-notify.lua
   run_check "DAP registry migration" 0 nvim --headless --clean -u NONE -l scripts/check-dap-registry.lua
   run_check "DAP executable discovery" 0 nvim --headless --clean -u NONE -l scripts/check-dap-executables.lua
