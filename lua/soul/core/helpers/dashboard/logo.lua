@@ -132,12 +132,12 @@ local function render_frame(frame, glitch_frame)
 	end
 
 	local glitch_phase = glitch_frame % GLITCH_FRAMES
-	-- Glitches combine horizontal tearing, chromatic channel separation,
-	-- block corruption, and a brief scanline before returning to clean art.
-	local tearing = glitch_phase <= 3
-	local chromatic = glitch_phase >= 4 and glitch_phase <= 7
-	local block_noise = glitch_phase == 7
-	local scanline = glitch_phase == 8
+	-- Keep the wordmark readable: use tiny local distortions rather than
+	-- shifting entire rows or washing the artwork with a full-line effect.
+	local tearing = glitch_phase <= 1
+	local chromatic = glitch_phase >= 3 and glitch_phase <= 5
+	local block_noise = glitch_phase == 6
+	local scanline = glitch_phase == 7
 	local lines = {}
 	local ranges = {}
 
@@ -147,21 +147,11 @@ local function render_frame(frame, glitch_frame)
 		local art_row = row - ART_TOP + 1
 		local art_chars = WORDMARK_CHARS[art_row]
 
-		-- Each row tears by a different amount and direction. The untouched
-		-- glyphs and highlight groups keep the original artwork and palette.
-		local shifts = {
-			[1] = -5,
-			[2] = 7,
-			[3] = -3,
-			[4] = 6,
-			[5] = -8,
-			[6] = 4,
-			[7] = -6,
-			[8] = 8,
-			[9] = -4,
-			[10] = 7,
-		}
-		local shift = tearing and shifts[art_row] or 0
+		-- Tear only a short 4-cell fragment on selected rows. The rest of
+		-- every line stays exactly where the ASCII artwork placed it.
+		local tear_start = 5 + ((art_row * 7) % 19)
+		local tear_end = tear_start + 3
+		local tear_shift = art_row % 2 == 0 and 1 or -1
 
 		for column = 1, WIDTH do
 			local char = " "
@@ -174,12 +164,17 @@ local function render_frame(frame, glitch_frame)
 
 			local art_column = column - ART_START + 1
 			if art_chars and art_column >= 1 and art_column <= #art_chars then
-				local source_column = art_column - shift
+				local source_column = art_column
+				if tearing and art_row >= 1 and art_row <= #WORDMARK_CHARS
+					and art_column >= tear_start and art_column <= tear_end
+				then
+					source_column = art_column - tear_shift
+				end
 				char = art_chars[source_column] or " "
 				group = char ~= " " and wordmark_group(char) or nil
 
 				-- Corrupt a few short slices with displaced block fragments.
-				if block_noise and art_row and ((art_column + art_row * 3) % 13 <= 2) then
+				if block_noise and art_row and ((art_column + art_row * 3) % 23 == 0) then
 					char = GLITCH_BLOCKS[(art_column + art_row) % #GLITCH_BLOCKS + 1]
 					group = GLITCH_COLORS[(art_column + glitch_phase) % #GLITCH_COLORS + 1]
 				end
@@ -189,26 +184,25 @@ local function render_frame(frame, glitch_frame)
 			cell_groups[column] = group
 		end
 
-		-- Draw displaced color-channel copies on top of the clean glyphs.
-		-- Keeping the source glyph in place creates a visible RGB-split effect
-		-- instead of merely substituting one character for another.
+		-- Add a sparse one-cell color ghost beside the original glyph.
+		-- The original character remains intact, keeping the wordmark readable.
 		if chromatic and art_chars and #art_chars > 0 then
-			local ghost_offset = art_row % 2 == 0 and 3 or -3
+			local ghost_offset = art_row % 2 == 0 and 1 or -1
 			for art_column = 1, #art_chars do
 				local source = art_chars[art_column]
-				if source ~= " " and (art_column + art_row + glitch_phase) % 9 <= 3 then
+				if source ~= " " and (art_column + art_row + glitch_phase) % 17 == 0 then
 					local target = ART_START + art_column - 1 + ghost_offset
 					if target >= ART_START and target <= WIDTH then
 						cells[target] = source
 						cell_groups[target] = (art_column + glitch_phase) % 2 == 0
 							and "AlphaAqua"
-							or "AlphaYellow"
+							or "AlphaTeal"
 					end
 				end
 			end
 		end
 
-		-- A bright full-width scanline crosses the artwork for one frame.
+		-- A restrained scanline tint briefly touches the existing glyphs.
 		if scanline and art_chars and #art_chars > 0 then
 			for column = ART_START, math.min(WIDTH, ART_START + #art_chars - 1) do
 				if cells[column] ~= " " then
