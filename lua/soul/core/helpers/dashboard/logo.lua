@@ -200,7 +200,10 @@ local function render_frame(frame, glitch_state)
 		local tear_span = math.max(1, last_glyph - first_glyph - 10)
 		local tear_start = first_glyph + (math.floor(glitch_seed / 29) % tear_span)
 		local tear_end = math.min(last_glyph, tear_start + 10 + (math.floor(glitch_seed / 43) % 17))
-		local tear_shift = (math.floor(glitch_seed / 113) % 17) - 8
+		local tear_shift = (math.floor(glitch_seed / 113) % 16) - 8
+		if tear_shift >= 0 then
+			tear_shift = tear_shift + 1
+		end
 		local burst_row = math.floor(glitch_seed / 7) % #WORDMARK_CHARS + 1
 		local burst_start = 1 + (math.floor(glitch_seed / 17) % 20)
 		local burst_end = burst_start + 9 + (math.floor(glitch_seed / 43) % 16)
