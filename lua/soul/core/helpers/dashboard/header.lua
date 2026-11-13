@@ -12,7 +12,7 @@ M.lines = {
 	"  FIRST PROGRAM",
 	"  int main(void) {",
 	"    return 0;",
-	"       ^",
+	"    ^",
 	"  return exits main",
 }
 
@@ -36,6 +36,7 @@ M.animation = {
 	scenes = {
 		{
 			cursor_line = 4,
+			cursor_token = "return",
 			cursor_target = 6,
 			lines = {
 				"  FIRST PROGRAM",
@@ -47,6 +48,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "->",
 			cursor_target = 9,
 			lines = {
 				"  COMPILATION",
@@ -58,6 +60,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "puts",
 			cursor_target = 5,
 			lines = {
 				"  OUTPUT",
@@ -69,6 +72,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "double",
 			cursor_target = 6,
 			lines = {
 				"  TYPES",
@@ -80,6 +84,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "MAX",
 			cursor_target = 10,
 			lines = {
 				"  CONSTANTS",
@@ -91,6 +96,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "+=",
 			cursor_target = 6,
 			lines = {
 				"  OPERATORS",
@@ -102,6 +108,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "--",
 			cursor_target = 10,
 			lines = {
 				"  CONTROL FLOW",
@@ -113,6 +120,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "a +",
 			cursor_target = 12,
 			lines = {
 				"  FUNCTIONS",
@@ -124,6 +132,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "0",
 			cursor_target = 9,
 			lines = {
 				"  ARRAYS",
@@ -135,6 +144,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "'c'",
 			cursor_target = 13,
 			lines = {
 				"  STRINGS",
@@ -146,6 +156,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "Point",
 			cursor_target = 10,
 			lines = {
 				"  STRUCTURES",
@@ -157,6 +168,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "&value",
 			cursor_target = 14,
 			lines = {
 				"  POINTERS",
@@ -168,6 +180,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "*ptr",
 			cursor_target = 14,
 			lines = {
 				"  DEREFERENCE",
@@ -179,6 +192,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "0x10",
 			cursor_target = 15,
 			lines = {
 				"  MEMORY",
@@ -190,6 +204,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "#if",
 			cursor_target = 3,
 			lines = {
 				"  PREPROCESSOR",
@@ -201,6 +216,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "SQR",
 			cursor_target = 13,
 			lines = {
 				"  MACROS",
@@ -212,6 +228,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "free",
 			cursor_target = 10,
 			lines = {
 				"  DYNAMIC MEMORY",
@@ -223,6 +240,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "fclose",
 			cursor_target = 10,
 			lines = {
 				"  FILE I O",
@@ -234,6 +252,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
+			cursor_token = "<<",
 			cursor_target = 9,
 			lines = {
 				"  BITWISE",
