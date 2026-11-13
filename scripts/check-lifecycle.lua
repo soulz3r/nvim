@@ -118,9 +118,40 @@ local temporary_root = vim.fn.tempname()
 local older_project = temporary_root .. "/older"
 local newer_project = temporary_root .. "/newer"
 local registry_path = temporary_root .. "/projects.json"
+local telescope_path = temporary_root .. "/telescope-projects.txt"
+local telescope_project = temporary_root .. "/telescope=project"
 
 vim.fn.mkdir(older_project, "p")
 vim.fn.mkdir(newer_project, "p")
+vim.fn.mkdir(telescope_project, "p")
+
+local function escape_project_field(value)
+	return tostring(value):gsub("\\", "\\\\"):gsub("\n", "\\n"):gsub("=", "\\=")
+end
+
+local function encode_project(title, path, activated, last_accessed)
+	return table.concat({
+		escape_project_field(title),
+		escape_project_field(path),
+		"w0",
+		tostring(activated),
+		tostring(last_accessed),
+	}, "=")
+end
+
+vim.fn.writefile({
+	encode_project("older", older_project, 1, 10),
+	encode_project("inactive", newer_project, 0, 99),
+	encode_project("telescope=project", telescope_project, 1, 20),
+}, telescope_path)
+
+assert(project_restore.restore(telescope_path), "Telescope project restore failed")
+assert(
+	vim.fs.normalize(vim.fn.getcwd()) == vim.fs.normalize(telescope_project),
+	"project restore did not decode escaped paths or ignore inactive projects"
+)
+vim.cmd.cd(vim.fn.fnameescape(original_cwd))
+
 vim.fn.writefile({
 	vim.json.encode({
 		[older_project] = { root = older_project, last_opened = 10 },
