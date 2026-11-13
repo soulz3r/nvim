@@ -1,11 +1,5 @@
 local M = {}
 
-local function center_line(line, width)
-	local line_width = vim.fn.strdisplaywidth(line)
-	local padding = math.max(0, math.floor((width - line_width) / 2))
-	return string.rep(" ", padding) .. line, padding
-end
-
 local function build_animation_timeline(animation, content_width)
 	local timeline = {}
 	local hold_ticks = math.max(0, animation.hold_ticks or 0)
@@ -18,21 +12,26 @@ local function build_animation_timeline(animation, content_width)
 		local visible = { "", "", "", "", "", "" }
 		local cursor_line = scene.cursor_line or 4
 		local code_line = scene.lines[3] or ""
-		local centered = {}
-		local offsets = {}
+		local block_width = 0
 
+		-- Center the tutorial as one block. Every line shares the same left
+		-- edge, keeping the code samples naturally aligned with each other.
 		for _, line_index in ipairs({ 1, 2, 3, 5, 6 }) do
-			centered[line_index], offsets[line_index] =
-				center_line(scene.lines[line_index] or "", content_width)
+			block_width = math.max(
+				block_width,
+				vim.fn.strdisplaywidth(scene.lines[line_index] or "")
+			)
 		end
+
+		local padding = math.max(0, math.floor((content_width - block_width) / 2))
+		local indent = string.rep(" ", padding)
 
 		-- Type the heading and both code lines at a steady character rate.
 		for line_index = 1, 3 do
 			local line = scene.lines[line_index] or ""
-			local padding = offsets[line_index]
 
 			for column = 1, #line do
-				visible[line_index] = string.rep(" ", padding) .. line:sub(1, column)
+				visible[line_index] = indent .. line:sub(1, column)
 
 				-- Keep the caret directly after the character being typed.
 				if line_index == 3 then
@@ -43,27 +42,27 @@ local function build_animation_timeline(animation, content_width)
 			end
 
 			if line == "" then
-				visible[line_index] = centered[line_index]
+				visible[line_index] = indent
 				push(visible)
 			end
 		end
 
 		-- Resolve the caret from the actual token instead of a hand-counted
-		-- column, including the centering offset.
+		-- column, including the shared block offset.
 		local target = scene.cursor_token and code_line:find(scene.cursor_token, 1, true)
 		assert(target, ("dashboard caret token %q was not found in: %s"):format(
 			tostring(scene.cursor_token),
 			code_line
 		))
-		visible[cursor_line] = string.rep(" ", offsets[3] + target - 1) .. "^"
+		visible[cursor_line] = string.rep(" ", padding + target - 1) .. "^"
 		push(visible)
 
-		visible[5] = centered[5]
+		visible[5] = indent .. (scene.lines[5] or "")
 		push(visible)
 
 		local explanation = scene.lines[6] or ""
 		for column = 1, #explanation do
-			visible[6] = string.rep(" ", offsets[6]) .. explanation:sub(1, column)
+			visible[6] = indent .. explanation:sub(1, column)
 			push(visible)
 		end
 
