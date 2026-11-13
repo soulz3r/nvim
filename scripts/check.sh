@@ -317,8 +317,14 @@ compatibility_checks() {
     return 1
   fi
 
-  if ! grep -q 'function M.resolve_powershell()' lua/soul/core/helpers/paths.lua; then
-    echo "PowerShell discovery must remain available through its lazy resolver."
+  if ! grep -q 'function M.resolve_powershell()' lua/soul/core/helpers/paths.lua \
+    || ! grep -q 'require("soul.core.helpers.powershell").resolve()' lua/soul/core/helpers/paths.lua; then
+    echo "PowerShell discovery must remain behind its lazy resolver module."
+    return 1
+  fi
+
+  if grep -q 'find_powershell' lua/soul/core/helpers/paths.lua; then
+    echo "PowerShell discovery implementation must stay out of core paths."
     return 1
   fi
 
