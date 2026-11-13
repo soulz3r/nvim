@@ -51,6 +51,7 @@ function M.config()
 
 	state.footer.update()
 	autocmds.register(state)
+	vim.g.cvim_alpha_ready = true
 end
 
 return M
