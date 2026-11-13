@@ -70,16 +70,24 @@ local function setup_glitch_highlights()
 	end
 end
 
+-- These strings are fixed, valid UTF-8 artwork. Split them by UTF-8
+-- leading-byte width in Lua instead of crossing into Vimscript once per glyph.
 local function split_chars(value)
 	local chars = {}
-	local count = vim.fn.strchars(value)
+	local index = 1
 
-	for index = 0, count - 1 do
-		chars[#chars + 1] = vim.fn.strcharpart(value, index, 1)
+	while index <= #value do
+		local first = value:byte(index)
+		local length = first < 0x80 and 1 or first < 0xE0 and 2 or first < 0xF0 and 3 or 4
+		chars[#chars + 1] = value:sub(index, index + length - 1)
+		index = index + length
 	end
 
 	return chars
 end
+
+local TAGLINE_CHARS = split_chars(TAGLINE)
+local TAGLINE_RULE_CHARS = split_chars(TAGLINE_RULE)
 
 local WORDMARK_CHARS = {}
 for row, line in ipairs(WORDMARK) do
@@ -346,15 +354,15 @@ local function render_frame(c_frame, glitch_state)
 		end
 
 		if row == HEIGHT - 1 then
-			for column = 1, vim.fn.strchars(TAGLINE) do
+			for column, char in ipairs(TAGLINE_CHARS) do
 				local target = TAGLINE_START + column - 1
-				cells[target] = vim.fn.strcharpart(TAGLINE, column - 1, 1)
+				cells[target] = char
 				cell_groups[target] = "AlphaYellow"
 			end
 		elseif row == HEIGHT then
-			for column = 1, vim.fn.strchars(TAGLINE_RULE) do
+			for column, char in ipairs(TAGLINE_RULE_CHARS) do
 				local target = TAGLINE_RULE_START + column - 1
-				cells[target] = vim.fn.strcharpart(TAGLINE_RULE, column - 1, 1)
+				cells[target] = char
 				cell_groups[target] = "AlphaTeal"
 			end
 		end
