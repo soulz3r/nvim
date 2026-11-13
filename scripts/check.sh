@@ -433,7 +433,6 @@ benchmark_startup() {
   local data_dir lazy_entry
   data_dir="$(nvim --headless --clean -u NONE -c 'lua io.write(vim.fn.stdpath("data"))' -c 'qa!' 2>/dev/null)"
   data_dir="$(to_shell_path "$data_dir")"
-  data_dir="$(to_shell_path "$data_dir")"
   lazy_entry="$data_dir/lazy/lazy.nvim/lua/lazy/init.lua"
 
   local config_path
@@ -441,7 +440,7 @@ benchmark_startup() {
 
   if [[ ! -f "$lazy_entry" ]]; then
     print_status "CVIM startup benchmark (Lazy unavailable)" "SKIP"
-    printf '      Install the CVIM plugin dependencies to benchmark the configured checkout.\\n'
+    printf '      Install the CVIM plugin dependencies to benchmark the configured checkout.\n'
     return
   fi
 
