@@ -236,6 +236,11 @@ M.clang = vim.env.CLANG and fn.executable(vim.env.CLANG) == 1 and vim.env.CLANG
 	or find_executable({ "clang" })
 	or "clang"
 
+-- Cheap PATH lookup for Neovim's shell option. Full PowerShell validation stays lazy.
+M.pwsh = vim.env.PWSH and vim.trim(vim.env.PWSH) ~= "" and vim.trim(vim.env.PWSH)
+	or fn.exepath("pwsh")
+	or "pwsh"
+
 local powershell
 
 -- PowerShell discovery can spawn several processes on Windows. Resolve it only
