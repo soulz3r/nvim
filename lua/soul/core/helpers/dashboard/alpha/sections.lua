@@ -616,7 +616,9 @@ function M.build(dashboard)
 	local static_byte_highlights = utils.charhl_to_bytehl(header_hl, header)
 
 	dashboard.section.header.opts = {
-		position = "center",
+		-- The animation already computes a fixed left indent from the full line.
+		-- Centering each partial frame makes its starting column drift as it types.
+		position = "left",
 		hl = static_byte_highlights,
 	}
 
