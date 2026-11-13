@@ -1,6 +1,11 @@
 local M = {
 	"goolord/alpha-nvim",
 	event = "VimEnter",
+	cond = function()
+		-- Alpha is only useful for an empty startup, not when opening a file,
+		-- directory, or stdin-backed editing session.
+		return vim.fn.argc() == 0
+	end,
 
 	-- Set false to hide the animated C tutorial below the logo.
 	code_examples = false,
