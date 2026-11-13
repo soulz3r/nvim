@@ -294,6 +294,16 @@ compatibility_checks() {
     return 1
   fi
 
+  if grep -q 'M.pwsh = find_powershell()' lua/soul/core/helpers/paths.lua; then
+    echo "PowerShell discovery must not run while core paths are imported."
+    return 1
+  fi
+
+  if ! grep -q 'function M.resolve_powershell()' lua/soul/core/helpers/paths.lua; then
+    echo "PowerShell discovery must remain available through its lazy resolver."
+    return 1
+  fi
+
   if grep -q '"<leader>pq"\|"<leader>pi"' lua/soul/plugins/whichkey.lua; then
     echo "WhichKey must not advertise YAP mappings that do not exist."
     return 1
