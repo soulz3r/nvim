@@ -319,26 +319,20 @@ local function highlight_message(ranges, line_number, line)
 	for first, word in line:gmatch("()([%a_]+)") do
 		local last = first + #word - 1
 		local is_final_word = line:sub(last + 1):match("^%s*[%p]*$") ~= nil
-		local meaningful = not explanation_stopwords[word]
-		local growing_word = is_final_word
-			and #word > 0
-			and not is_stopword_prefix(word)
+		local should_highlight = false
 
-		if meaningful and (not growing_word or #word > 1) then
+		if is_final_word then
+			-- Do not color ambiguous prefixes such as "t" while they may
+			-- still become grammatical glue like "the" or "to".
+			should_highlight = #word > 1
+				and not explanation_stopwords[word]
+				and not is_stopword_prefix(word)
+		else
+			should_highlight = not explanation_stopwords[word]
+		end
+
+		if should_highlight then
 			add_range(ranges, "AlphaMessageKey", line_number, first - 1, last)
-		elseif growing_word and #word > 1 then
-			-- A prefix shared with a grammatical word stays neutral until
-			-- enough characters have arrived to identify the content word.
-			local possible_content_word = false
-			for stopword in pairs(explanation_stopwords) do
-				if stopword:sub(1, #word) == word then
-					possible_content_word = true
-					break
-				end
-			end
-			if not possible_content_word then
-				add_range(ranges, "AlphaMessageKey", line_number, first - 1, last)
-			end
 		end
 	end
 
