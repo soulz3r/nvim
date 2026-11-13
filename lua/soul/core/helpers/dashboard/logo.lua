@@ -145,9 +145,8 @@ local function render_frame(frame, glitch_frame)
 	end
 
 	local glitch_phase = glitch_frame % GLITCH_FRAMES
-	-- Keep the artwork clean most of the time. Short, deliberate bursts feel
-	-- like a signal breaking through, not random characters being replaced.
-	local burst = glitch_phase <= 3
+	-- The artwork stays clean for most frames, with short, intentional signal
+	-- disruptions instead of constant random character replacement.
 	local tear = glitch_phase == 0 or glitch_phase == 1
 	local rgb_split = glitch_phase == 0
 	local scan_row = glitch_phase == 2 and 1 + (glitch_frame * 3) % #WORDMARK or nil
@@ -157,9 +156,7 @@ local function render_frame(frame, glitch_frame)
 
 	for row = 1, HEIGHT do
 		local cells = {}
-		local line_ranges = {}
-		local active_group
-		local range_start
+		local cell_groups = {}
 
 		for column = 1, WIDTH do
 			local char = " "
@@ -176,18 +173,14 @@ local function render_frame(frame, glitch_frame)
 
 			if art_chars and art_column >= 1 and art_column <= #art_chars then
 				local tear_row = tear and (art_row == 2 or art_row == 5 or art_row == 8)
-				local shift = tear_row and (art_row % 2 == 0 and 2 or -2) or 0
+				local shift = tear_row and (art_row % 2 == 0 and 1 or -1) or 0
 				local source_column = art_column - shift
 				local art_char = art_chars[source_column] or " "
-				local color_column = math.max(1, math.min(#art_chars, source_column))
-
-				-- RGB split: colored afterimages sit one cell off the real glyphs.
-				-- They are restricted to selected slices so the silhouette stays readable.
-				if rgb_split and art_char ~= " " and art_column % 5 == 0 then
-					group = "AlphaRed"
-				else
-					group = art_char ~= " " and wordmark_group(art_row, color_column, art_char) or nil
-				end
+				group = art_char ~= " " and wordmark_group(
+					art_row,
+					math.max(1, math.min(#art_chars, source_column)),
+					art_char
+				) or nil
 
 				if scan_row == art_row and art_char ~= " " then
 					group = "AlphaPurple"
@@ -199,90 +192,57 @@ local function render_frame(frame, glitch_frame)
 			end
 
 			cells[column] = char
-
-			if group ~= active_group then
-				if active_group then
-					line_ranges[#line_ranges + 1] = {
-						active_group,
-						range_start - 1,
-						column - 1,
-					}
-				end
-				active_group = group
-				range_start = group and column or nil
-			end
+			cell_groups[column] = group
 		end
 
-		-- A tiny cyan/magenta offset on the burst frame creates a chromatic edge.
-		-- It only fills existing whitespace and never overwrites the original art.
-		if rgb_split then
-			local art_row = row - ART_TOP + 1
-			local art_chars = WORDMARK_CHARS[art_row]
-			if art_chars then
-				for column = 1, #art_chars do
-					local char = art_chars[column]
-					local target = ART_START + column - 2
-					if char ~= " " and target >= 1 and target <= WIDTH and cells[target] == " " then
-						cells[target] = char
-						line_ranges[#line_ranges + 1] = {
-							"AlphaPurple",
-							target - 1,
-							target,
-						}
-					end
+		local art_row = row - ART_TOP + 1
+		local art_chars = WORDMARK_CHARS[art_row]
+
+		-- Chromatic aberration: a magenta ghost trails the cyan source by one
+		-- terminal cell during the strongest glitch frame. Never replaces art.
+		if rgb_split and art_chars then
+			for column = 1, #art_chars do
+				local char = art_chars[column]
+				local target = ART_START + column - 2
+				if char ~= " " and target >= 1 and target <= WIDTH and cells[target] == " " then
+					cells[target] = char
+					cell_groups[target] = "AlphaPurple"
 				end
 			end
 		end
 
-		-- The scanline is a thin neon sweep across the full wordmark.
-		if scan_row == row - ART_TOP + 1 then
-			local scan_column = ART_START + ((glitch_frame * 7) % #WORDMARK_CHARS[scan_row])
+		-- A single neon scanline sweeps across the wordmark between glitch bursts.
+		if scan_row == art_row and art_chars then
+			local scan_column = ART_START + ((glitch_frame * 7) % #art_chars)
 			if scan_column >= 1 and scan_column <= WIDTH then
 				cells[scan_column] = "╱"
-				line_ranges[#line_ranges + 1] = {
-					"AlphaAqua",
-					scan_column - 1,
-					scan_column,
-				}
+				cell_groups[scan_column] = "AlphaAqua"
 			end
 		end
 
-		if flicker and row >= ART_TOP and row < ART_TOP + #WORDMARK then
-			for column = ART_START, math.min(WIDTH, ART_START + #WORDMARK_CHARS[row - ART_TOP + 1] - 1) do
+		-- One-frame signal flicker, using a hot red accent rather than random glyphs.
+		if flicker and art_chars then
+			for column = ART_START, math.min(WIDTH, ART_START + #art_chars - 1) do
 				if cells[column] ~= " " then
-					line_ranges[#line_ranges + 1] = { "AlphaRed", column - 1, column }
+					cell_groups[column] = "AlphaRed"
 				end
 			end
 		end
 
-		if active_group then
-			line_ranges[#line_ranges + 1] = {
-				active_group,
-				range_start - 1,
-				WIDTH,
-			}
-		end
-
-		lines[row] = table.concat(cells)
-
-		-- Alpha detects multiline highlights from the first row's first range.
-		-- Keep the nested highlight shape valid even when the top row is blank.
-		if row == 1 and #line_ranges == 0 then
-			line_ranges[1] = { "Normal", 0, 0 }
-		end
-
-		ranges[row] = line_ranges
-	end
-
-			if row == HEIGHT then
-				local tagline_column = column - TAGLINE_START + 1
-				if tagline_column >= 1 and tagline_column <= #TAGLINE then
-					char = TAGLINE:sub(tagline_column, tagline_column)
-					group = "AlphaYellow"
-				end
+		if row == HEIGHT then
+			for column = 1, #TAGLINE do
+				local target = TAGLINE_START + column - 1
+				cells[target] = TAGLINE:sub(column, column)
+				cell_groups[target] = "AlphaYellow"
 			end
+		end
 
-			cells[column] = char
+		local line_ranges = {}
+		local active_group
+		local range_start
+
+		for column = 1, WIDTH + 1 do
+			local group = column <= WIDTH and cell_groups[column] or nil
 
 			if group ~= active_group then
 				if active_group then
@@ -292,17 +252,10 @@ local function render_frame(frame, glitch_frame)
 						column - 1,
 					}
 				end
+
 				active_group = group
 				range_start = group and column or nil
 			end
-		end
-
-		if active_group then
-			line_ranges[#line_ranges + 1] = {
-				active_group,
-				range_start - 1,
-				WIDTH,
-			}
 		end
 
 		lines[row] = table.concat(cells)
