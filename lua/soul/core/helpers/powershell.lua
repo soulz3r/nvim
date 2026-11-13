@@ -219,7 +219,6 @@ local function find_powershell()
 	-- Let the shell report a clear error if PowerShell 7 is unavailable.
 	return "pwsh"
 end
-
 local resolved
 
 function M.resolve()
