@@ -233,14 +233,16 @@ local function render_frame(frame, glitch_state)
 				local noise = glitch_noise(art_row, art_column, glitch_seed, 2)
 				if in_tear or in_burst then
 					group = GLITCH_COLORS[noise % #GLITCH_COLORS + 1]
-					if noise % 4 == 0 then
+					-- Keep most original glyphs intact. A few block fragments
+					-- sell the signal break without turning the wordmark to static.
+					if noise % (in_burst and 9 or 15) == 0 then
 						char = GLITCH_BLOCKS[math.floor(noise / 17) % #GLITCH_BLOCKS + 1]
 					end
 				end
 
-				-- Dense digital corruption: replace glyphs and empty cells with
-				-- bright block fragments instead of merely recoloring the logo.
-				if (block_noise or in_burst or interference) and noise % (in_burst and 3 or 7) < 2 then
+				-- Noise stays inside the active fragment. Never corrupt the
+				-- entire wordmark just because a glitch event is running.
+				if block_noise and (in_tear or in_burst) and noise % 19 == 0 then
 					char = GLITCH_BLOCKS[math.floor(noise / 17) % #GLITCH_BLOCKS + 1]
 					group = GLITCH_COLORS[math.floor(noise / 71) % #GLITCH_COLORS + 1]
 				end
@@ -256,7 +258,7 @@ local function render_frame(frame, glitch_state)
 			for art_column = 1, #art_chars do
 				local source = art_chars[art_column]
 				local noise = glitch_noise(art_row, art_column, glitch_seed, 3)
-				if source ~= " " and noise % 5 < 2 then
+				if source ~= " " and noise % 13 == 0 then
 					local ghost_offset = (math.floor(noise / 13) % 5) - 2
 					if ghost_offset == 0 then
 						ghost_offset = art_row % 2 == 0 and 1 or -1
@@ -271,13 +273,13 @@ local function render_frame(frame, glitch_state)
 		end
 
 		-- Bright scanline bands cut through the wordmark for a few frames.
-		if scanline and art_chars and #art_chars > 0 and glitch_noise(art_row, 1, glitch_seed, 5) % 3 == 0 then
-			for column = ART_START, math.min(WIDTH, ART_START + #art_chars - 1) do
+		if scanline and art_chars and #art_chars > 0 and art_row == tear_row then
+			for column = ART_START + tear_start - 1, math.min(WIDTH, ART_START + tear_end - 1) do
 				local noise = glitch_noise(art_row, column - ART_START + 1, glitch_seed, 5)
-				if noise % 4 == 0 then
+				if noise % 11 == 0 then
 					cells[column] = GLITCH_BLOCKS[math.floor(noise / 17) % #GLITCH_BLOCKS + 1]
+					cell_groups[column] = GLITCH_COLORS[noise % #GLITCH_COLORS + 1]
 				end
-				cell_groups[column] = GLITCH_COLORS[noise % #GLITCH_COLORS + 1]
 			end
 		end
 
@@ -405,7 +407,16 @@ function M.build()
 				glitch_state.burst = kind == 6
 				glitch_state.interference = kind == 7
 				glitch_state.seed = random_int(2147483646)
-				glitch_remaining = random_int(4)
+				-- A mix of quick flickers, medium disruptions, and occasional
+				-- longer holds. Duration is measured in wordmark updates.
+				local duration_roll = random_int(10)
+				if duration_roll <= 4 then
+					glitch_remaining = 1
+				elseif duration_roll <= 7 then
+					glitch_remaining = random_int(3) + 2
+				else
+					glitch_remaining = random_int(5) + 6
+				end
 			end
 
 			apply_frame()
