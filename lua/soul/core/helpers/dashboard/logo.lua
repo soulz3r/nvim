@@ -9,7 +9,6 @@ local CENTER_Y = 7
 local ROTATION_FRAMES = 72
 local ART_START = 25
 local ART_TOP = 3
-local GLITCH_FRAMES = 20
 local TAGLINE = "C, with a better editor."
 local TAGLINE_WIDTH = vim.fn.strdisplaywidth(TAGLINE)
 local TAGLINE_START = math.floor((WIDTH - TAGLINE_WIDTH) / 2) + 1
@@ -78,7 +77,7 @@ local function glitch_noise(row, column, phase, salt)
 	return (value * 48271) % 2147483647
 end
 
-local function render_frame(frame, glitch_frame)
+local function render_frame(frame, glitch_state)
 	local rotation = (frame - 1) * (2 * math.pi / ROTATION_FRAMES)
 	local cosine = math.cos(rotation)
 	local sine = math.sin(rotation)
@@ -141,13 +140,13 @@ local function render_frame(frame, glitch_frame)
 		end
 	end
 
-	local glitch_phase = glitch_frame % GLITCH_FRAMES
-	-- Keep the wordmark readable: use tiny local distortions rather than
-	-- shifting entire rows or washing the artwork with a full-line effect.
-	local tearing = glitch_phase <= 1
-	local chromatic = glitch_phase >= 3 and glitch_phase <= 5
-	local block_noise = glitch_phase == 6
-	local scanline = glitch_phase == 7
+	-- Glitch events are selected by the animation state machine, not a fixed
+	-- repeating frame cycle.
+	local tearing = glitch_state.tearing
+	local chromatic = glitch_state.chromatic
+	local block_noise = glitch_state.block_noise
+	local scanline = glitch_state.scanline
+	local glitch_seed = glitch_state.seed
 	local lines = {}
 	local ranges = {}
 
@@ -159,7 +158,7 @@ local function render_frame(frame, glitch_frame)
 
 		-- Tear a randomly sized fragment at a random position. The rest of
 		-- every line stays exactly where the ASCII artwork placed it.
-		local tear_noise = glitch_noise(art_row, 1, glitch_phase, 1)
+		local tear_noise = glitch_noise(art_row, 1, glitch_seed, 1)
 		local tear_start = 3 + (tear_noise % 25)
 		local tear_end = tear_start + 1 + (math.floor(tear_noise / 29) % 4)
 		local tear_shift = (math.floor(tear_noise / 113) % 5) - 2
@@ -185,7 +184,7 @@ local function render_frame(frame, glitch_frame)
 				group = char ~= " " and wordmark_group(char) or nil
 
 				-- Corrupt a few short slices with displaced block fragments.
-				local noise = glitch_noise(art_row, art_column, glitch_phase, 2)
+				local noise = glitch_noise(art_row, art_column, glitch_seed, 2)
 				if block_noise and noise % 17 < 3 then
 					char = GLITCH_BLOCKS[math.floor(noise / 17) % #GLITCH_BLOCKS + 1]
 					group = GLITCH_COLORS[math.floor(noise / 71) % #GLITCH_COLORS + 1]
@@ -201,7 +200,7 @@ local function render_frame(frame, glitch_frame)
 		if chromatic and art_chars and #art_chars > 0 then
 			for art_column = 1, #art_chars do
 				local source = art_chars[art_column]
-				local noise = glitch_noise(art_row, art_column, glitch_phase, 3)
+				local noise = glitch_noise(art_row, art_column, glitch_seed, 3)
 				if source ~= " " and noise % 13 < 2 then
 					local ghost_offset = (math.floor(noise / 13) % 3) - 1
 					if ghost_offset == 0 then
@@ -210,7 +209,7 @@ local function render_frame(frame, glitch_frame)
 					local target = ART_START + art_column - 1 + ghost_offset
 					if target >= ART_START and target <= WIDTH then
 						cells[target] = source
-						cell_groups[target] = (art_column + glitch_phase) % 2 == 0
+						cell_groups[target] = (art_column + glitch_seed) % 2 == 0
 							and "AlphaAqua"
 							or "AlphaTeal"
 					end
@@ -288,10 +287,26 @@ function M.build()
 	}
 
 	local rotation_frame = 1
-	local glitch_frame = 8
+	local random_state = math.floor(
+		(vim.uv and vim.uv.hrtime and vim.uv.hrtime() or os.time()) % 2147483646
+	) + 1
+	local function random_int(maximum)
+		random_state = (random_state * 48271) % 2147483647
+		return (random_state % maximum) + 1
+	end
+
+	local glitch_state = {
+		tearing = false,
+		chromatic = false,
+		block_noise = false,
+		scanline = false,
+		seed = random_int(2147483646),
+	}
+	local glitch_remaining = 0
+	local glitch_cooldown = 0
 
 	local function apply_frame()
-		local lines, character_ranges = render_frame(rotation_frame, glitch_frame)
+		local lines, character_ranges = render_frame(rotation_frame, glitch_state)
 		section.val = lines
 		section.opts.hl = utils.charhl_to_bytehl(character_ranges, lines)
 	end
@@ -310,7 +325,27 @@ function M.build()
 		end,
 
 		next_wordmark_frame = function()
-			glitch_frame = (glitch_frame + 1) % GLITCH_FRAMES
+			if glitch_remaining > 0 then
+				glitch_remaining = glitch_remaining - 1
+				if glitch_remaining == 0 then
+					glitch_state.tearing = false
+					glitch_state.chromatic = false
+					glitch_state.block_noise = false
+					glitch_state.scanline = false
+					glitch_cooldown = random_int(5)
+				end
+			elseif glitch_cooldown > 0 then
+				glitch_cooldown = glitch_cooldown - 1
+			elseif random_int(100) <= 42 then
+				local kind = random_int(5)
+				glitch_state.tearing = kind == 1 or kind == 5
+				glitch_state.chromatic = kind == 2 or kind == 5
+				glitch_state.block_noise = kind == 3 or kind == 5
+				glitch_state.scanline = kind == 4
+				glitch_state.seed = random_int(2147483646)
+				glitch_remaining = random_int(3)
+			end
+
 			apply_frame()
 		end,
 	}
