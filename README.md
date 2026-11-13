@@ -81,7 +81,7 @@ nvim
 Install Neovim inside the WSL distribution, then clone the same repository into that distribution's `~/.config/nvim`:
 
 ```sh
-git clone https://github.com/soulz3r/nvim.git ~/.config/nvim
+git clone https://github.com/soulz3r/cvim.git ~/.config/nvim
 nvim
 ```
 
@@ -92,7 +92,7 @@ WSL Neovim uses Linux binaries and POSIX build/run commands. To share a Windows 
 The standard Neovim config directory is usually `%LOCALAPPDATA%\nvim`.
 
 ```powershell
-git clone https://github.com/soulz3r/nvim.git "$env:LOCALAPPDATA\nvim"
+git clone https://github.com/soulz3r/cvim.git "$env:LOCALAPPDATA\nvim"
 nvim
 ```
 
