@@ -26,9 +26,7 @@ end
 
 local function resolve_pwsh()
 	local configured = vim.env.PWSH and vim.trim(vim.env.PWSH)
-	local configured_name = configured
-		and configured ~= ""
-		and configured:gsub("\\", "/"):match("([^/]+)$")
+	local configured_name = configured and configured ~= "" and configured:gsub("\\", "/"):match("([^/]+)$")
 	configured_name = configured_name and configured_name:lower()
 	local configured_is_pwsh = configured_name == "pwsh" or configured_name == "pwsh.exe"
 
