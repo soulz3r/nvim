@@ -267,7 +267,6 @@ function M.config()
 
 	load_extension("fzf")
 	load_extension("ui-select")
-
 end
 
 return M
