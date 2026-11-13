@@ -37,7 +37,6 @@ M.animation = {
 
 	scenes = {
 		{
-			cursor_line = 4,
 			cursor_token = "return",
 			extra_line = "  }",
 			lines = {
@@ -50,7 +49,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "->",
 			lines = {
 				"  COMPILATION",
@@ -62,7 +60,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "puts",
 			lines = {
 				"  OUTPUT",
@@ -74,7 +71,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "double",
 			lines = {
 				"  TYPES",
@@ -86,7 +82,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "MAX",
 			lines = {
 				"  CONSTANTS",
@@ -98,7 +93,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "+=",
 			lines = {
 				"  OPERATORS",
@@ -110,7 +104,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "--",
 			extra_line = "  }",
 			lines = {
@@ -123,7 +116,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "a +",
 			extra_line = "  }",
 			lines = {
@@ -136,7 +128,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "0",
 			lines = {
 				"  ARRAYS",
@@ -148,7 +139,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "'c'",
 			lines = {
 				"  STRINGS",
@@ -160,7 +150,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "Point",
 			lines = {
 				"  STRUCTURES",
@@ -172,7 +161,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "&value",
 			lines = {
 				"  POINTERS",
@@ -184,7 +172,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "*ptr",
 			lines = {
 				"  DEREFERENCE",
@@ -196,7 +183,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "0x10",
 			lines = {
 				"  MEMORY",
@@ -208,7 +194,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "#if",
 			extra_line = "  #endif",
 			lines = {
@@ -221,7 +206,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "SQR",
 			lines = {
 				"  MACROS",
@@ -233,7 +217,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "free",
 			lines = {
 				"  DYNAMIC MEMORY",
@@ -245,7 +228,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "fclose",
 			lines = {
 				"  FILE I O",
@@ -257,7 +239,6 @@ M.animation = {
 			},
 		},
 		{
-			cursor_line = 4,
 			cursor_token = "<<",
 			lines = {
 				"  BITWISE",
