@@ -51,3 +51,6 @@ require("soul.lazy")
 
 -- Apply CVIM highlights after Everforest has set the base colorscheme.
 require("soul.core.helpers.ui")
+
+-- Used by the repository benchmark to verify this checkout actually loaded.
+vim.g.cvim_config_loaded = true
