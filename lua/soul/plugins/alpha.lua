@@ -1,6 +1,9 @@
 local M = {
 	"goolord/alpha-nvim",
 	event = "VimEnter",
+
+	-- Set false to hide the animated C tutorial below the logo.
+	code_examples = true,
 }
 
 function M.config()
@@ -9,7 +12,7 @@ function M.config()
 	local animation_helper = require("soul.core.helpers.dashboard.animation")
 	local autocmds = require("soul.core.helpers.dashboard.alpha.autocmds")
 
-	local state = sections.build(dashboard)
+	local state = sections.build(dashboard, M.code_examples)
 	local logo_tick = 0
 	local wordmark_tick = 0
 
