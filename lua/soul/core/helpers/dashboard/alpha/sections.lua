@@ -105,7 +105,7 @@ local topic_highlights = {
 local c_types = {
 	int = true, char = true, float = true, double = true, void = true,
 	short = true, long = true, signed = true, unsigned = true, const = true,
-	size_t = true, FILE = true, bool = true,
+	size_t = true, FILE = true, bool = true, Point = true,
 }
 
 local c_keywords = {
