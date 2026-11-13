@@ -16,7 +16,7 @@ M.highlights = {
 	{ { "AlphaYellow", 0, 27 } },
 }
 
--- The logo has its own renderer and timer. This animation only teaches C.
+-- The logo owns its renderer and frame state. This animation only teaches C.
 M.animation = {
 	speed = 65,
 	start_line = 3,
