@@ -74,7 +74,11 @@ local function select_recent_project(entries, path_field, active_field, time_fie
 		if type(entry) == "table" then
 			local root = entry[path_field]
 			local active = active_field and tonumber(entry[active_field]) or 1
-			local timestamp = tonumber(entry[time_field]) or 0
+			local timestamp_value = entry[time_field]
+			if timestamp_value == nil then
+				timestamp_value = entry.updated_at
+			end
+			local timestamp = tonumber(timestamp_value) or 0
 
 			if
 				type(root) == "string"
