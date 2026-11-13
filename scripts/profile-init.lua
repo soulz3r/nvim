@@ -142,6 +142,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 			local lines = {
 				"CVIM STARTUP MODULE PROFILE",
 				("Elapsed through VimEnter: %.3f ms"):format((vim.uv.hrtime() - started_at) / 1e6),
+				"Alpha dashboard ready: " .. tostring(vim.g.cvim_alpha_ready == true),
 				"Includes first require() costs and measured setup/build callbacks.",
 				"Exclusive time subtracts nested module loads and measured calls.",
 				"",
