@@ -1,3 +1,9 @@
+-- The benchmark loads this checkout through -u, which does not guarantee that
+-- its directory is part of 'runtimepath' on every platform.
+if vim.env.CVIM_CONFIG and vim.env.CVIM_CONFIG ~= "" then
+	vim.opt.rtp:prepend(vim.env.CVIM_CONFIG)
+end
+
 vim.g.cvim_start_ns = vim.uv.hrtime()
 
 if vim.fn.has("nvim-0.12") ~= 1 then
