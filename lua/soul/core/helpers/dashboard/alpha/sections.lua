@@ -36,9 +36,10 @@ local function build_animation_timeline(animation)
 		-- Resolve the caret from the actual token instead of a hand-counted
 		-- column, so edits to a code sample cannot silently misalign it.
 		local target = scene.cursor_token and code_line:find(scene.cursor_token, 1, true)
-		if not target then
-			target = math.max(1, scene.cursor_target or 1)
-		end
+		assert(target, ("dashboard caret token %q was not found in: %s"):format(
+			tostring(scene.cursor_token),
+			code_line
+		))
 		visible[cursor_line] = string.rep(" ", target - 1) .. "^"
 		push(visible)
 
