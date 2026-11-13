@@ -223,7 +223,7 @@ After a successful import, each old DAP-only file is renamed with a `.migrated` 
 
 ## Repository layout
 
-See [docs/dashboard.md](docs/dashboard.md) for the animated startup dashboard. See [docs/design-decisions.md](docs/design-decisions.md) for the reasoning behind the main architectural choices. See [docs/architecture.md](docs/architecture.md) for the module map, [docs/plugin-inventory.md](docs/plugin-inventory.md) for plugin ownership, [docs/development.md](docs/development.md) for project metadata and UI conventions, and [docs/contributing.md](docs/contributing.md) for maintenance rules.
+See [docs/dashboard.md](docs/dashboard.md) for the animated startup dashboard. See [docs/design-decisions.md](docs/design-decisions.md) for the reasoning behind the main architectural choices. See [docs/architecture.md](docs/architecture.md) for the module map, [docs/performance.md](docs/performance.md) for resource lifetimes and benchmarking, [docs/plugin-inventory.md](docs/plugin-inventory.md) for plugin ownership, [docs/development.md](docs/development.md) for project metadata and UI conventions, and [docs/contributing.md](docs/contributing.md) for maintenance rules.
 
 ## Compatibility
 
@@ -241,7 +241,7 @@ Run the repository's static checks with:
 bash scripts/check.sh
 ```
 
-Python 3 is required for repository checks only; it is not a Neovim runtime dependency. The script validates JSON configuration, plugin lockfile revisions, Lua indentation and line endings, deprecated/private API usage, Lua syntax, and core/plugin-spec imports. It also runs unit tests for the repository's Python check helpers. GitHub Actions runs the checks against the latest Neovim stable release and nightly build. The headless smoke test does not install or execute third-party plugin configurations, so test those features after plugin updates and on the operating systems you use. Follow [docs/manual-testing.md](docs/manual-testing.md) for real DAP, Telescope/fzf-native, PowerShell, UI, and platform checks.
+Python 3 is required for repository checks only; it is not a Neovim runtime dependency. The script validates JSON configuration, plugin lockfile revisions, Lua indentation and line endings, deprecated/private API usage, Lua syntax, and core/plugin-spec imports. It also runs unit tests for the repository's Python check helpers. GitHub Actions runs the checks against the latest Neovim stable release and nightly build. The headless smoke test does not install or execute third-party plugin configurations, so test those features after plugin updates and on the operating systems you use. Follow [docs/manual-testing.md](docs/manual-testing.md) for real DAP, Telescope/fzf-native, PowerShell, resource-lifecycle, UI, and platform checks.
 
 ## Troubleshooting
 
