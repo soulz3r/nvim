@@ -14,7 +14,6 @@ local function find_executable(names)
 		end
 	end
 end
-
 M.clang = vim.env.CLANG and fn.executable(vim.env.CLANG) == 1 and vim.env.CLANG
 	or find_executable({ "clang" })
 	or "clang"
