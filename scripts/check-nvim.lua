@@ -63,6 +63,7 @@ assert(
 -- Importing core paths must be cheap. Full PowerShell probing is deferred until
 -- a feature explicitly requests a validated executable.
 assert(package.loaded["soul.core.helpers.process"] == nil, "Importing paths.lua must not load the process-wait helper")
+assert(package.loaded["soul.core.helpers.powershell"] == nil, "Importing paths.lua must not load PowerShell discovery")
 
 local pwsh_elapsed_ms = (vim.uv.hrtime() - pwsh_started) / 1e6
 if vim.env.PROFILE_PWSH == "1" then
