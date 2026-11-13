@@ -9,48 +9,43 @@ local function build_animation_timeline(animation, content_width)
 	end
 
 	for _, scene in ipairs(animation.scenes) do
+		-- Every scene uses the same seven-row layout:
+		-- heading, two code lines, caret, optional closing line,
+		-- separator, explanation.
 		local visible = { "", "", "", "", "", "", "" }
 		local cursor_source_line = scene.cursor_source_line or 3
 		local code_line = scene.lines[cursor_source_line] or ""
-		local cursor_line = 4
-		local separator_line = scene.extra_line and 6 or 5
-		local explanation_line = separator_line + 1
-		local block_width = 0
+		local target = scene.cursor_token and code_line:find(scene.cursor_token, 1, true)
 
-		-- Center the tutorial as one block. Every line shares the same left
-		-- edge, keeping the code samples naturally aligned with each other.
-		for _, line_index in ipairs({ 1, 2, 3, 5, 6 }) do
+		assert(target, ("dashboard caret token %q was not found in: %s"):format(
+			tostring(scene.cursor_token),
+			code_line
+		))
+
+		local block_width = 0
+		for _, line_index in ipairs({ 1, 2, 3, 5 }) do
 			block_width = math.max(
 				block_width,
-				vim.fn.strdisplaywidth(scene.lines[line_index] or "")
+				vim.fn.strdisplaywidth(
+					line_index == 5 and (scene.extra_line or "") or (scene.lines[line_index] or "")
+				)
 			)
-		end
-		if scene.extra_line then
-			block_width = math.max(block_width, vim.fn.strdisplaywidth(scene.extra_line))
 		end
 
 		local padding = math.max(0, math.floor((content_width - block_width) / 2))
 		local indent = string.rep(" ", padding)
 
-		-- Type the heading first, then let the caret travel with the
-		-- typewriter until it reaches the selected token.
 		local heading = scene.lines[1] or ""
 		for column = 1, #heading do
 			visible[1] = indent .. heading:sub(1, column)
 			push(visible)
 		end
 
-		local target = scene.cursor_token and code_line:find(scene.cursor_token, 1, true)
-		assert(target, ("dashboard caret token %q was not found in: %s"):format(
-			tostring(scene.cursor_token),
-			code_line
-		))
-
 		for line_index = 2, 3 do
 			local line = scene.lines[line_index] or ""
 
 			if line_index == cursor_source_line and not scene.extra_line then
-				visible[cursor_line] = string.rep(" ", padding) .. "^"
+				visible[4] = indent .. "^"
 				push(visible)
 			end
 
@@ -61,14 +56,9 @@ local function build_animation_timeline(animation, content_width)
 					local caret_offset = math.min(column, target - 1)
 					local caret_column = padding
 						+ vim.fn.strdisplaywidth(line:sub(1, caret_offset))
-					visible[cursor_line] = string.rep(" ", caret_column) .. "^"
+					visible[4] = string.rep(" ", caret_column) .. "^"
 				end
 
-				push(visible)
-			end
-
-			if line == "" then
-				visible[line_index] = indent
 				push(visible)
 			end
 		end
@@ -79,14 +69,14 @@ local function build_animation_timeline(animation, content_width)
 				push(visible)
 			end
 
-			-- Once the closing line is complete, reveal the caret at its
-			-- semantic target without moving the code or brace.
+			-- Keep the caret hidden until the closing line has finished typing.
 			local caret_column = padding
 				+ vim.fn.strdisplaywidth(code_line:sub(1, target - 1))
-			visible[cursor_line] = string.rep(" ", caret_column) .. "^"
+			visible[4] = string.rep(" ", caret_column) .. "^"
 			push(visible)
 		end
-		visible[separator_line] = indent .. (scene.lines[5] or "")
+
+		visible[6] = indent .. (scene.lines[5] or "")
 		push(visible)
 
 		local explanation = scene.lines[6] or ""
@@ -97,7 +87,7 @@ local function build_animation_timeline(animation, content_width)
 		local explanation_indent = string.rep(" ", explanation_padding)
 
 		for column = 1, #explanation do
-			visible[explanation_line] = explanation_indent .. explanation:sub(1, column)
+			visible[7] = explanation_indent .. explanation:sub(1, column)
 			push(visible)
 		end
 
@@ -108,6 +98,7 @@ local function build_animation_timeline(animation, content_width)
 
 	return timeline
 end
+
 local function add_range(ranges, group, line_number, first, last)
 	if first < last then
 		ranges[line_number] = ranges[line_number] or {}
@@ -298,24 +289,24 @@ local function highlight_preprocessor(ranges, line_number, line)
 	end
 end
 
-local explanation_terms = {
-	"&value", "*ptr", "return", "main", "compiler", "translates", "stages",
-	"puts", "stdout", "double", "decimals", "enum", "integer", "constants",
-	"+=", "updates", "existing", "value", "if", "true", "sends",
-	"index", "zero", "first", "item", "strings", "character", "arrays",
-	"structs", "group", "related", "fields", "address", "reads", "pointed",
-	"stored", "stores", "directives", "run", "before", "compile",
-	"macros", "expand", "build", "free", "releases", "memory", "close",
-	"every", "opened", "file", "masks", "select", "individual", "bits",
-	"pointer", "same", "exits", "writes", "stores", "names", "runs", "only",
-	"when", "gives", "back", "are", "selects", "makes", "reads", "value",
+-- Keep grammatical glue neutral and highlight every meaningful word.
+-- This avoids a hand-maintained vocabulary that inevitably misses new copy.
+local explanation_stopwords = {
+	a = true, an = true, and = true, are = true, as = true, at = true,
+	back = true, by = true, every = true, for = true, from = true,
+	in = true, into = true, is = true, it = true, its = true, of = true,
+	on = true, only = true, or = true, the = true, their = true,
+	then = true, this = true, to = true, when = true, with = true,
 }
 
-local explanation_vocabulary = {}
-for _, term in ipairs(explanation_terms) do
-	if term:match("^[%a_]+$") then
-		explanation_vocabulary[term] = true
+local function is_stopword_prefix(word)
+	for stopword in pairs(explanation_stopwords) do
+		if stopword:sub(1, #word) == word then
+			return true
+		end
 	end
+
+	return false
 end
 
 local function highlight_message(ranges, line_number, line)
@@ -325,20 +316,32 @@ local function highlight_message(ranges, line_number, line)
 
 	add_range(ranges, "AlphaMessage", line_number, 0, #line)
 
-	-- Completed known words stay colored. The final word also matches from
-	-- its first character, so its color grows in step with the typewriter.
 	for first, word in line:gmatch("()([%a_]+)") do
 		local last = first + #word - 1
 		local is_final_word = line:sub(last + 1):match("^%s*[%p]*$") ~= nil
-		local matched = explanation_vocabulary[word]
-			or (is_final_word and has_prefix(explanation_vocabulary, word))
+		local meaningful = not explanation_stopwords[word]
+		local growing_word = is_final_word
+			and #word > 0
+			and not is_stopword_prefix(word)
 
-		if matched then
+		if meaningful and (not growing_word or #word > 1) then
 			add_range(ranges, "AlphaMessageKey", line_number, first - 1, last)
+		elseif growing_word and #word > 1 then
+			-- A prefix shared with a grammatical word stays neutral until
+			-- enough characters have arrived to identify the content word.
+			local possible_content_word = false
+			for stopword in pairs(explanation_stopwords) do
+				if stopword:sub(1, #word) == word then
+					possible_content_word = true
+					break
+				end
+			end
+			if not possible_content_word then
+				add_range(ranges, "AlphaMessageKey", line_number, first - 1, last)
+			end
 		end
 	end
 
-	-- Highlight complete symbolic concepts and their growing final prefixes.
 	for _, term in ipairs({ "&value", "*ptr", "+=" }) do
 		local first = 1
 		while true do
@@ -358,6 +361,7 @@ local function highlight_message(ranges, line_number, line)
 		end
 	end
 end
+
 local function highlight_animation_line(ranges, line_number, line, line_index)
 	local heading = line:match("^%s*(.-)%s*$")
 	local topic_group = topic_highlights[heading]
@@ -493,7 +497,7 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 		return
 	end
 
-	if line_index == 2 or line_index == 3 or line_index == 4 then
+	if line_index == 2 or line_index == 3 or line_index == 5 then
 		highlight_c_code(ranges, line_number, line)
 		return
 	end
@@ -503,7 +507,7 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 		return
 	end
 
-	if line_index >= 6 then
+	if line_index == 7 then
 		highlight_message(ranges, line_number, line)
 	end
 end
