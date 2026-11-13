@@ -138,38 +138,38 @@ end
 
 local function write_report()
 	local rows = {}
-			for name, record in pairs(records) do
-				rows[#rows + 1] = {
-					name = name,
-					calls = record.calls,
-					inclusive_ms = record.inclusive_ms,
-					exclusive_ms = record.exclusive_ms,
-				}
-			end
+	for name, record in pairs(records) do
+		rows[#rows + 1] = {
+			name = name,
+			calls = record.calls,
+			inclusive_ms = record.inclusive_ms,
+			exclusive_ms = record.exclusive_ms,
+		}
+	end
 
-			table.sort(rows, function(left, right)
-				return left.exclusive_ms > right.exclusive_ms
-			end)
+	table.sort(rows, function(left, right)
+		return left.exclusive_ms > right.exclusive_ms
+	end)
 
-			local lines = {
-				"CVIM STARTUP MODULE PROFILE",
-				("Elapsed through VimEnter: %.3f ms"):format((vim.uv.hrtime() - started_at) / 1e6),
-				"Alpha dashboard ready: " .. tostring(vim.g.cvim_alpha_ready == true),
-				("CVIM init to Alpha ready: %.3f ms"):format(tonumber(vim.g.cvim_alpha_ready_ms) or -1),
-				"Includes first require() costs and measured setup/build callbacks.",
-				"Exclusive time subtracts nested module loads and measured calls.",
-				"",
-				"exclusive_ms\tinclusive_ms\tcalls\toperation",
-			}
+	local lines = {
+		"CVIM STARTUP MODULE PROFILE",
+		("Elapsed through VimEnter: %.3f ms"):format((vim.uv.hrtime() - started_at) / 1e6),
+		"Alpha dashboard ready: " .. tostring(vim.g.cvim_alpha_ready == true),
+		("CVIM init to Alpha ready: %.3f ms"):format(tonumber(vim.g.cvim_alpha_ready_ms) or -1),
+		"Includes first require() costs and measured setup/build callbacks.",
+		"Exclusive time subtracts nested module loads and measured calls.",
+		"",
+		"exclusive_ms\tinclusive_ms\tcalls\toperation",
+	}
 
-			for _, row in ipairs(rows) do
-				lines[#lines + 1] = ("%.3f\t%.3f\t%d\t%s"):format(
-					row.exclusive_ms,
-					row.inclusive_ms,
-					row.calls,
-					row.name
-				)
-			end
+	for _, row in ipairs(rows) do
+		lines[#lines + 1] = ("%.3f\t%.3f\t%d\t%s"):format(
+			row.exclusive_ms,
+			row.inclusive_ms,
+			row.calls,
+			row.name
+		)
+	end
 
 	vim.fn.writefile(lines, output)
 	vim.g.cvim_profile_done = true
