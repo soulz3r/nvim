@@ -38,7 +38,9 @@ See [dashboard.md](dashboard.md) for the animated header, optional C tutorial, a
 | `<leader>nm` | Show all messages in a floating window |
 | `<leader>u` | Open Undotree |
 
-Use `V` to select whole lines, then press `Alt-j` or `Alt-k` to move the selected block one line down or up. The mapping uses the Visual selection marks and restores the selection after moving, so Visual mode remains active for repeated moves. Characterwise Visual selections that span multiple lines are also moved as whole lines.\n\n## Files and search
+Use `V` to select whole lines, then press `Alt-j` or `Alt-k` to move the selected block one line down or up. The mapping uses the Visual selection marks and restores the selection after moving, so Visual mode remains active for repeated moves. Characterwise Visual selections that span multiple lines are also moved as whole lines.
+
+## Files and search
 
 | Mapping | Action |
 |---|---|
