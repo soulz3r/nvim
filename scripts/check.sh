@@ -448,7 +448,6 @@ benchmark_startup() {
   data_dir="$(to_shell_path "$data_dir")"
   lazy_entry="$data_dir/lazy/lazy.nvim/lua/lazy/init.lua"
   alpha_entry="$data_dir/lazy/alpha-nvim/lua/alpha/init.lua"
-  alpha_entry="$data_dir/lazy/alpha-nvim/lua/alpha/init.lua"
 
   local config_path
   config_path="$(to_native_path "$ROOT")"
@@ -585,7 +584,134 @@ profile_startup() {
     return
   fi
 
-  if ! grep -q '^Alpha dashboard ready: true  sed -n '1,44p' "$profile_output" | sed 's/^/      /'
+  if ! grep -q '^Alpha dashboard ready: true
+
+if command -v nvim >/dev/null 2>&1; then
+  run_check "Neovim core and plugin-spec smoke tests" 0 nvim --headless --clean -u NONE -l scripts/check-nvim.lua
+  run_check "Neovim module smoke tests" 0 nvim --headless --clean -u NONE -l scripts/check-integration.lua
+  run_check "Resource lifecycle and idle LSP cleanup" 0 nvim --headless --clean -u NONE -l scripts/check-lifecycle.lua
+  run_check "Mini Notify progress lifecycle" 0 nvim --headless --clean -u NONE -l scripts/check-notify.lua
+  run_check "DAP registry migration" 0 nvim --headless --clean -u NONE -l scripts/check-dap-registry.lua
+  run_check "DAP executable discovery" 0 nvim --headless --clean -u NONE -l scripts/check-dap-executables.lua
+  run_check "DAP path and project resolution" 1 nvim --headless --clean -u NONE -l scripts/check-dap-project.lua
+  benchmark_startup
+  profile_startup
+elif [[ "${REQUIRE_NVIM:-0}" == "1" ]]; then
+  print_status "Neovim runtime checks (not installed)" "FAIL"
+  (( FAIL_COUNT += 1 ))
+else
+  print_status "Neovim runtime checks (not installed)" "SKIP"
+fi
+
+printf '\n'
+repeat_char '─' "$TERM_WIDTH"
+printf '\n'
+
+# The unittest summary is intentionally displayed last, after every check ran.
+if [[ -n "$UNIT_SUMMARY" ]]; then
+  center_line "$UNIT_SUMMARY"
+fi
+if [[ -n "$UNIT_RESULT" ]]; then
+  if [[ "$UNIT_RESULT" == "OK" ]]; then
+    printf '%s' "$GREEN"
+  else
+    printf '%s' "$RED"
+  fi
+  center_line "$UNIT_RESULT"
+  printf '%s' "$RESET"
+fi
+
+END_TIME_US="$(timestamp_us)"
+ELAPSED_US=$(( END_TIME_US - START_TIME_US ))
+ELAPSED_SECONDS=$(( ELAPSED_US / 1000000 ))
+ELAPSED_MILLISECONDS=$(( (ELAPSED_US % 1000000) / 1000 ))
+printf '\n'
+center_line "TOTAL CHECK TIME  ${ELAPSED_SECONDS}.$(printf '%03d' "$ELAPSED_MILLISECONDS")s"
+
+if (( FAIL_COUNT == 0 )); then
+  printf '\n%s' "$GREEN"
+  center_line "ALL CHECKS PASSED  ✓"
+  printf '%s' "$RESET"
+else
+  printf '\n%s' "$RED"
+  center_line "$FAIL_COUNT CHECK(S) FAILED"
+  printf '%s' "$RESET"
+fi
+
+exit "$(( FAIL_COUNT > 0 ))"
+ "$profile_output"; then
+    print_status "CVIM dashboard readiness (profile)" "FAIL"
+    sed 's/^/      /' "$profile_output"
+    (( FAIL_COUNT += 1 ))
+    return
+  fi
+
+  print_status "CVIM module profile" "PASS"
+  sed -n '1,44p' "$profile_output" | sed 's/^/      /'
+}
+
+if command -v nvim >/dev/null 2>&1; then
+  run_check "Neovim core and plugin-spec smoke tests" 0 nvim --headless --clean -u NONE -l scripts/check-nvim.lua
+  run_check "Neovim module smoke tests" 0 nvim --headless --clean -u NONE -l scripts/check-integration.lua
+  run_check "Resource lifecycle and idle LSP cleanup" 0 nvim --headless --clean -u NONE -l scripts/check-lifecycle.lua
+  run_check "Mini Notify progress lifecycle" 0 nvim --headless --clean -u NONE -l scripts/check-notify.lua
+  run_check "DAP registry migration" 0 nvim --headless --clean -u NONE -l scripts/check-dap-registry.lua
+  run_check "DAP executable discovery" 0 nvim --headless --clean -u NONE -l scripts/check-dap-executables.lua
+  run_check "DAP path and project resolution" 1 nvim --headless --clean -u NONE -l scripts/check-dap-project.lua
+  benchmark_startup
+  profile_startup
+elif [[ "${REQUIRE_NVIM:-0}" == "1" ]]; then
+  print_status "Neovim runtime checks (not installed)" "FAIL"
+  (( FAIL_COUNT += 1 ))
+else
+  print_status "Neovim runtime checks (not installed)" "SKIP"
+fi
+
+printf '\n'
+repeat_char '─' "$TERM_WIDTH"
+printf '\n'
+
+# The unittest summary is intentionally displayed last, after every check ran.
+if [[ -n "$UNIT_SUMMARY" ]]; then
+  center_line "$UNIT_SUMMARY"
+fi
+if [[ -n "$UNIT_RESULT" ]]; then
+  if [[ "$UNIT_RESULT" == "OK" ]]; then
+    printf '%s' "$GREEN"
+  else
+    printf '%s' "$RED"
+  fi
+  center_line "$UNIT_RESULT"
+  printf '%s' "$RESET"
+fi
+
+END_TIME_US="$(timestamp_us)"
+ELAPSED_US=$(( END_TIME_US - START_TIME_US ))
+ELAPSED_SECONDS=$(( ELAPSED_US / 1000000 ))
+ELAPSED_MILLISECONDS=$(( (ELAPSED_US % 1000000) / 1000 ))
+printf '\n'
+center_line "TOTAL CHECK TIME  ${ELAPSED_SECONDS}.$(printf '%03d' "$ELAPSED_MILLISECONDS")s"
+
+if (( FAIL_COUNT == 0 )); then
+  printf '\n%s' "$GREEN"
+  center_line "ALL CHECKS PASSED  ✓"
+  printf '%s' "$RESET"
+else
+  printf '\n%s' "$RED"
+  center_line "$FAIL_COUNT CHECK(S) FAILED"
+  printf '%s' "$RESET"
+fi
+
+exit "$(( FAIL_COUNT > 0 ))"
+ "$profile_output"; then
+    print_status "CVIM dashboard readiness (profile)" "FAIL"
+    sed 's/^/      /' "$profile_output"
+    (( FAIL_COUNT += 1 ))
+    return
+  fi
+
+  print_status "CVIM module profile" "PASS"
+  sed -n '1,44p' "$profile_output" | sed 's/^/      /'
 }
 
 if command -v nvim >/dev/null 2>&1; then
