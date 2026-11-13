@@ -353,7 +353,7 @@ local explanation_roles = {
 	["return"] = "AlphaCodeKeyword",
 	["exits"] = "AlphaCodeKeyword",
 	["main"] = "AlphaCodeFunction",
-	["compiler"] = "AlphaCodeFunction",
+	["compiler"] = "AlphaCodeStage",
 	["translates"] = "AlphaCodeOperator",
 	["stages"] = "AlphaCodeType",
 
