@@ -482,7 +482,7 @@ benchmark_startup() {
         local ready_output_native
         ready_output_native="$(to_native_path "$ready_output")"
 
-        if ! CVIM_CONFIG="$config_path" CVIM_BENCHMARK_READY_OUTPUT="$ready_output_native" nvim --headless --startuptime "$log" \
+        if ! CVIM_BENCHMARK=1 CVIM_CONFIG="$config_path" CVIM_BENCHMARK_READY_OUTPUT="$ready_output_native" nvim --headless --startuptime "$log" \
           --cmd 'lua vim.opt.rtp:prepend(vim.env.CVIM_CONFIG)' \
           -u "$ROOT/init.lua" \
           -c 'lua if vim.g.cvim_config_loaded ~= true or vim.g.cvim_alpha_ready ~= true then vim.cmd.cquit() end' \
