@@ -112,4 +112,28 @@ vim.lsp.stop_client = original_stop_client
 pcall(vim.api.nvim_del_augroup_by_name, "SoulLspLifecycle")
 vim.api.nvim_buf_delete(buffer, { force = true })
 
-print("Lifecycle scope and idle LSP shutdown checks passed.")
+local project_restore = require("soul.core.lifecycle.project")
+local original_cwd = vim.fn.getcwd()
+local temporary_root = vim.fn.tempname()
+local older_project = temporary_root .. "/older"
+local newer_project = temporary_root .. "/newer"
+local registry_path = temporary_root .. "/projects.json"
+
+vim.fn.mkdir(older_project, "p")
+vim.fn.mkdir(newer_project, "p")
+vim.fn.writefile({
+	vim.json.encode({
+		[older_project] = { root = older_project, last_opened = 10 },
+		[newer_project] = { root = newer_project, last_opened = 20 },
+	}),
+}, registry_path)
+
+assert(project_restore.restore(registry_path), "project restore did not find a valid saved project")
+assert(
+	vim.fs.normalize(vim.fn.getcwd()) == vim.fs.normalize(newer_project),
+	"project restore did not select the most recently opened valid project"
+)
+vim.cmd.cd(vim.fn.fnameescape(original_cwd))
+vim.fn.delete(temporary_root, "rf")
+
+print("Lifecycle, project restore, and idle LSP shutdown checks passed.")
