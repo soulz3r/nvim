@@ -32,17 +32,30 @@ local function build_animation_timeline(animation, content_width)
 		local padding = math.max(0, math.floor((content_width - block_width) / 2))
 		local indent = string.rep(" ", padding)
 
-		-- Type the heading and both code lines at a steady character rate.
-		for line_index = 1, 3 do
+		-- Type the heading first, then show the semantic caret before the
+		-- code snippet starts typing. Keep it fixed on its target as code grows.
+		local heading = scene.lines[1] or ""
+		for column = 1, #heading do
+			visible[1] = indent .. heading:sub(1, column)
+			push(visible)
+		end
+
+		local target = scene.cursor_token and code_line:find(scene.cursor_token, 1, true)
+		assert(target, ("dashboard caret token %q was not found in: %s"):format(
+			tostring(scene.cursor_token),
+			code_line
+		))
+		local caret_column = padding
+			+ vim.fn.strdisplaywidth(code_line:sub(1, target - 1))
+		visible[cursor_line] = string.rep(" ", caret_column) .. "^"
+		push(visible)
+
+		-- Type both code lines while the caret stays visible at its target.
+		for line_index = 2, 3 do
 			local line = scene.lines[line_index] or ""
 
 			for column = 1, #line do
 				visible[line_index] = indent .. line:sub(1, column)
-
-				if line_index == cursor_source_line then
-					visible[cursor_line] = string.rep(" ", padding + column) .. "^"
-				end
-
 				push(visible)
 			end
 
@@ -58,15 +71,6 @@ local function build_animation_timeline(animation, content_width)
 				push(visible)
 			end
 		end
-
-		-- Resolve the caret from the selected token in its actual source line.
-		local target = scene.cursor_token and code_line:find(scene.cursor_token, 1, true)
-		assert(target, ("dashboard caret token %q was not found in: %s"):format(
-			tostring(scene.cursor_token),
-			code_line
-		))
-		visible[cursor_line] = string.rep(" ", padding + vim.fn.strdisplaywidth(code_line:sub(1, target - 1))) .. "^"
-		push(visible)
 
 		visible[separator_line] = indent .. (scene.lines[5] or "")
 		push(visible)
