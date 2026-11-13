@@ -1,5 +1,16 @@
 local Scope = require("soul.core.lifecycle.scope")
-local FrameProfile = require("soul.core.performance.animation")
+
+-- Keep the animation profiler out of normal startup. The no-op fallback keeps
+-- the frame loop simple without loading the reporting and sample-storage code.
+local FrameProfile
+if vim.env.CVIM_ANIMATION_PROFILE == "1" then
+	FrameProfile = require("soul.core.performance.animation")
+else
+	FrameProfile = {
+		enabled = false,
+		record = function() end,
+	}
+end
 
 local M = {}
 
