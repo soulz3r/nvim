@@ -1,7 +1,6 @@
 -- Optional startup profiler. Run with:
 -- CVIM_CONFIG=/path/to/cvim CVIM_PROFILE_OUTPUT=/tmp/cvim-profile.tsv
--- nvim --headless -u scripts/profile-init.lua -c
---   'lua vim.wait(500, function() return vim.g.cvim_profile_done end, 10)' -c 'qa!'
+-- nvim --headless -u scripts/profile-init.lua
 local config = vim.env.CVIM_CONFIG
 if not config or config == "" then
 	error("CVIM_CONFIG must point to the CVIM checkout")
@@ -137,11 +136,8 @@ if vim.g.cvim_config_loaded ~= true then
 	error("CVIM init.lua did not finish loading")
 end
 
-vim.api.nvim_create_autocmd("VimEnter", {
-	once = true,
-	callback = function()
-		vim.schedule(function()
-			local rows = {}
+local function write_report()
+	local rows = {}
 			for name, record in pairs(records) do
 				rows[#rows + 1] = {
 					name = name,
@@ -175,8 +171,14 @@ vim.api.nvim_create_autocmd("VimEnter", {
 				)
 			end
 
-			vim.fn.writefile(lines, output)
-			vim.g.cvim_profile_done = true
-		end)
+	vim.fn.writefile(lines, output)
+	vim.g.cvim_profile_done = true
+	vim.cmd("qa!")
+end
+
+vim.api.nvim_create_autocmd("VimEnter", {
+	once = true,
+	callback = function()
+		vim.schedule(write_report)
 	end,
 })
