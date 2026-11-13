@@ -124,6 +124,8 @@ vim.env.PWSH = original_pwsh
 package.loaded[paths_module] = original_paths
 
 require("soul.core.options")
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
 require("soul.core.keymaps")
 assert(
 	package.loaded["soul.core.helpers.c_runner"] == nil,
