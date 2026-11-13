@@ -1,4 +1,5 @@
 local M = {}
+local FrameProfile = require("soul.core.performance.animation")
 
 local WIDTH = 66
 local HEIGHT = 15
@@ -376,6 +377,7 @@ end
 
 function M.build()
 	local utils = require("alpha.utils")
+	FrameProfile.setup()
 	setup_glitch_highlights()
 	local section = {
 		type = "text",
@@ -409,13 +411,22 @@ function M.build()
 	local glitch_remaining = 0
 	local glitch_cooldown = 0
 
-	local function apply_frame()
+	local function apply_frame(profile_frame)
+		local started = profile_frame and FrameProfile.enabled and vim.uv.hrtime() or nil
 		local lines, character_ranges = render_frame(c_frames[rotation_frame], glitch_state)
+		if started then
+			FrameProfile.record("logo.render", (vim.uv.hrtime() - started) / 1e6)
+		end
+
 		section.val = lines
+		started = profile_frame and FrameProfile.enabled and vim.uv.hrtime() or nil
 		section.opts.hl = utils.charhl_to_bytehl(character_ranges, lines)
+		if started then
+			FrameProfile.record("logo.highlights", (vim.uv.hrtime() - started) / 1e6)
+		end
 	end
 
-	apply_frame()
+	apply_frame(false)
 
 	return {
 		section = section,
@@ -472,7 +483,7 @@ function M.build()
 				glitch_cooldown = random_int(4) + 2
 			end
 
-			apply_frame()
+			apply_frame(true)
 		end,
 	}
 end
