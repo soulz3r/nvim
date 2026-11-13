@@ -199,7 +199,7 @@ local function compile_and_run_c()
 	}
 
 	if platform.is_windows then
-		local powershell = paths.pwsh
+		local powershell = paths.resolve_powershell()
 
 		if not powershell or powershell == "pwsh" then
 			return show_error(
