@@ -218,7 +218,7 @@ M.animation = {
 				"  p = malloc(n * sizeof *p);",
 				"  if (p) free(p);",
 				"",
-				"  free releases allocated storage",
+				"  free releases memory",
 			},
 		},
 		{
