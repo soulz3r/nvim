@@ -1,79 +1,95 @@
+local Scope = require("soul.core.lifecycle.scope")
+
 local M = {}
 
--- Generic timer-driven animation lifecycle.
--- The consumer owns frame data and decides what each tick does.
+-- One-shot libuv timer: the next frame is scheduled only after the current
+-- frame has completed, so slow redraws never accumulate queued timer ticks.
 function M.new(opts)
 	assert(type(opts) == "table", "animation options must be a table")
 	assert(type(opts.on_tick) == "function", "animation requires on_tick")
 	assert(type(opts.is_active) == "function", "animation requires is_active")
 
 	local interval = math.max(1, math.floor(tonumber(opts.interval) or 150))
+	local scope = Scope.new()
+	local timer = scope:timer()
 	local running = false
 	local generation = 0
 
 	local function stop()
 		running = false
 		generation = generation + 1
+
+		if not scope:is_closed() then
+			timer:stop()
+		end
 	end
 
-	local function tick(token)
-		if not running or token ~= generation then
+	local function close()
+		stop()
+		scope:close()
+	end
+
+	local function fail(message)
+		stop()
+		pcall(vim.notify, message, vim.log.levels.WARN, {
+			title = "Dashboard",
+		})
+	end
+
+	local function schedule_tick(token)
+		if not running or token ~= generation or scope:is_closed() then
 			return
 		end
 
-		local active_ok, active = pcall(opts.is_active)
-		if not active_ok or not active then
-			stop()
-			if not active_ok then
-				pcall(vim.notify, "Animation activity check failed: " .. tostring(active), vim.log.levels.WARN, {
-					title = "Dashboard",
-				})
-			end
-			return
-		end
+		local ok, err = pcall(timer.start, timer, interval, 0, function()
+			vim.schedule(function()
+				if not running or token ~= generation or scope:is_closed() then
+					return
+				end
 
-		local tick_ok, tick_error = pcall(opts.on_tick)
-		if not tick_ok then
-			stop()
-			pcall(vim.notify, "Animation stopped: " .. tostring(tick_error), vim.log.levels.WARN, {
-				title = "Dashboard",
-			})
-			return
-		end
+				local active_ok, active = pcall(opts.is_active)
+				if not active_ok then
+					return fail("Animation activity check failed: " .. tostring(active))
+				end
+				if not active then
+					return stop()
+				end
 
-		if opts.redraw then
-			local redraw_ok, redraw_error = pcall(opts.redraw)
-			if not redraw_ok then
-				stop()
-				pcall(vim.notify, "Animation redraw failed: " .. tostring(redraw_error), vim.log.levels.WARN, {
-					title = "Dashboard",
-				})
-				return
-			end
-		end
+				local tick_ok, tick_error = pcall(opts.on_tick)
+				if not tick_ok then
+					return fail("Animation stopped: " .. tostring(tick_error))
+				end
 
-		vim.defer_fn(function()
-			tick(token)
-		end, interval)
+				if opts.redraw then
+					local redraw_ok, redraw_error = pcall(opts.redraw)
+					if not redraw_ok then
+						return fail("Animation redraw failed: " .. tostring(redraw_error))
+					end
+				end
+
+				schedule_tick(token)
+			end)
+		end)
+
+		if not ok then
+			fail("Animation timer failed: " .. tostring(err))
+		end
 	end
 
 	local function start()
-		if running then
+		if running or scope:is_closed() then
 			return
 		end
 
 		running = true
 		generation = generation + 1
-
-		local token = generation
-		vim.defer_fn(function()
-			tick(token)
-		end, interval)
+		schedule_tick(generation)
 	end
 
 	return {
 		start = start,
 		stop = stop,
+		close = close,
 		is_running = function()
 			return running
 		end,
