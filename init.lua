@@ -7,7 +7,19 @@ require("soul.core.helpers.paths")
 require("soul.core.options")
 require("soul.core.keymaps")
 require("soul.core.autocmds")
-require("soul.core.lifecycle.project").setup()
+-- Defer project-history parsing until the startup UI is already available.
+vim.api.nvim_create_autocmd("VimEnter", {
+	once = true,
+	callback = function()
+		if vim.fn.argc() ~= 0 then
+			return
+		end
+
+		vim.schedule(function()
+			require("soul.core.lifecycle.project").restore()
+		end)
+	end,
+})
 require("soul.core.helpers.ui")
 require("soul.core.neovide")
 
