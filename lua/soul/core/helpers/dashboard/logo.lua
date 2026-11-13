@@ -163,6 +163,13 @@ local function render_frame(frame)
 		end
 
 		lines[row] = table.concat(line)
+
+		-- Alpha identifies multiline highlights from the first row's first range.
+		-- Keep that shape valid even if a frame leaves the top row unlit.
+		if row == 1 and #line_ranges == 0 then
+			line_ranges[1] = { "Normal", 0, 0 }
+		end
+
 		ranges[row] = line_ranges
 	end
 
