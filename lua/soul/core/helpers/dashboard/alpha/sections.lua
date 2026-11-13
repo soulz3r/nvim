@@ -52,6 +52,7 @@ end
 
 local topic_highlights = {
 	["FIRST PROGRAM"] = "AlphaTopicCompilation",
+	COMPILATION = "AlphaTopicCompilation",
 	OUTPUT = "AlphaTopicRepresentations",
 	TYPES = "AlphaTopicRepresentations",
 	CONSTANTS = "AlphaTopicMemory",
@@ -64,14 +65,11 @@ local topic_highlights = {
 	POINTERS = "AlphaTopicPointers",
 	DEREFERENCE = "AlphaTopicPointers",
 	MEMORY = "AlphaTopicPointers",
-	["DYNAMIC MEMORY"] = "AlphaTopicPointers",
-	["FILE I O"] = "AlphaTopicDereference",
 	PREPROCESSOR = "AlphaTopicMemory",
 	MACROS = "AlphaTopicDereference",
-	COMPILATION = "AlphaTopicCompilation",
+	["DYNAMIC MEMORY"] = "AlphaTopicPointers",
+	["FILE I O"] = "AlphaTopicDereference",
 	BITWISE = "AlphaTopicPointers",
-	["MEMORY MAP"] = "AlphaTopicPointers",
-	REPRESENTATIONS = "AlphaTopicRepresentations",
 }
 
 local c_types = {
@@ -214,7 +212,6 @@ end
 
 local function highlight_animation_line(ranges, line_number, line, line_index)
 	local heading = line:match("^%s*(.-)%s*$")
-	heading = heading:gsub("^%d%d%s*/%s*", "")
 	local topic_group = topic_highlights[heading]
 
 	-- Keep the topic color while its title is still being typed.
@@ -495,8 +492,8 @@ function M.build(dashboard)
 		local frame = timeline[animation_step]
 		local start_line = animation_data.start_line
 
-		for index, line in ipairs(frame) do
-			dashboard.section.header.val[start_line + index - 1] = line
+		for index = 1, 5 do
+			dashboard.section.header.val[start_line + index - 1] = frame[index] or ""
 		end
 
 		local ranges = vim.deepcopy(header_data.highlights)
