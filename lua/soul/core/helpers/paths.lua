@@ -1,7 +1,6 @@
 local M = {}
 
 local platform = require("soul.core.platform")
-local process_helper = require("soul.core.helpers.process")
 local fn = vim.fn
 
 local projects_dir = vim.env.PROJECTS_DIR
@@ -34,6 +33,7 @@ local function run_probe(command, deadline)
 		return
 	end
 
+	local process_helper = require("soul.core.helpers.process")
 	local result = process_helper.wait(child, math.min(remaining, probe_timeout_ms))
 	if not result then
 		return nil
@@ -236,7 +236,17 @@ M.clang = vim.env.CLANG and fn.executable(vim.env.CLANG) == 1 and vim.env.CLANG
 	or find_executable({ "clang" })
 	or "clang"
 
-M.pwsh = find_powershell()
+local powershell
+
+-- PowerShell discovery can spawn several processes on Windows. Resolve it only
+-- when a feature actually needs the shell, never while Neovim is booting.
+function M.resolve_powershell()
+	if powershell == nil then
+		powershell = find_powershell()
+	end
+
+	return powershell
+end
 
 local lldb_dap = vim.env.LLDB_DAP
 M.lldb_dap = lldb_dap and vim.trim(lldb_dap) ~= "" and vim.trim(lldb_dap)
