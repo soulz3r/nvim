@@ -127,6 +127,13 @@ local highlights = {
 	AlphaCodeStage = { fg = P.aqua },
 	AlphaCodeCursor = { fg = P.red, bold = true },
 	AlphaCodeText = { fg = P.foreground },
+	AlphaCodePreprocessor = { fg = P.orange, bold = true },
+	AlphaCodeMacro = { fg = P.red, bold = true },
+	AlphaCodeConstant = { fg = P.yellow, bold = true },
+	AlphaCodeString = { fg = P.aqua },
+	AlphaCodeComment = { fg = P.muted, italic = true },
+	AlphaCodeFunction = { fg = P.green },
+	AlphaCodeStorage = { fg = P.purple },
 }
 
 function M.apply()
