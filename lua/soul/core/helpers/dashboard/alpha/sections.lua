@@ -85,7 +85,7 @@ local function build_animation_timeline(animation, content_width)
 			push(visible)
 		end
 
-		visible[6] = indent .. horizontal_rule(math.max(0, content_width - padding))
+		visible[6] = indent .. horizontal_rule(block_width)
 		push(visible)
 
 		local explanation = scene.lines[6] or ""
