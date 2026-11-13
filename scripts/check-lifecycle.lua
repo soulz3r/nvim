@@ -30,7 +30,10 @@ scope:close()
 assert(scope:is_closed(), "scope did not enter the closed state")
 assert(cleaned == 1, "scope cleanup did not run exactly once")
 assert(timer:is_closing(), "scope did not close its timer")
-assert(#vim.api.nvim_get_autocmds({ group = group }) == 0, "scope did not delete its augroup")
+assert(
+	#vim.api.nvim_get_autocmds({ event = "User", pattern = "SoulLifecycleScopeTest" }) == 0,
+	"scope did not delete its augroup"
+)
 scope:close()
 assert(cleaned == 1, "closing a scope twice repeated cleanup")
 
