@@ -37,13 +37,13 @@ local function render_frame(frame)
 	light_z = light_z / light_length
 
 	-- A C-shaped tube, sampled as a 3D surface and projected into terminal cells.
-	for theta_step = 0, 72 do
-		local theta = math.rad(48 + theta_step * (264 / 72))
+	for theta_step = 0, 144 do
+		local theta = math.rad(48 + theta_step * (264 / 144))
 		local theta_cos = math.cos(theta)
 		local theta_sin = math.sin(theta)
 
-		for phi_step = 0, 31 do
-			local phi = phi_step * (2 * math.pi / 32)
+		for phi_step = 0, 63 do
+			local phi = phi_step * (2 * math.pi / 64)
 			local phi_cos = math.cos(phi)
 			local phi_sin = math.sin(phi)
 
