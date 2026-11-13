@@ -764,19 +764,16 @@ function M.build(dashboard, code_examples)
 		logo.section,
 
 		{ type = "padding", val = 1 },
-
-		-- The C tutorial is optional; the logo and dashboard controls remain.
-		unpack(code_examples and {
-			dashboard.section.header,
-			{ type = "padding", val = 1 },
-		} or {}),
-
-		dashboard.section.buttons,
-
-		{ type = "padding", val = 1 },
-
-		dashboard.section.footer,
 	}
+
+	if code_examples then
+		table.insert(dashboard.opts.layout, dashboard.section.header)
+		table.insert(dashboard.opts.layout, { type = "padding", val = 1 })
+	end
+
+	table.insert(dashboard.opts.layout, dashboard.section.buttons)
+	table.insert(dashboard.opts.layout, { type = "padding", val = 1 })
+	table.insert(dashboard.opts.layout, dashboard.section.footer)
 
 	dashboard.opts.opts = {
 		noautocmd = true,
