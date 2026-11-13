@@ -39,7 +39,7 @@ These checks complement CI. They exercise real plugins and external tools that h
 
 ## Performance lifecycle
 
-- Start Neovim with no arguments and confirm the last valid YAP project directory is restored while Alpha appears.
+- Start Neovim with no arguments and confirm the most recently used active project directory is restored while Alpha appears.
 - Start Neovim with an explicit file path and confirm CVIM does not override the supplied working directory.
 - Before using a debugger, verify nvim-dap and DAP UI are not loaded. Press a DAP mapping and verify they load and work.
 - Open a file and confirm Treesitter installs only the parser set for that filetype. Opening an empty session should not trigger parser installation.
