@@ -178,18 +178,6 @@ local function render_frame(frame, glitch_frame)
 				char = art_chars[source_column] or " "
 				group = char ~= " " and wordmark_group(char) or nil
 
-				-- Split cyan/white color channels into displaced fragments.
-				-- These are temporary overlays; the clean frame keeps its
-				-- original per-glyph highlight mapping.
-				if chromatic and art_row and ((art_column + art_row + glitch_phase) % 9 <= 3) then
-					local ghost_offset = art_row % 2 == 0 and 3 or -3
-					local ghost = art_chars[art_column - ghost_offset]
-					if ghost and ghost ~= " " then
-						char = ghost
-						group = (art_column + glitch_phase) % 2 == 0 and "AlphaAqua" or "AlphaYellow"
-					end
-				end
-
 				-- Corrupt a few short slices with displaced block fragments.
 				if block_noise and art_row and ((art_column + art_row * 3) % 13 <= 2) then
 					char = GLITCH_BLOCKS[(art_column + art_row) % #GLITCH_BLOCKS + 1]
@@ -201,8 +189,27 @@ local function render_frame(frame, glitch_frame)
 			cell_groups[column] = group
 		end
 
+		-- Draw displaced color-channel copies on top of the clean glyphs.
+		-- Keeping the source glyph in place creates a visible RGB-split effect
+		-- instead of merely substituting one character for another.
+		if chromatic and art_chars and #art_chars > 0 then
+			local ghost_offset = art_row % 2 == 0 and 3 or -3
+			for art_column = 1, #art_chars do
+				local source = art_chars[art_column]
+				if source ~= " " and (art_column + art_row + glitch_phase) % 9 <= 3 then
+					local target = ART_START + art_column - 1 + ghost_offset
+					if target >= ART_START and target <= WIDTH then
+						cells[target] = source
+						cell_groups[target] = (art_column + glitch_phase) % 2 == 0
+							and "AlphaAqua"
+							or "AlphaYellow"
+					end
+				end
+			end
+		end
+
 		-- A bright full-width scanline crosses the artwork for one frame.
-		if scanline and art_chars then
+		if scanline and art_chars and #art_chars > 0 then
 			for column = ART_START, math.min(WIDTH, ART_START + #art_chars - 1) do
 				if cells[column] ~= " " then
 					cell_groups[column] = "AlphaAqua"
