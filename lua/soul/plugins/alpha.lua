@@ -51,6 +51,10 @@ function M.config()
 
 	state.footer.update()
 	autocmds.register(state)
+	local startup_started = vim.g.cvim_start_ns
+	if type(startup_started) == "number" then
+		vim.g.cvim_alpha_ready_ms = (vim.uv.hrtime() - startup_started) / 1e6
+	end
 	vim.g.cvim_alpha_ready = true
 end
 
