@@ -340,11 +340,6 @@ local function highlight_preprocessor(ranges, line_number, line)
 	end
 end
 
--- Keep grammatical glue neutral and highlight every meaningful word.
--- This avoids a hand-maintained vocabulary that inevitably misses new copy.
--- Explanation terms reuse the same semantic palette as the C snippets.
--- Ordinary prose stays neutral; only language concepts and important actions
--- receive syntax-role colors.
 -- Explanation vocabulary uses the same semantic roles as the C snippets.
 -- Keep this list focused on the concepts actually taught by the dashboard.
 -- Unknown prose remains neutral instead of receiving arbitrary rainbow colors.
