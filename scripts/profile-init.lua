@@ -94,7 +94,18 @@ local function instrument_lazy_module(name, module)
 		if type(spec) == "table" then
 			instrument_method(spec, "new", "lazy.phase.spec_new()")
 			instrument_method(spec, "parse", "lazy.phase.spec_parse()")
-			instrument_method(spec, "normalize", "lazy.phase.spec_normalize()")
+
+			local normalize = rawget(spec, "normalize")
+			if type(normalize) == "function" then
+				spec.normalize = function(self, plugin_spec, ...)
+					if type(plugin_spec) == "table" and (plugin_spec[1] or plugin_spec.dir or plugin_spec.url) then
+						local plugin_name = plugin_spec.name or plugin_spec[1] or plugin_spec.url or "unnamed"
+						instrument_config("plugin[" .. tostring(plugin_name) .. "]", plugin_spec)
+					end
+					return measure("lazy.phase.spec_normalize()", normalize, self, plugin_spec, ...)
+				end
+			end
+
 			instrument_method(spec, "import", "lazy.phase.spec_import()")
 		end
 		instrument_method(module, "update_state", "lazy.phase.plugin_state()")
@@ -153,6 +164,28 @@ local function instrument_module(name, module)
 	end
 
 	return module
+end
+
+-- Lazy loads imported plugin-spec files with loadfile(), not require().
+-- Time the execution of each CVIM spec file so the aggregate import cost can
+-- be attributed to its actual source module.
+local original_loadfile = loadfile
+_G.loadfile = function(path, ...)
+	local chunk, err = original_loadfile(path, ...)
+	if not chunk or type(path) ~= "string" then
+		return chunk, err
+	end
+
+	local normalized = path:gsub("\\\\", "/")
+	local prefix = config:gsub("\\\\", "/") .. "/lua/soul/plugins/"
+	if normalized:sub(1, #prefix) ~= prefix then
+		return chunk, err
+	end
+
+	local relative = normalized:sub(#prefix + 1)
+	return function(...)
+		return measure("specfile." .. relative, chunk, ...)
+	end
 end
 
 -- These lookups are cheap in isolation on many systems, but can become
