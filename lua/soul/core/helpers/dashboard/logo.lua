@@ -29,7 +29,33 @@ local WORDMARK = {
 
 local glyphs = { ".", ":", "-", "=", "+", "*", "#", "%", "@" }
 local GLITCH_BLOCKS = { "░", "▒", "▓", "█" }
-local GLITCH_COLORS = { "AlphaGreen", "AlphaAqua", "AlphaTeal", "AlphaYellow" }
+local GLITCH_COLORS = {
+	"CvimGlitchPink",
+	"CvimGlitchRed",
+	"CvimGlitchOrange",
+	"CvimGlitchYellow",
+	"CvimGlitchGreen",
+	"CvimGlitchCyan",
+	"CvimGlitchBlue",
+	"CvimGlitchPurple",
+}
+
+local GLITCH_PALETTE = {
+	CvimGlitchPink = "#ff3bd4",
+	CvimGlitchRed = "#ff365e",
+	CvimGlitchOrange = "#ff8a24",
+	CvimGlitchYellow = "#f9f871",
+	CvimGlitchGreen = "#a8ff3e",
+	CvimGlitchCyan = "#28f0e5",
+	CvimGlitchBlue = "#438bff",
+	CvimGlitchPurple = "#b56bff",
+}
+
+local function setup_glitch_highlights()
+	for group, color in pairs(GLITCH_PALETTE) do
+		vim.api.nvim_set_hl(0, group, { fg = color, bold = true })
+	end
+end
 
 local function split_chars(value)
 	local chars = {}
@@ -182,6 +208,9 @@ local function render_frame(frame, glitch_state)
 				end
 				char = art_chars[source_column] or " "
 				group = char ~= " " and wordmark_group(char) or nil
+				if tearing and art_column >= tear_start and art_column <= tear_end and char ~= " " then
+					group = GLITCH_COLORS[glitch_noise(art_row, art_column, glitch_seed, 4) % #GLITCH_COLORS + 1]
+				end
 
 				-- Corrupt a few short slices with displaced block fragments.
 				local noise = glitch_noise(art_row, art_column, glitch_seed, 2)
@@ -209,9 +238,7 @@ local function render_frame(frame, glitch_state)
 					local target = ART_START + art_column - 1 + ghost_offset
 					if target >= ART_START and target <= WIDTH then
 						cells[target] = source
-						cell_groups[target] = (art_column + glitch_seed) % 2 == 0
-							and "AlphaAqua"
-							or "AlphaTeal"
+						cell_groups[target] = GLITCH_COLORS[noise % #GLITCH_COLORS + 1]
 					end
 				end
 			end
@@ -221,7 +248,8 @@ local function render_frame(frame, glitch_state)
 		if scanline and art_chars and #art_chars > 0 then
 			for column = ART_START, math.min(WIDTH, ART_START + #art_chars - 1) do
 				if cells[column] ~= " " then
-					cell_groups[column] = "AlphaAqua"
+					local noise = glitch_noise(art_row, column - ART_START + 1, glitch_seed, 5)
+					cell_groups[column] = GLITCH_COLORS[noise % #GLITCH_COLORS + 1]
 				end
 			end
 		end
@@ -277,6 +305,7 @@ end
 
 function M.build()
 	local utils = require("alpha.utils")
+	setup_glitch_highlights()
 	local section = {
 		type = "text",
 		val = {},
