@@ -196,6 +196,7 @@ Leave the dashboard animating for 20–30 seconds, then run:
 
 The report separates:
 
+- `logo.project`: one C rotation frame projected into the cache on first use.
 - `logo.render`: dynamic wordmark composition using the cached C rotation.
 - `logo.highlights`: conversion of character highlight ranges to Alpha byte ranges.
 - `animation.update`: the complete animation update callback, including tutorial,
