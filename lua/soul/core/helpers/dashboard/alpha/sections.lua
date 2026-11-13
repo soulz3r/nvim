@@ -342,15 +342,6 @@ end
 
 -- Keep grammatical glue neutral and highlight every meaningful word.
 -- This avoids a hand-maintained vocabulary that inevitably misses new copy.
-local explanation_stopwords = {
-	["a"] = true, ["an"] = true, ["and"] = true, ["are"] = true,
-	["as"] = true, ["at"] = true, ["by"] = true, ["for"] = true,
-	["from"] = true, ["in"] = true, ["into"] = true, ["is"] = true,
-	["it"] = true, ["its"] = true, ["of"] = true, ["on"] = true,
-	["or"] = true, ["the"] = true, ["their"] = true, ["then"] = true,
-	["this"] = true, ["to"] = true, ["when"] = true, ["with"] = true,
-}
-
 -- Explanation terms reuse the same semantic palette as the C snippets.
 -- Ordinary prose stays neutral; only language concepts and important actions
 -- receive syntax-role colors.
@@ -450,12 +441,6 @@ local function highlight_message(ranges, line_number, line)
 
 		local is_final_word = line:sub(end_column + 1):match("^%s*[%p]*$") ~= nil
 		local role = explanation_role(word, is_final_word)
-		if not role and is_final_word and explanation_stopwords[word] then
-			role = "AlphaMessage"
-		elseif not role and explanation_stopwords[word] then
-			role = "AlphaMessage"
-		end
-
 		add_range(ranges, role or "AlphaMessage", line_number, start_column, end_column)
 		cursor = end_column
 	end
