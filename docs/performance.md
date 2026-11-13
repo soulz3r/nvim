@@ -25,6 +25,11 @@ Expensive features are activated at the earliest event that actually needs them:
 - YAP loads on the first file buffer, project mapping, or C helper command. Its last-project restore is handled by the small core module above, which reads the project data file directly without loading YAP or Telescope. CVIM removes YAP's redundant VimEnter callback during setup because project restoration already belongs to the core lifecycle module.
 - TODO comments and the folding UI load when a file buffer opens.
 - WhichKey and other presentation features that do not need to exist before the first screen are deferred to `VeryLazy`.
+- Core keymap registration runs in a scheduled callback after `VimEnter`. The
+  leader variables are still set synchronously before Lazy setup, so plugin
+  mappings resolve the correct prefix. The callback is queued before Neovim
+  accepts user input, and the startup benchmark waits for
+  `cvim_keymaps_ready` before exiting.
 
 The Everforest colorscheme remains eager because the editor needs its colors before rendering the first screen. Session handling also remains early so automatic session read/write behavior is preserved.
 
