@@ -57,6 +57,8 @@ require("lazy").setup({
 		hererocks = false,
 	},
 	install = {
+		-- Startup benchmarks must never mutate the user plugin installation.
+		missing = vim.env.CVIM_BENCHMARK ~= "1",
 		colorscheme = { "everforest", "default" },
 	},
 	ui = {
