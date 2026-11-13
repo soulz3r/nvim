@@ -609,7 +609,7 @@ profile_startup() {
   fi
 
   print_status "CVIM module profile" "PASS"
-  sed -n '1,44p' "$profile_output" | sed 's/^/      /'
+  sed -n '1,100p' "$profile_output" | sed 's/^/      /'
 }
 
 if command -v nvim >/dev/null 2>&1; then
@@ -674,7 +674,7 @@ exit "$(( FAIL_COUNT > 0 ))"
   fi
 
   print_status "CVIM module profile" "PASS"
-  sed -n '1,44p' "$profile_output" | sed 's/^/      /'
+  sed -n '1,100p' "$profile_output" | sed 's/^/      /'
 }
 
 if command -v nvim >/dev/null 2>&1; then
@@ -738,7 +738,7 @@ exit "$(( FAIL_COUNT > 0 ))"
   fi
 
   print_status "CVIM module profile" "PASS"
-  sed -n '1,44p' "$profile_output" | sed 's/^/      /'
+  sed -n '1,100p' "$profile_output" | sed 's/^/      /'
 }
 
 if command -v nvim >/dev/null 2>&1; then
@@ -802,7 +802,7 @@ exit "$(( FAIL_COUNT > 0 ))"
   fi
 
   print_status "CVIM module profile" "PASS"
-  sed -n '1,44p' "$profile_output" | sed 's/^/      /'
+  sed -n '1,100p' "$profile_output" | sed 's/^/      /'
 }
 
 if command -v nvim >/dev/null 2>&1; then
