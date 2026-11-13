@@ -55,7 +55,7 @@ This policy intentionally does not stop clangd merely because the current window
 
 ## Benchmark procedure
 
-The repository check includes a repeatable headless startup benchmark when Neovim, Lazy.nvim, and Alpha are installed. It explicitly loads the current repository checkout, verifies that CVIM initialization and the Alpha dashboard configuration completed, and compares that run with a clean Neovim baseline five times each. It reads the `NVIM STARTED` timing from every log and reports the median, minimum, maximum, and estimated configuration overhead. It also reports the time from CVIM initialization to the point where Alpha has finished configuring its dashboard. If Lazy.nvim or Alpha is unavailable, the configured benchmark is skipped instead of measuring an unrelated default configuration.
+The repository check includes a repeatable headless startup benchmark when Neovim, Lazy.nvim, and Alpha are installed. It explicitly loads the current repository checkout, verifies that CVIM initialization and the Alpha dashboard configuration completed, and compares that run with a clean Neovim baseline five times each. Benchmark runs disable Lazy.nvim automatic installation of missing plugins, so a measurement never clones plugins or changes the user’s plugin installation. Existing installed plugins are used as-is. It reads the `NVIM STARTED` timing from every log and reports the median, minimum, maximum, and estimated configuration overhead. It also reports the time from CVIM initialization to the point where Alpha has finished configuring its dashboard. If Lazy.nvim or Alpha is unavailable, the configured benchmark is skipped instead of measuring an unrelated default configuration.
 
 Run the normal checks:
 
@@ -69,7 +69,7 @@ Change the number of samples when investigating a performance change:
 CVIM_STARTUP_RUNS=10 bash scripts/check.sh
 ```
 
-The benchmark is informational: it fails if Neovim cannot complete startup or a timing cannot be read, but it does not enforce a machine-independent speed threshold. Compare results on the same machine, Neovim build, plugin lockfile, and project. Avoid running plugin updates or other heavy work between samples. The clean baseline uses `--clean`; configured startup uses the configuration available in the current user's Neovim config directory.
+The benchmark is informational: it fails if Neovim cannot complete startup or a timing cannot be read, but it does not enforce a machine-independent speed threshold. Compare results on the same machine, Neovim build, plugin lockfile, and project. Avoid running plugin updates or other heavy work between samples. The clean baseline uses `--clean`; configured startup uses the current checkout and the user’s existing Neovim data directory. Missing plugins are not installed during the benchmark.
 
 These measurements include CVIM initialization and Alpha dashboard setup, but remain headless startup timings. They verify that Alpha configuration completed; they do not measure terminal rendering, actual first-frame presentation, animation smoothness, first-file latency, LSP attachment, or plugin demand-load latency. Use the manual checks below for those behaviors. Also use `:Lazy profile` to inspect plugin load costs.
 
