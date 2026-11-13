@@ -136,9 +136,12 @@ To identify which Lua modules cost the most, run:
 CVIM_STARTUP_PROFILE=1 bash scripts/check.sh
 ```
 
-The profiler uses a separate startup entrypoint and writes a report for first-time
-`require()` calls, Lazy plugin configuration callbacks, and dashboard builder
-functions. Inclusive time includes nested work; exclusive time subtracts nested
+The profiler uses a separate startup entrypoint and writes its report from a
+scheduled callback after `VimEnter`. Do not add a blocking `vim.wait()` command
+before that event: Neovim processes the startup command queue before dispatching
+`VimEnter`, so waiting there would prevent the profiler from ever completing.
+The report covers first-time `require()` calls, Lazy plugin configuration
+callbacks, and dashboard builder functions. Inclusive time includes nested work; exclusive time subtracts nested
 module loads and measured calls. This makes expensive setup functions visible even
 when their modules were imported cheaply. Profiling adds measurement overhead, so use the normal
 benchmark without profiling when comparing startup medians.
