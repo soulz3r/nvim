@@ -14,6 +14,12 @@ package.path = table.concat({
 	package.path,
 }, ";")
 
+-- Experimental benchmark switch: cache compiled Lua modules without changing
+-- normal startup unless explicitly requested by the user.
+if vim.env.CVIM_LUA_LOADER == "1" then
+	vim.loader.enable()
+end
+
 vim.g.cvim_start_ns = vim.uv.hrtime()
 
 -- Set leaders before Lazy or any plugin can define leader mappings.
