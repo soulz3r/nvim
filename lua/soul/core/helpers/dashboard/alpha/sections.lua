@@ -412,6 +412,12 @@ local explanation_roles = {
 	["double"] = "AlphaCodeType",
 	["stores"] = "AlphaCodeFunction",
 	["decimals"] = "AlphaCodeNumber",
+	["floating"] = "AlphaCodeType",
+	["point"] = "AlphaCodeType",
+	["newline"] = "AlphaCodeString",
+	["null"] = "AlphaCodeConstant",
+	["allocated"] = "AlphaCodeStage",
+	["storage"] = "AlphaCodeStage",
 
 	-- Constants and operators.
 	["enum"] = "AlphaCodeKeyword",
