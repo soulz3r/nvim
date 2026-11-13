@@ -51,23 +51,49 @@ local function add_range(ranges, group, line_number, first, last)
 end
 
 local topic_highlights = {
+	["FIRST PROGRAM"] = "AlphaTopicCompilation",
+	OUTPUT = "AlphaTopicRepresentations",
+	TYPES = "AlphaTopicRepresentations",
+	CONSTANTS = "AlphaTopicMemory",
+	OPERATORS = "AlphaTopicMemory",
+	["CONTROL FLOW"] = "AlphaTopicMemory",
+	FUNCTIONS = "AlphaTopicMemory",
+	ARRAYS = "AlphaTopicDereference",
+	STRINGS = "AlphaTopicDereference",
+	STRUCTURES = "AlphaTopicDereference",
 	POINTERS = "AlphaTopicPointers",
-	DEREFERENCE = "AlphaTopicDereference",
-	["MEMORY MAP"] = "AlphaTopicMemory",
+	DEREFERENCE = "AlphaTopicPointers",
+	MEMORY = "AlphaTopicPointers",
+	["DYNAMIC MEMORY"] = "AlphaTopicPointers",
+	["FILE I O"] = "AlphaTopicDereference",
+	PREPROCESSOR = "AlphaTopicMemory",
+	MACROS = "AlphaTopicDereference",
 	COMPILATION = "AlphaTopicCompilation",
+	BITWISE = "AlphaTopicPointers",
+	["MEMORY MAP"] = "AlphaTopicPointers",
 	REPRESENTATIONS = "AlphaTopicRepresentations",
 }
 
 local c_types = {
 	int = true, char = true, float = true, double = true, void = true,
 	short = true, long = true, signed = true, unsigned = true, const = true,
-	size_t = true,
+	size_t = true, FILE = true, bool = true,
 }
 
 local c_keywords = {
 	["return"] = true, ["if"] = true, ["else"] = true, ["for"] = true,
-	["while"] = true, ["struct"] = true, ["enum"] = true, ["typedef"] = true,
-	["static"] = true, ["extern"] = true, ["sizeof"] = true,
+	["while"] = true, ["do"] = true, ["switch"] = true, ["case"] = true,
+	["break"] = true, ["continue"] = true, ["struct"] = true, ["union"] = true,
+	["enum"] = true, ["typedef"] = true, ["static"] = true, ["extern"] = true,
+	["sizeof"] = true, ["goto"] = true, ["default"] = true,
+}
+
+local c_storage = {
+	static = true, extern = true, register = true, auto = true, _Thread_local = true,
+}
+
+local c_constants = {
+	true = true, false = true, NULL = true, nullptr = true,
 }
 
 local function highlight_c_code(ranges, line_number, line)
@@ -76,22 +102,60 @@ local function highlight_c_code(ranges, line_number, line)
 	local index = 1
 	while index <= #line do
 		local char = line:sub(index, index)
+		local pair = line:sub(index, index + 1)
 
-		if char:match("[%a_]") then
+		if pair == "//" then
+			add_range(ranges, "AlphaCodeComment", line_number, index - 1, #line)
+			break
+		elseif pair == "/*" then
+			local finish = line:find("*/", index + 2, true)
+			add_range(ranges, "AlphaCodeComment", line_number, index - 1, finish and finish + 1 or #line)
+			break
+		elseif char == '"' or char == "'" then
+			local finish = index + 1
+			while finish <= #line do
+				if line:sub(finish, finish) == "\\" then
+					finish = finish + 2
+				elseif line:sub(finish, finish) == char then
+					finish = finish + 1
+					break
+				else
+					finish = finish + 1
+				end
+			end
+			add_range(ranges, "AlphaCodeString", line_number, index - 1, math.min(finish - 1, #line))
+			index = finish
+		elseif char:match("[%a_]") then
 			local finish = line:find("[^%w_]", index) or (#line + 1)
 			local word = line:sub(index, finish - 1)
+			local next_char = line:sub(finish):match("^%s*(.)")
 			local group = c_types[word] and "AlphaCodeType"
 				or c_keywords[word] and "AlphaCodeKeyword"
+				or c_storage[word] and "AlphaCodeStorage"
+				or c_constants[word] and "AlphaCodeConstant"
+				or word:match("^[A-Z_][A-Z%d_]*$") and "AlphaCodeMacro"
+				or next_char == "(" and "AlphaCodeFunction"
 				or "AlphaCodeIdentifier"
 			add_range(ranges, group, line_number, index - 1, finish - 1)
 			index = finish
 		elseif char:match("%d") then
-			local number = line:sub(index):match("^0[xX][%da-fA-F]+")
+			local number = line:sub(index):match("^0[xX][%da-fA-F]+[uUlL]*")
+				or line:sub(index):match("^0[bB][01]+[uUlL]*")
+				or line:sub(index):match("^%d+%.?%d*[eE]?[+-]?%d*[fFlLuU]*")
 				or line:sub(index):match("^%d+")
 			local finish = index + #number
 			add_range(ranges, "AlphaCodeNumber", line_number, index - 1, finish - 1)
 			index = finish
-		elseif char:match("[*&=+%-%/%<>!|%%]") then
+		elseif char == "#" and line:sub(1, index - 1):match("^%s*$") then
+			add_range(ranges, "AlphaCodePreprocessor", line_number, index - 1, index)
+			local directive_start, directive_end = line:find("[%a_]+", index + 1)
+			if directive_start then
+				add_range(ranges, "AlphaCodePreprocessor", line_number, directive_start - 1, directive_end)
+				index = directive_end + 1
+			else
+				index = index + 1
+			end
+		elseif char:match("[*&=+%-%/%<>!|%%~^]") then
 			local finish = index + 1
 			while finish <= #line and line:sub(finish, finish):match("[=&|<>]") do
 				finish = finish + 1
@@ -104,6 +168,27 @@ local function highlight_c_code(ranges, line_number, line)
 		else
 			index = index + 1
 		end
+	end
+end
+
+local function highlight_preprocessor(ranges, line_number, line)
+	highlight_c_code(ranges, line_number, line)
+	local directive_start, directive_end = line:find("#%s*[%a_]+")
+	if directive_start then
+		add_range(ranges, "AlphaCodePreprocessor", line_number, directive_start - 1, directive_end)
+	end
+
+	local macro_start, macro_end = line:find("#%s*define%s+([%a_][%w_]*)")
+	if macro_start then
+		local name_start, name_end = line:find("[%a_][%w_]*", macro_end - 1)
+		if name_start then
+			add_range(ranges, "AlphaCodeMacro", line_number, name_start - 1, name_end)
+		end
+	end
+
+	local include_start, include_end = line:find("<[^>]+>")
+	if include_start then
+		add_range(ranges, "AlphaCodeString", line_number, include_start - 1, include_end)
 	end
 end
 
@@ -129,6 +214,7 @@ end
 
 local function highlight_animation_line(ranges, line_number, line, line_index)
 	local heading = line:match("^%s*(.-)%s*$")
+	heading = heading:gsub("^%d%d%s*/%s*", "")
 	local topic_group = topic_highlights[heading]
 
 	-- Keep the topic color while its title is still being typed.
@@ -152,8 +238,8 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 		return
 	end
 
-	if line:match("^%s*int%s") then
-		highlight_c_code(ranges, line_number, line)
+	if line:match("^%s*#") then
+		highlight_preprocessor(ranges, line_number, line)
 		return
 	end
 
@@ -248,6 +334,11 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 			add_range(ranges, "AlphaCodeOperator", line_number, arrow_start - 1, arrow_end)
 			arrow_search = arrow_end + 1
 		end
+		return
+	end
+
+	if line:match("^%s*[%w_]+[%s%*]") and not line:match("^%s*%d%d%s*/") then
+		highlight_c_code(ranges, line_number, line)
 		return
 	end
 
