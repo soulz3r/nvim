@@ -42,7 +42,7 @@ M.items = {
 	{
 		key = "r",
 		icon_group = "ui",
-		icon = " History",
+		icon = "History",
 		label = "Recent files",
 		command = "<cmd>Telescope oldfiles<CR>",
 		highlight = "AlphaYellow",
