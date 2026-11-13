@@ -1,12 +1,6 @@
 local M = {}
 
 M.lines = {
-	" ██████╗██╗   ██╗██╗███╗   ███╗",
-	"██╔════╝██║   ██║██║████╗ ████║",
-	"██║     ██║   ██║██║██╔████╔██║",
-	"██║     ╚██████╔╝██║██║╚██╔╝██║",
-	"╚██████╗ ╚═════╝ ╚═╝██║ ╚═╝ ██║",
-	" ╚═════╝",
 	"    C, with a better editor.",
 	"",
 	"   FIRST PROGRAM",
@@ -19,20 +13,13 @@ M.lines = {
 }
 
 M.highlights = {
-	{ { "AlphaGreen", 0, 31 } },
-	{ { "AlphaGreen", 0, 31 } },
-	{ { "AlphaGreen", 0, 31 } },
-	{ { "AlphaGreen", 0, 31 } },
-	{ { "AlphaGreen", 0, 31 } },
-	{ { "AlphaGreen", 0, 8 } },
 	{ { "AlphaYellow", 0, 27 } },
 }
 
--- The logo stays static. The C tutorial types one character at a time.
--- The caret points at the concept being explained in each scene.
+-- The logo has its own renderer and timer. This animation only teaches C.
 M.animation = {
 	speed = 65,
-	start_line = 9,
+	start_line = 3,
 	hold_ticks = 8,
 
 	scenes = {
