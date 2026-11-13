@@ -640,11 +640,46 @@ if command -v nvim >/dev/null 2>&1; then
 
   # A real file-backed startup must not load Alpha or any CVIM dashboard helper.
   printf 'return true\n' >"$TEMP_DIR/cvim-file-startup.lua"
-  run_check "Dashboard skipped on file startup" 0 bash -c '
-    CVIM_BENCHMARK=1 CVIM_CONFIG="$1" nvim --headless -u "$1/init.lua" "$2" \\
-      -c '\''lua local prefix = "soul.core.helpers.dashboard."; for name in pairs(package.loaded) do assert(name:sub(1, #prefix) ~= prefix, "dashboard module loaded during file startup: " .. name) end; assert(package.loaded["alpha"] == nil, "Alpha loaded during file startup"); assert(package.loaded["alpha.themes.dashboard"] == nil, "Alpha dashboard theme loaded during file startup")'\'' \\
-      -c '\''qa!'\''
-  ' _ "$ROOT" "$TEMP_DIR/cvim-file-startup.lua"
+  run_check "Dashboard skipped on file startup" 0 "$PYTHON" - "$ROOT" "$TEMP_DIR/cvim-file-startup.lua" <<'PY'
+import subprocess
+import sys
+
+root, fixture = sys.argv[1:]
+lua_check = (
+    'local ok, err = pcall(function() '
+    'local prefix = "soul.core.helpers.dashboard."; '
+    'for name in pairs(package.loaded) do '
+    'assert(name:sub(1, #prefix) ~= prefix, '
+    '"dashboard module loaded during file startup: " .. name) '
+    'end; '
+    'assert(package.loaded["alpha"] == nil, "Alpha loaded during file startup"); '
+    'assert(package.loaded["alpha.themes.dashboard"] == nil, '
+    '"Alpha dashboard theme loaded during file startup") '
+    'end); '
+    'if not ok then io.stderr:write(tostring(err) .. "\\n"); vim.cmd("cquit") '
+    'else vim.cmd("qa!") end'
+)
+command = (
+    'export CVIM_CONFIG="$1"; '
+    'exec nvim --headless -u "$1/init.lua" "$2" -c "$3"'
+)
+
+try:
+    result = subprocess.run(
+        ["bash", "-c", command, "cvim-file-startup", root, fixture, lua_check],
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+except subprocess.TimeoutExpired:
+    sys.exit("File-startup smoke test timed out after 20 seconds.")
+
+if result.stdout:
+    print(result.stdout, end="")
+if result.stderr:
+    print(result.stderr, end="", file=sys.stderr)
+sys.exit(result.returncode)
+PY
 
   benchmark_startup
   profile_startup
