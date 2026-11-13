@@ -611,7 +611,7 @@ function M.build(dashboard)
 		"AlphaTeal"
 	)
 
-	-- Convert the static logo's character offsets exactly once. Animation
+	-- Convert the static header character offsets exactly once. Animation
 	-- ranges are already byte-based (Alpha's native format).
 	local static_byte_highlights = utils.charhl_to_bytehl(header_hl, header)
 
