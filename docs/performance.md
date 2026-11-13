@@ -178,6 +178,31 @@ Inclusive time includes nested work; exclusive time subtracts nested module
 loads and measured calls. Profiling adds measurement overhead, so use the normal
 benchmark without profiling when comparing startup medians.
 
+## Experimental Lua module loader
+
+Neovim provides a byte-compiling Lua module loader, but currently documents it as
+experimental/unstable. CVIM does not enable it by default. To benchmark its effect
+on repeated startup, set the opt-in environment variable before launching CVIM:
+
+PowerShell:
+
+```powershell
+$env:CVIM_LUA_LOADER = "1"
+bash -c 'CVIM_STARTUP_RUNS=10 bash scripts/check.sh'
+Remove-Item Env:CVIM_LUA_LOADER
+```
+
+Bash:
+
+```sh
+CVIM_LUA_LOADER=1 CVIM_STARTUP_RUNS=10 bash scripts/check.sh
+```
+
+Compare against a normal 10-run benchmark on the same machine. The first run may
+populate the bytecode cache, so judge the median across repeated runs. Keep the
+switch disabled unless the measured improvement is repeatable and the experimental
+loader behaves correctly with CVIM's plugin and profiling workflows.
+
 ## Dashboard animation profiling
 
 The dashboard frame profiler is opt-in. In normal sessions, CVIM does not even load
