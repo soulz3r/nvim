@@ -35,7 +35,7 @@ The Everforest colorscheme remains eager because the editor needs its colors bef
 
 ## Dashboard lifecycle
 
-Alpha is loaded on `VimEnter` only when Neovim was started without file or directory arguments. Its plugin spec condition prevents normal file-backed startup from loading Alpha, and `M.config()` repeats the argument check before requiring any dashboard modules as a defensive boundary. The repository check launches a real file-backed session and asserts that neither Alpha nor any `soul.core.helpers.dashboard.*` module entered `package.loaded`. Its animation uses a one-shot libuv timer. A new frame is scheduled only after the previous frame update and redraw complete, preventing timer callbacks from accumulating when redraw work takes longer than the configured interval.
+Alpha is loaded on `VimEnter` only when Neovim was started without file or directory arguments. Its plugin spec condition prevents normal file-backed startup from loading Alpha, and `M.config()` repeats the argument check before requiring any dashboard modules as a defensive boundary. The repository check launches a real file-backed session and asserts that neither Alpha nor any `soul.core.helpers.dashboard.*` module entered `package.loaded`. The logo module defines its surface generator at import time but constructs the 9,280 trigonometric samples only when the first rotation frame is requested during dashboard construction. Its animation uses a one-shot libuv timer. A new frame is scheduled only after the previous frame update and redraw complete, preventing timer callbacks from accumulating when redraw work takes longer than the configured interval.
 
 When the Alpha buffer is left, CVIM stops and closes the timer, deletes the dashboard autocmd group, drops frame-state references, and clears CVIM's dashboard helper modules from `package.loaded`. Lua garbage collection reclaims objects when no remaining references exist. Alpha's own plugin modules are intentionally not force-unloaded because its commands and internal references may still exist.
 
@@ -204,6 +204,7 @@ Leave the dashboard animating for 20–30 seconds, then run:
 
 The report separates:
 
+- `logo.samples`: one-time construction of the 9,280 trigonometric surface samples, deferred until the first rotation frame is requested.
 - `logo.project`: one C rotation frame projected into the cache on first use.
 - `logo.render`: dynamic wordmark composition using the cached C rotation.
 - `logo.highlights`: conversion of character highlight ranges to Alpha byte ranges.
