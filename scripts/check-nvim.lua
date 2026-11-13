@@ -387,10 +387,7 @@ for _, spec in ipairs({ yap_spec, dap_spec }) do
 	end
 end
 
-assert(
-	vim.fn.readfile(root .. "/lua/soul/plugins/yap.lua")[1] ~= nil,
-	"YAP plugin specification must be readable"
-)
+assert(vim.fn.readfile(root .. "/lua/soul/plugins/yap.lua")[1] ~= nil, "YAP plugin specification must be readable")
 assert(
 	vim.tbl_contains(yap_spec.dependencies or {}, "nvim-telescope/telescope-project.nvim"),
 	"YAP must declare the Telescope project extension"
