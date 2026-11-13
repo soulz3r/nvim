@@ -114,6 +114,10 @@ vim.api.nvim_buf_delete(buffer, { force = true })
 
 local project_restore = require("soul.core.lifecycle.project")
 local original_cwd = vim.fn.getcwd()
+
+local function canonical_path(path)
+	return vim.uv.fs_realpath(path) or vim.fs.normalize(path)
+end
 local temporary_root = vim.fn.tempname()
 local older_project = temporary_root .. "/older"
 local newer_project = temporary_root .. "/newer"
@@ -146,8 +150,8 @@ vim.fn.writefile({
 }, telescope_path)
 
 assert(project_restore.restore(telescope_path), "Telescope project restore failed")
-local restored_project = vim.fs.normalize(vim.fn.getcwd())
-local expected_project = vim.fs.normalize(telescope_project)
+local restored_project = canonical_path(vim.fn.getcwd())
+local expected_project = canonical_path(telescope_project)
 assert(
 	restored_project == expected_project,
 	("project restore chose '%s'; expected '%s'"):format(restored_project, expected_project)
@@ -163,7 +167,7 @@ vim.fn.writefile({
 
 assert(project_restore.restore(registry_path), "project restore did not find a valid saved project")
 assert(
-	vim.fs.normalize(vim.fn.getcwd()) == vim.fs.normalize(newer_project),
+	canonical_path(vim.fn.getcwd()) == canonical_path(newer_project),
 	"project restore did not select the most recently opened valid project"
 )
 vim.cmd.cd(vim.fn.fnameescape(original_cwd))
