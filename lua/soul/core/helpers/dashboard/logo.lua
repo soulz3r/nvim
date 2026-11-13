@@ -71,6 +71,13 @@ local function wordmark_group(char)
 	return "AlphaYellow"
 end
 
+-- Stable pseudo-random values make each glitch phase look irregular without
+-- changing the artwork every time the rotating C redraws.
+local function glitch_noise(row, column, phase, salt)
+	local value = (row * 73856093 + column * 19349663 + phase * 83492791 + salt * 49979687)
+	return (value * 48271) % 2147483647
+end
+
 local function render_frame(frame, glitch_frame)
 	local rotation = (frame - 1) * (2 * math.pi / ROTATION_FRAMES)
 	local cosine = math.cos(rotation)
@@ -152,9 +159,10 @@ local function render_frame(frame, glitch_frame)
 
 		-- Tear only a short 4-cell fragment on selected rows. The rest of
 		-- every line stays exactly where the ASCII artwork placed it.
-		local tear_start = 5 + ((art_row * 7) % 19)
-		local tear_end = tear_start + 3
-		local tear_shift = art_row % 2 == 0 and 1 or -1
+		local tear_noise = glitch_noise(art_row, 1, glitch_phase, 1)
+		local tear_start = 3 + (tear_noise % 25)
+		local tear_end = tear_start + 1 + (math.floor(tear_noise / 29) % 4)
+		local tear_shift = (math.floor(tear_noise / 113) % 5) - 2
 
 		for column = 1, WIDTH do
 			local char = " "
@@ -177,9 +185,10 @@ local function render_frame(frame, glitch_frame)
 				group = char ~= " " and wordmark_group(char) or nil
 
 				-- Corrupt a few short slices with displaced block fragments.
-				if block_noise and art_row and ((art_column + art_row * 3) % 23 == 0) then
-					char = GLITCH_BLOCKS[(art_column + art_row) % #GLITCH_BLOCKS + 1]
-					group = GLITCH_COLORS[(art_column + glitch_phase) % #GLITCH_COLORS + 1]
+				local noise = glitch_noise(art_row, art_column, glitch_phase, 2)
+				if block_noise and noise % 17 < 3 then
+					char = GLITCH_BLOCKS[math.floor(noise / 17) % #GLITCH_BLOCKS + 1]
+					group = GLITCH_COLORS[math.floor(noise / 71) % #GLITCH_COLORS + 1]
 				end
 			end
 
@@ -193,7 +202,12 @@ local function render_frame(frame, glitch_frame)
 			local ghost_offset = art_row % 2 == 0 and 1 or -1
 			for art_column = 1, #art_chars do
 				local source = art_chars[art_column]
-				if source ~= " " and (art_column + art_row + glitch_phase) % 17 == 0 then
+				local noise = glitch_noise(art_row, art_column, glitch_phase, 3)
+				if source ~= " " and noise % 13 < 2 then
+					local ghost_offset = (math.floor(noise / 13) % 3) - 1
+					if ghost_offset == 0 then
+						ghost_offset = art_row % 2 == 0 and 1 or -1
+					end
 					local target = ART_START + art_column - 1 + ghost_offset
 					if target >= ART_START and target <= WIDTH then
 						cells[target] = source
