@@ -126,6 +126,10 @@ package.loaded[paths_module] = original_paths
 
 require("soul.core.options")
 require("soul.core.keymaps")
+assert(
+	package.loaded["soul.core.helpers.c_runner"] == nil,
+	"Core keymaps must not import the C runner before it is requested"
+)
 local keymap_helpers = require("soul.core.helpers.keymaps")
 local lsp_servers = require("soul.lsp.servers")
 for _, server in ipairs(lsp_servers) do
