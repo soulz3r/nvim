@@ -433,6 +433,7 @@ benchmark_startup() {
   local data_dir lazy_entry
   data_dir="$(nvim --headless --clean -u NONE -c 'lua io.write(vim.fn.stdpath("data"))' -c 'qa!' 2>/dev/null)"
   data_dir="$(to_shell_path "$data_dir")"
+  data_dir="$(to_shell_path "$data_dir")"
   lazy_entry="$data_dir/lazy/lazy.nvim/lua/lazy/init.lua"
 
   local config_path
@@ -525,6 +526,7 @@ profile_startup() {
 
   local data_dir lazy_entry profile_dir profile_output
   data_dir="$(nvim --headless --clean -u NONE -c 'lua io.write(vim.fn.stdpath("data"))' -c 'qa!' 2>/dev/null)"
+  data_dir="$(to_shell_path "$data_dir")"
   lazy_entry="$data_dir/lazy/lazy.nvim/lua/lazy/init.lua"
 
   if [[ ! -f "$lazy_entry" ]]; then
