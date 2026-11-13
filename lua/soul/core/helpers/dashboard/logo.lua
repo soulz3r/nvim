@@ -162,6 +162,7 @@ local function render_frame(frame, glitch_frame)
 			[7] = -6,
 			[8] = 8,
 			[9] = -4,
+			[10] = 7,
 		}
 		local shift = tearing and shifts[art_row] or 0
 
