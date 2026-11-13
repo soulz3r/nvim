@@ -95,13 +95,24 @@ local function instrument_lazy_module(name, module)
 			instrument_method(spec, "new", "lazy.phase.spec_new()")
 			instrument_method(spec, "parse", "lazy.phase.spec_parse()")
 
+			local function instrument_plugin_specs(plugin_spec)
+				if type(plugin_spec) ~= "table" then
+					return
+				end
+				if plugin_spec[1] or plugin_spec.dir or plugin_spec.url then
+					local plugin_name = plugin_spec.name or plugin_spec[1] or plugin_spec.url or "unnamed"
+					instrument_config("plugin[" .. tostring(plugin_name) .. "]", plugin_spec)
+					return
+				end
+				for _, child in ipairs(plugin_spec) do
+					instrument_plugin_specs(child)
+				end
+			end
+
 			local normalize = rawget(spec, "normalize")
 			if type(normalize) == "function" then
 				spec.normalize = function(self, plugin_spec, ...)
-					if type(plugin_spec) == "table" and (plugin_spec[1] or plugin_spec.dir or plugin_spec.url) then
-						local plugin_name = plugin_spec.name or plugin_spec[1] or plugin_spec.url or "unnamed"
-						instrument_config("plugin[" .. tostring(plugin_name) .. "]", plugin_spec)
-					end
+					instrument_plugin_specs(plugin_spec)
 					return measure("lazy.phase.spec_normalize()", normalize, self, plugin_spec, ...)
 				end
 			end
@@ -177,12 +188,13 @@ _G.loadfile = function(path, ...)
 	end
 
 	local normalized = path:gsub("\\", "/")
-	local prefix = config:gsub("\\", "/") .. "/lua/soul/plugins/"
-	if normalized:sub(1, #prefix) ~= prefix then
+	local marker = "/lua/soul/plugins/"
+	local marker_start = normalized:find(marker, 1, true)
+	if not marker_start then
 		return chunk, err
 	end
 
-	local relative = normalized:sub(#prefix + 1)
+	local relative = normalized:sub(marker_start + #marker)
 	return function(...)
 		return measure("specfile." .. relative, chunk, ...)
 	end
