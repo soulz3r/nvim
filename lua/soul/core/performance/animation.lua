@@ -80,7 +80,7 @@ function M.report()
 		"CVIM DASHBOARD FRAME PROFILE",
 		"Times are milliseconds. P95 is the 95th-percentile sample.",
 		"",
-		("Samples are capped at %d per operation."):format(SAMPLE_LIMIT),
+		("Total samples are counted; percentiles use the latest %d samples."):format(SAMPLE_LIMIT),
 		"",
 		("  %-22s %8s %9s %9s %9s %9s %9s"):format("operation", "samples", "average", "median", "p95", "min", "max"),
 	}
