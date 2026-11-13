@@ -3,10 +3,17 @@ set -uo pipefail
 
 # Bash's high-resolution clock measures the entire check script.
 timestamp_us() {
-  local timestamp="$EPOCHREALTIME"
-  local seconds="${timestamp%.*}"
-  local fraction="${timestamp#*.}"
-  printf '%s' "$(( 10#$seconds * 1000000 + 10#${fraction:0:6} ))"
+  local timestamp="${EPOCHREALTIME:-}"
+
+  if [[ -n "$timestamp" ]]; then
+    local seconds="${timestamp%.*}"
+    local fraction="${timestamp#*.}"
+    printf '%s' "$(( 10#$seconds * 1000000 + 10#${fraction:0:6} ))"
+  else
+    local python
+    python="$(command -v python3 || command -v python)"
+    "$python" -c 'import time; print(time.time_ns() // 1000)'
+  fi
 }
 
 START_TIME_US="$(timestamp_us)"
