@@ -23,7 +23,7 @@ function M.config()
 		on_tick = state.next_animation_frame,
 
 		redraw = function()
-			pcall(vim.cmd.AlphaRedraw)
+			vim.cmd.AlphaRedraw()
 		end,
 	})
 
