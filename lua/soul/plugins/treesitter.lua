@@ -7,7 +7,7 @@ local M = {
 function M.config()
 	local treesitter = require("nvim-treesitter")
 	local started = {}
-	local installing = {}
+	local requested = {}
 
 	local parsers_by_filetype = {
 		c = { "c" },
@@ -43,45 +43,26 @@ function M.config()
 		end
 	end
 
-	local function start_buffer(buf)
-		if not vim.api.nvim_buf_is_valid(buf) or not vim.api.nvim_buf_is_loaded(buf) then
-			return false
+	local function install_filetype_parsers(filetype, parsers)
+		if requested[filetype] then
+			return
 		end
+		requested[filetype] = true
 
-		if started[buf] then
-			set_window_folds(buf)
-			return true
-		end
-
-		local ok = pcall(vim.treesitter.start, buf)
-		if ok then
-			started[buf] = true
-			set_window_folds(buf)
-			return true
-		end
-
-		local filetype = vim.bo[buf].filetype
-		local parsers = parsers_by_filetype[filetype]
-		if not parsers or installing[filetype] then
-			return false
-		end
-
-		installing[filetype] = true
 		local install_ok, task = pcall(treesitter.install, parsers)
 		if not install_ok then
-			installing[filetype] = nil
+			requested[filetype] = nil
 			vim.notify(
 				("Could not install Treesitter parsers for %s: %s"):format(filetype, tostring(task)),
 				vim.log.levels.WARN,
 				{ title = "Treesitter" }
 			)
-			return false
+			return
 		end
 
 		local await_ok, await_error = pcall(task.await, task, function(err)
-			installing[filetype] = nil
-
 			if err then
+				requested[filetype] = nil
 				vim.notify(
 					("Treesitter parser installation failed for %s: %s"):format(filetype, tostring(err)),
 					vim.log.levels.WARN,
@@ -90,7 +71,7 @@ function M.config()
 				return
 			end
 
-			-- More than one buffer may have opened while the parser was being
+			-- More than one buffer may have opened while the parsers were being
 			-- installed. Start every still-loaded buffer of this filetype.
 			for _, target in ipairs(vim.api.nvim_list_bufs()) do
 				if
@@ -108,15 +89,43 @@ function M.config()
 		end)
 
 		if not await_ok then
-			installing[filetype] = nil
+			requested[filetype] = nil
 			vim.notify(
 				("Could not await Treesitter parser installation for %s: %s"):format(filetype, tostring(await_error)),
 				vim.log.levels.WARN,
 				{ title = "Treesitter" }
 			)
 		end
+	end
 
-		return false
+	local function start_buffer(buf)
+		if not vim.api.nvim_buf_is_valid(buf) or not vim.api.nvim_buf_is_loaded(buf) then
+			return false
+		end
+
+		if started[buf] then
+			set_window_folds(buf)
+			return true
+		end
+
+		local filetype = vim.bo[buf].filetype
+		local parsers = parsers_by_filetype[filetype]
+		if not parsers then
+			return false
+		end
+
+		-- Request only the parsers needed by this filetype. The installer skips
+		-- already-installed parsers and runs asynchronously for missing ones.
+		install_filetype_parsers(filetype, parsers)
+
+		local ok = pcall(vim.treesitter.start, buf)
+		if not ok then
+			return false
+		end
+
+		started[buf] = true
+		set_window_folds(buf)
+		return true
 	end
 
 	local group = vim.api.nvim_create_augroup("SoulTreesitterFolds", {
@@ -148,8 +157,9 @@ function M.config()
 	})
 
 	-- BufNewFile can load this spec after FileType on some startup paths.
+	local current_buf = vim.api.nvim_get_current_buf()
 	vim.schedule(function()
-		start_buffer(vim.api.nvim_get_current_buf())
+		start_buffer(current_buf)
 	end)
 end
 
