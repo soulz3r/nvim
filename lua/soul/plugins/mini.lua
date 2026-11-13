@@ -41,6 +41,7 @@ return {
 	},
 	{
 		"nvim-mini/mini.notify",
+		event = "VeryLazy",
 		config = setup("notify"),
 	},
 	{
