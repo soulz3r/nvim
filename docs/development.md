@@ -47,12 +47,16 @@ GitHub Actions runs full-repository StyLua validation and static checks on Ubunt
 The DAP plugin specification in `lua/soul/lsp/dap.lua` is the composition layer. Keep it limited to loading the dependencies and wiring their setup functions. Focused helpers own independent concerns:
 
 - `lua/soul/core/helpers/dap/path.lua`: shared path normalization, case-aware project keys, containment checks, and executable checks.
-- `lua/soul/core/helpers/dap/project.lua`: public composition layer for the focused DAP project modules.\n- `lua/soul/core/helpers/dap/project/store.lua`: DAP project metadata reads/writes and registered-project lookup.\n- `lua/soul/core/helpers/dap/project/registry.lua`: independent JSON persistence.\n- `lua/soul/core/helpers/dap/project/resolver.lua`: buffer-aware root detection and manual project activation.\n- `lua/soul/core/helpers/dap/project/selection.lua`: saved-project picker and executable selection UI.
+- `lua/soul/core/helpers/dap/project.lua`: public composition layer for the focused DAP project modules.
+- `lua/soul/core/helpers/dap/project/store.lua`: DAP project metadata reads/writes and registered-project lookup.
+- `lua/soul/core/helpers/dap/project/registry.lua`: independent JSON persistence.
+- `lua/soul/core/helpers/dap/project/resolver.lua`: buffer-aware root detection and manual project activation.
+- `lua/soul/core/helpers/dap/project/selection.lua`: saved-project picker and executable selection UI.
 - `lua/soul/core/helpers/dap/launch.lua`: LLDB adapter/configuration, executable choice, and launch argument prompting/persistence.
 - `lua/soul/core/helpers/dap/keymaps.lua`: grouped session/project, breakpoint, stepping, evaluation/REPL, and UI mappings.
 - `lua/soul/core/helpers/dap/args.lua`: portable launch-argument parsing and formatting.
 - `lua/soul/core/helpers/dap/executables.lua`: bounded project executable discovery and ranking.
-- `lua/soul/core/helpers/dap/project/registry.lua`: independent DAP project persistence. `lua/soul/core/helpers/dap/registry.lua`: safe migration of legacy DAP files and one-time import of old DAP-specific fields from YAP's former registry.
+- `lua/soul/core/helpers/dap/registry.lua`: safe migration of legacy DAP files and one-time import of old DAP-specific fields from YAP's former registry.
 - `lua/soul/core/helpers/dap/repl.lua`: REPL discovery, focus, and Telescope-backed search.
 - `lua/soul/core/helpers/dap/ui.lua`: DAP UI setup and restoration of the original source window after a session.
 
