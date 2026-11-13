@@ -32,7 +32,7 @@ function M.register(state)
 			if vim.bo[args.buf].filetype == "alpha" then
 				footer.invalidate(vim.fn.getcwd())
 				footer.update()
-				pcall(vim.cmd.AlphaRedraw)
+				vim.cmd.AlphaRedraw()
 				animation.start()
 			end
 		end,
@@ -52,7 +52,7 @@ function M.register(state)
 		pattern = "VeryLazy",
 		callback = function()
 			footer.update()
-			pcall(vim.cmd.AlphaRedraw)
+			vim.cmd.AlphaRedraw()
 		end,
 	})
 
@@ -61,7 +61,7 @@ function M.register(state)
 		callback = function()
 			if vim.bo.filetype == "alpha" then
 				footer.update()
-				pcall(vim.cmd.AlphaRedraw)
+				vim.cmd.AlphaRedraw()
 			end
 		end,
 	})
