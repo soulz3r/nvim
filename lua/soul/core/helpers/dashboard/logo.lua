@@ -74,29 +74,48 @@ for row, line in ipairs(WORDMARK) do
 	WORDMARK_CHARS[row] = split_chars(line)
 end
 
--- The surface never changes. Precompute its trigonometric coordinates once;
--- each frame only needs to rotate and project the cached samples.
-local SURFACE_SAMPLES = {}
-for theta_step = 0, 144 do
-	local theta = math.rad(48 + theta_step * (264 / 144))
-	local theta_cos = math.cos(theta)
-	local theta_sin = math.sin(theta)
+-- The surface never changes. Build its trigonometric coordinates only
+-- when the dashboard first requests a rotation frame, not when this module
+-- is imported by another dashboard helper.
+local SURFACE_SAMPLES
 
-	for phi_step = 0, 63 do
-		local phi = phi_step * (2 * math.pi / 64)
-		local phi_cos = math.cos(phi)
-		local phi_sin = math.sin(phi)
-		local radius = 1 + 0.23 * phi_cos
-
-		SURFACE_SAMPLES[#SURFACE_SAMPLES + 1] = {
-			x = radius * theta_cos,
-			y = radius * theta_sin,
-			z = 0.23 * phi_sin,
-			normal_x = phi_cos * theta_cos,
-			normal_y = phi_cos * theta_sin,
-			normal_z = phi_sin,
-		}
+local function get_surface_samples()
+	if SURFACE_SAMPLES then
+		return SURFACE_SAMPLES
 	end
+
+	local started = FrameProfile.enabled and vim.uv.hrtime() or nil
+	local samples = {}
+
+	for theta_step = 0, 144 do
+		local theta = math.rad(48 + theta_step * (264 / 144))
+		local theta_cos = math.cos(theta)
+		local theta_sin = math.sin(theta)
+
+		for phi_step = 0, 63 do
+			local phi = phi_step * (2 * math.pi / 64)
+			local phi_cos = math.cos(phi)
+			local phi_sin = math.sin(phi)
+			local radius = 1 + 0.23 * phi_cos
+
+			samples[#samples + 1] = {
+				x = radius * theta_cos,
+				y = radius * theta_sin,
+				z = 0.23 * phi_sin,
+				normal_x = phi_cos * theta_cos,
+				normal_y = phi_cos * theta_sin,
+				normal_z = phi_sin,
+			}
+		end
+	end
+
+	SURFACE_SAMPLES = samples
+
+	if started then
+		FrameProfile.record("logo.samples", (vim.uv.hrtime() - started) / 1e6)
+	end
+
+	return SURFACE_SAMPLES
 end
 
 local LIGHT_X, LIGHT_Y, LIGHT_Z = -0.35, 0.55, 0.76
@@ -150,7 +169,7 @@ local function build_c_frame(frame)
 
 	-- Project one rotation from the immutable surface samples. Frames are
 	-- cached on demand so startup only pays for the first visible rotation.
-	for _, sample in ipairs(SURFACE_SAMPLES) do
+	for _, sample in ipairs(get_surface_samples()) do
 		local projected_x = sample.x * cosine + sample.z * sine
 		local projected_z = -sample.x * sine + sample.z * cosine
 		local column = math.floor(CENTER_X + projected_x * 9 + 0.5)
