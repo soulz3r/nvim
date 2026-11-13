@@ -55,30 +55,25 @@ This policy intentionally does not stop clangd merely because the current window
 
 ## Benchmark procedure
 
-Record results before and after changes on the same machine, Neovim build, plugin lockfile, and project. Run each startup measurement at least five times and compare the median rather than the best run.
+The repository check includes a repeatable headless startup benchmark whenever Neovim is installed. It launches the current CVIM configuration and a clean Neovim baseline five times each, reads the `NVIM STARTED` timing from every log, and reports the median, minimum, maximum, and estimated configuration overhead.
 
-### Startup
-
-PowerShell:
-
-```powershell
-1..5 | ForEach-Object {
-    $log = Join-Path $env:TEMP "cvim-startup-$_.log"
-    nvim --startuptime $log +qa
-}
-```
-
-Linux/macOS:
+Run the normal checks:
 
 ```sh
-for n in 1 2 3 4 5; do
-  nvim --startuptime "/tmp/cvim-startup-$n.log" +qa
-done
+bash scripts/check.sh
 ```
 
-Inspect the final startup total and the slowest sourced scripts in each log. Also use `:Lazy profile` to identify plugin load time. Do not compare a first run that is installing plugins against a warmed run.
+Change the number of samples when investigating a performance change:
 
-### Idle resource use
+```sh
+CVIM_STARTUP_RUNS=10 bash scripts/check.sh
+```
+
+The benchmark is informational: it fails if Neovim cannot complete startup or a timing cannot be read, but it does not enforce a machine-independent speed threshold. Compare results on the same machine, Neovim build, plugin lockfile, and project. Avoid running plugin updates or other heavy work between samples. The clean baseline uses `--clean`; configured startup uses the configuration available in the current user's Neovim config directory.
+
+These measurements are headless startup timings. They do not measure terminal rendering, Alpha animation smoothness, first-file latency, LSP attachment, or plugin demand-load latency. Use the manual checks below for those behaviors. Also use `:Lazy profile` to inspect plugin load costs.
+
+## Idle resource use
 
 1. Start CVIM with no file arguments and let the dashboard animate for 15 seconds.
 2. Open a file and wait another 15 seconds.
