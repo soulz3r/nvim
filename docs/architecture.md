@@ -98,3 +98,17 @@ Temporary resources live under `lua/soul/core/lifecycle/`. Cleanup scopes own ti
 - `path.lua` is the shared normalization/key/containment/executable utility used by project resolution and executable discovery. Argument parsing, registry migration, and bounded executable discovery remain independently testable helpers.
 
 The configuration targets Neovim 0.12 or newer. The optional tiny-cmdline integration is isolated in `lua/soul/extras/tiny_cmdline.lua`; it relies on private, experimental UI2 internals and falls back to Neovim's native command line when the required UI2 entry point is unavailable or setup fails. The rest of the configuration does not depend on UI2.
+
+
+## Startup and feature loading
+
+Core keymaps stay lightweight. The C build/run implementation lives in
+`soul.core.helpers.c_runner` and is imported only when its key is invoked.
+PowerShell validation and process probing are also deferred until the C runner
+requests a usable PowerShell 7 executable; the shell option uses a cheap PATH
+lookup during core initialization.
+
+The Alpha dashboard does not load its C tutorial data or syntax highlighter when
+`code_examples = false`. Those helpers are isolated in
+`soul.core.helpers.dashboard.alpha.tutorial` and are required only when the
+tutorial is enabled.
