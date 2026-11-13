@@ -5,7 +5,18 @@ local function build_animation_timeline(animation, content_width)
 	local hold_ticks = math.max(0, animation.hold_ticks or 0)
 
 	local function push(lines)
-		timeline[#timeline + 1] = vim.deepcopy(lines)
+		local frame = vim.deepcopy(lines)
+
+		-- Keep every animated row at the logo's fixed width. Alpha can then
+		-- center the whole block without recentering short partial lines.
+		for index, line in ipairs(frame) do
+			local width = vim.fn.strdisplaywidth(line)
+			if width < content_width then
+				frame[index] = line .. string.rep(" ", content_width - width)
+			end
+		end
+
+		timeline[#timeline + 1] = frame
 	end
 
 	for _, scene in ipairs(animation.scenes) do
@@ -642,9 +653,9 @@ function M.build(dashboard)
 	local static_byte_highlights = utils.charhl_to_bytehl(header_hl, header)
 
 	dashboard.section.header.opts = {
-		-- The animation already computes a fixed left indent from the full line.
-		-- Centering each partial frame makes its starting column drift as it types.
-		position = "left",
+		-- Animated rows are padded to the logo width, so the whole block
+		-- stays centered without shifting as individual lines are typed.
+		position = "center",
 		hl = static_byte_highlights,
 	}
 
