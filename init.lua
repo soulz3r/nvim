@@ -20,7 +20,6 @@ vim.api.nvim_create_autocmd("VimEnter", {
 		end)
 	end,
 })
-require("soul.core.helpers.ui")
 require("soul.core.neovide")
 
 GET("soul.plugins.alpha")
@@ -49,3 +48,6 @@ GET("soul.extras.todo")
 GET("soul.extras.ufo")
 
 require("soul.lazy")
+
+-- Apply CVIM highlights after Everforest has set the base colorscheme.
+require("soul.core.helpers.ui")
