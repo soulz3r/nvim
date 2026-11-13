@@ -153,30 +153,19 @@ local function render_frame(frame, glitch_state)
 		local column = math.floor(CENTER_X + projected_x * 9 + 0.5)
 		local row = math.floor(CENTER_Y - sample.y * 5 + 0.5)
 
-		if
-			column >= 1
-			and column <= C_WIDTH
-			and row >= 1
-			and row <= C_HEIGHT
-			and projected_z > depth[row][column]
-		then
+		if column >= 1 and column <= C_WIDTH and row >= 1 and row <= C_HEIGHT and projected_z > depth[row][column] then
 			depth[row][column] = projected_z
 
 			local normal_x = sample.normal_x * cosine + sample.normal_z * sine
 			local normal_z = -sample.normal_x * sine + sample.normal_z * cosine
-			local diffuse = math.max(
-				0,
-				normal_x * LIGHT_X + sample.normal_y * LIGHT_Y + normal_z * LIGHT_Z
-			)
+			local diffuse = math.max(0, normal_x * LIGHT_X + sample.normal_y * LIGHT_Y + normal_z * LIGHT_Z)
 			local view = math.max(0, normal_z)
 			local specular = view ^ 10
 			local shade = math.min(1, 0.14 + diffuse * 0.72 + specular * 0.42)
 			local glyph_index = math.floor(shade * (#glyphs - 1)) + 1
 
 			pixels[row][column] = glyphs[glyph_index]
-			groups[row][column] = shade > 0.82 and "AlphaAqua"
-				or shade > 0.48 and "AlphaTeal"
-				or "AlphaGreen"
+			groups[row][column] = shade > 0.82 and "AlphaAqua" or shade > 0.48 and "AlphaTeal" or "AlphaGreen"
 		end
 	end
 
@@ -238,8 +227,10 @@ local function render_frame(frame, glitch_state)
 
 			local art_column = column - ART_START + 1
 			if art_chars and art_column >= 1 and art_column <= #art_chars then
-				local in_burst = burst and art_row == burst_row
-					and art_column >= burst_start and art_column <= burst_end
+				local in_burst = burst
+					and art_row == burst_row
+					and art_column >= burst_start
+					and art_column <= burst_end
 				local in_tear = tear_active and art_column >= tear_start and art_column <= tear_end
 				local in_interference = interference and art_row == interference_row
 				local source_column = art_column
@@ -372,9 +363,7 @@ function M.build()
 	}
 
 	local rotation_frame = 1
-	local random_state = math.floor(
-		(vim.uv and vim.uv.hrtime and vim.uv.hrtime() or os.time()) % 2147483646
-	) + 1
+	local random_state = math.floor((vim.uv and vim.uv.hrtime and vim.uv.hrtime() or os.time()) % 2147483646) + 1
 	local function random_int(maximum)
 		random_state = (random_state * 48271) % 2147483647
 		return (random_state % maximum) + 1
