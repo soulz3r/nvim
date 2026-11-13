@@ -10,7 +10,11 @@ local function build_animation_timeline(animation, content_width)
 
 	for _, scene in ipairs(animation.scenes) do
 		local visible = { "", "", "", "", "", "", "" }
-		local code_line = scene.lines[3] or ""
+		local cursor_source_line = scene.cursor_source_line or 3
+		local code_line = scene.lines[cursor_source_line] or ""
+		local cursor_line = scene.extra_line and 5 or 4
+		local separator_line = cursor_line + 1
+		local explanation_line = cursor_line + 2
 		local block_width = 0
 
 		-- Center the tutorial as one block. Every line shares the same left
@@ -28,15 +32,15 @@ local function build_animation_timeline(animation, content_width)
 		local padding = math.max(0, math.floor((content_width - block_width) / 2))
 		local indent = string.rep(" ", padding)
 
-		-- Type the heading and code lines, including an optional completion line.
+		-- Type the heading and both code lines at a steady character rate.
 		for line_index = 1, 3 do
 			local line = scene.lines[line_index] or ""
 
 			for column = 1, #line do
 				visible[line_index] = indent .. line:sub(1, column)
 
-				if line_index == 3 then
-					visible[5] = string.rep(" ", padding + column) .. "^"
+				if line_index == cursor_source_line then
+					visible[cursor_line] = string.rep(" ", padding + column) .. "^"
 				end
 
 				push(visible)
@@ -55,21 +59,21 @@ local function build_animation_timeline(animation, content_width)
 			end
 		end
 
-		-- Resolve the caret from the actual token in the second code line.
+		-- Resolve the caret from the selected token in its actual source line.
 		local target = scene.cursor_token and code_line:find(scene.cursor_token, 1, true)
 		assert(target, ("dashboard caret token %q was not found in: %s"):format(
 			tostring(scene.cursor_token),
 			code_line
 		))
-		visible[5] = string.rep(" ", padding + target - 1) .. "^"
+		visible[cursor_line] = string.rep(" ", padding + vim.fn.strdisplaywidth(code_line:sub(1, target - 1))) .. "^"
 		push(visible)
 
-		visible[6] = indent .. (scene.lines[5] or "")
+		visible[separator_line] = indent .. (scene.lines[5] or "")
 		push(visible)
 
 		local explanation = scene.lines[6] or ""
 		for column = 1, #explanation do
-			visible[7] = indent .. explanation:sub(1, column)
+			visible[explanation_line] = indent .. explanation:sub(1, column)
 			push(visible)
 		end
 
@@ -469,12 +473,12 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 		return
 	end
 
-	if line_index == 6 then
+	if line:match("^%s*%-+%s*$") then
 		add_range(ranges, "AlphaCodeSeparator", line_number, 0, #line)
 		return
 	end
 
-	if line_index == 7 then
+	if line_index >= 6 then
 		highlight_message(ranges, line_number, line)
 	end
 end
