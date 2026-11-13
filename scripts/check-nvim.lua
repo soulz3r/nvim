@@ -231,7 +231,15 @@ vim.notify = function(message, level, opts)
 	}
 end
 
-local animation = require("soul.core.helpers.dashboard.animation").new({
+local animation_module = require("soul.core.helpers.dashboard.animation")
+local animation_profiler = package.loaded["soul.core.performance.animation"]
+if vim.env.CVIM_ANIMATION_PROFILE == "1" then
+	assert(animation_profiler and animation_profiler.enabled, "Opt-in dashboard profiling must load and enable its profiler")
+else
+	assert(animation_profiler == nil, "Normal dashboard startup must not load the animation profiler")
+end
+
+local animation = animation_module.new({
 	interval = 1,
 	is_active = function()
 		return true
