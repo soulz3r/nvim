@@ -2,6 +2,7 @@ local M = {
 	"soulz3r/yap.nvim",
 	branch = "main",
 	event = { "BufReadPre", "BufNewFile" },
+	cmd = { "CProjectInfo", "CSwitchHeader" },
 	keys = {
 		{ "<leader>pp", desc = "Open YAP project picker" },
 		{ "<leader>pr", desc = "Build and run current project" },
