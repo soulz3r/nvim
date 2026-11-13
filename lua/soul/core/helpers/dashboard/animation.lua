@@ -1,4 +1,5 @@
 local Scope = require("soul.core.lifecycle.scope")
+local FrameProfile = require("soul.core.performance.animation")
 
 local M = {}
 
@@ -47,7 +48,12 @@ function M.new(opts)
 					return
 				end
 
+				local frame_started = FrameProfile.enabled and vim.uv.hrtime() or nil
+				local activity_started = FrameProfile.enabled and vim.uv.hrtime() or nil
 				local active_ok, active = pcall(opts.is_active)
+				if activity_started then
+					FrameProfile.record("animation.activity", (vim.uv.hrtime() - activity_started) / 1e6)
+				end
 				if not active_ok then
 					return fail("Animation activity check failed: " .. tostring(active))
 				end
@@ -55,16 +61,28 @@ function M.new(opts)
 					return stop()
 				end
 
+				local tick_started = FrameProfile.enabled and vim.uv.hrtime() or nil
 				local tick_ok, tick_error = pcall(opts.on_tick)
+				if tick_started then
+					FrameProfile.record("animation.update", (vim.uv.hrtime() - tick_started) / 1e6)
+				end
 				if not tick_ok then
 					return fail("Animation stopped: " .. tostring(tick_error))
 				end
 
 				if opts.redraw then
+					local redraw_started = FrameProfile.enabled and vim.uv.hrtime() or nil
 					local redraw_ok, redraw_error = pcall(opts.redraw)
+					if redraw_started then
+						FrameProfile.record("animation.redraw", (vim.uv.hrtime() - redraw_started) / 1e6)
+					end
 					if not redraw_ok then
 						return fail("Animation redraw failed: " .. tostring(redraw_error))
 					end
+				end
+
+				if frame_started then
+					FrameProfile.record("animation.frame", (vim.uv.hrtime() - frame_started) / 1e6)
 				end
 
 				schedule_tick(token)
