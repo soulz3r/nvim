@@ -1,9 +1,6 @@
 local keymap = vim.keymap.set
 local OPTS = require("soul.core.helpers.keymaps").opts
 
-vim.g.mapleader = " "
-vim.g.maplocalleader = " "
-
 keymap("n", "<Space>", "", OPTS())
 keymap("n", "<C-i>", "<C-i>", OPTS())
 
