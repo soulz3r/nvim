@@ -45,7 +45,7 @@ local function build_animation_timeline(animation, content_width)
 		for line_index = 2, 3 do
 			local line = scene.lines[line_index] or ""
 
-			if line_index == cursor_source_line and not scene.extra_line then
+			if line_index == cursor_source_line then
 				visible[4] = indent .. "^"
 				push(visible)
 			end
@@ -53,7 +53,7 @@ local function build_animation_timeline(animation, content_width)
 			for column = 1, #line do
 				visible[line_index] = indent .. line:sub(1, column)
 
-				if line_index == cursor_source_line and not scene.extra_line then
+				if line_index == cursor_source_line then
 					local caret_offset = math.min(column, target - 1)
 					local caret_column = padding
 						+ vim.fn.strdisplaywidth(line:sub(1, caret_offset))
@@ -259,7 +259,7 @@ local function highlight_c_code(ranges, line_number, line)
 			else
 				index = index + 1
 			end
-		elseif char:match("[*&=+%-%/%<>!|%%~^]") then
+		elseif char:match("[@*&=+%-%/%<>!|%%~^]") then
 			local finish = index + 1
 			while finish <= #line and line:sub(finish, finish):match("[=&|<>]") do
 				finish = finish + 1
@@ -437,64 +437,6 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 		end
 		if value_start then
 			add_range(ranges, "AlphaCodeNumber", line_number, value_start - 1, value_end)
-		end
-		return
-	end
-
-	if line:find("0x", 1, true) or line:find("@", 1, true) then
-		add_range(ranges, "AlphaCodeText", line_number, 0, #line)
-
-		for _, identifier in ipairs({ "value", "ptr" }) do
-			local first = 1
-			while true do
-				local identifier_start, identifier_end = line:find(identifier, first, true)
-				if not identifier_start then
-					break
-				end
-				add_range(
-					ranges,
-					"AlphaCodeIdentifier",
-					line_number,
-					identifier_start - 1,
-					identifier_end
-				)
-				first = identifier_end + 1
-			end
-		end
-
-		local first = 1
-		while true do
-			local number_start, number_end = line:find("0x[%da-fA-F]+", first)
-			if not number_start then
-				break
-			end
-			add_range(ranges, "AlphaCodeNumber", line_number, number_start - 1, number_end)
-			first = number_end + 1
-		end
-
-		local number_start, number_end = line:find("%f[%d]%d+%f[%D]")
-		if number_start then
-			add_range(ranges, "AlphaCodeNumber", line_number, number_start - 1, number_end)
-		end
-
-		local operator_search = 1
-		while true do
-			local operator_start, operator_end = line:find("[@=*%-]+", operator_search)
-			if not operator_start then
-				break
-			end
-			add_range(ranges, "AlphaCodeOperator", line_number, operator_start - 1, operator_end)
-			operator_search = operator_end + 1
-		end
-
-		local arrow_search = 1
-		while true do
-			local arrow_start, arrow_end = line:find("%-%>", arrow_search)
-			if not arrow_start then
-				break
-			end
-			add_range(ranges, "AlphaCodeOperator", line_number, arrow_start - 1, arrow_end)
-			arrow_search = arrow_end + 1
 		end
 		return
 	end
