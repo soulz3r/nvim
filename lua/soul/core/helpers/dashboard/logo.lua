@@ -9,7 +9,7 @@ local CENTER_Y = 7
 local ROTATION_FRAMES = 72
 local ART_START = 30
 local ART_TOP = 3
-local GLITCH_FRAMES = 24
+local GLITCH_FRAMES = 20
 local TAGLINE = "C, with a better editor."
 local TAGLINE_START = math.floor((WIDTH - #TAGLINE) / 2) + 1
 
@@ -25,8 +25,6 @@ local WORDMARK = {
 	"██████▄▄▄█████▀▄▄▄██▄▄▄▄████████▄▄▀",
 	"███████████████████████████████████",
 }
-
-local GLITCH_FRAMES = 24
 
 local glyphs = { ".", ":", "-", "=", "+", "*", "#", "%", "@" }
 
@@ -135,10 +133,9 @@ local function render_frame(frame, glitch_frame)
 	end
 
 	local glitch_phase = glitch_frame % GLITCH_FRAMES
-	-- Mostly clean artwork, interrupted by a short, unmistakable signal burst.
-	local tearing = glitch_phase <= 2
-	local scanline = glitch_phase == 3
-	local color_flash = glitch_phase == 4 or glitch_phase == 5
+	-- A longer burst tears most wordmark rows, then briefly sweeps a scanline.
+	local tearing = glitch_phase <= 5
+	local scanline = glitch_phase == 6
 	local lines = {}
 	local ranges = {}
 
@@ -148,18 +145,20 @@ local function render_frame(frame, glitch_frame)
 		local art_row = row - ART_TOP + 1
 		local art_chars = WORDMARK_CHARS[art_row]
 
-		-- Three separated slices jump in opposite directions during the tear.
-		-- Larger offsets make the interference visible without destroying the logo.
-		local shift = 0
-		if tearing then
-			if art_row == 2 then
-				shift = 3
-			elseif art_row == 5 then
-				shift = -4
-			elseif art_row == 8 then
-				shift = 3
-			end
-		end
+		-- Each row tears by a different amount and direction. The untouched
+		-- glyphs and highlight groups keep the original artwork and palette.
+		local shifts = {
+			[1] = -5,
+			[2] = 7,
+			[3] = -3,
+			[4] = 6,
+			[5] = -8,
+			[6] = 4,
+			[7] = -6,
+			[8] = 8,
+			[9] = -4,
+		}
+		local shift = tearing and shifts[art_row] or 0
 
 		for column = 1, WIDTH do
 			local char = " "
@@ -176,10 +175,6 @@ local function render_frame(frame, glitch_frame)
 				char = art_chars[source_column] or " "
 				group = char ~= " " and wordmark_group(char) or nil
 
-				-- Brief color inversion using only the original Everforest groups.
-				if color_flash and char ~= " " then
-					group = (art_row + art_column) % 2 == 0 and "AlphaYellow" or "AlphaGreen"
-				end
 			end
 
 			cells[column] = char
