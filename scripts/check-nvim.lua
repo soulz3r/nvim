@@ -124,6 +124,10 @@ vim.env.PWSH = original_pwsh
 package.loaded[paths_module] = original_paths
 
 require("soul.core.options")
+assert(
+	package.loaded["soul.core.helpers.ui.floats"] == nil,
+	"Core options must not eagerly load the optional floating UI helper"
+)
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 require("soul.core.keymaps")
@@ -366,6 +370,10 @@ for _, name in ipairs(modules) do
 end
 
 local telescope_spec = require("soul.plugins.telescope")
+assert(
+	package.loaded["soul.core.helpers.fzf_native"] == nil,
+	"Telescope plugin spec must not eagerly load the native build helper"
+)
 local fzf_spec
 
 for _, dependency in ipairs(telescope_spec.dependencies or {}) do
