@@ -39,6 +39,13 @@ These checks complement CI. They exercise real plugins and external tools that h
 
 ## Performance lifecycle
 
+- Start Neovim with no arguments and confirm the last valid YAP project directory is restored while Alpha appears.
+- Start Neovim with an explicit file path and confirm CVIM does not override the supplied working directory.
+- Before using a debugger, verify nvim-dap and DAP UI are not loaded. Press a DAP mapping and verify they load and work.
+- Open a file and confirm Treesitter installs only the parser set for that filetype. Opening an empty session should not trigger parser installation.
+
+## Performance lifecycle
+
 1. Start `nvim` with no arguments, wait for the dashboard, then open a file. Confirm its animation stops and the dashboard autocmd group is removed.
 2. Start `nvim path/to/file`; Alpha should not load.
 3. Open a C file and verify clangd attaches. Keep that buffer hidden in another tab while editing a non-C file; clangd must remain alive.
