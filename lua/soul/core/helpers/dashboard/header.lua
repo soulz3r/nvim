@@ -1,7 +1,7 @@
 local M = {}
 
 M.lines = {
-	"    C, with a better editor.",
+	"",
 	"",
 	"   FIRST PROGRAM",
 	"   int main(void) {",
@@ -12,9 +12,7 @@ M.lines = {
 	"   return exits main",
 }
 
-M.highlights = {
-	{ { "AlphaYellow", 0, 27 } },
-}
+M.highlights = {}
 
 -- The logo owns its renderer and frame state. This animation only teaches C.
 M.animation = {
