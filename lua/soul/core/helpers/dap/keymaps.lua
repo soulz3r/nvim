@@ -1,7 +1,18 @@
 local M = {}
+local actions = {}
+
+function M.run(lhs)
+	local callback = actions[lhs]
+	if type(callback) ~= "function" then
+		vim.notify("DAP action is not ready: " .. lhs, vim.log.levels.ERROR)
+		return
+	end
+	return callback()
+end
 
 function M.setup(dap, dapui, dap_widgets, launch, projects)
 	local function map(mode, lhs, callback, desc)
+		actions[lhs] = callback
 		vim.keymap.set(mode, lhs, callback, {
 			noremap = true,
 			silent = true,
