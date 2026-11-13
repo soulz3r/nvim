@@ -10,8 +10,23 @@ CVIM treats background work as a resource with an explicit owner and lifetime. T
 | Dashboard callbacks and frame state | `core/helpers/dashboard/alpha/autocmds.lua` | Alpha setup | Delete its augroup, clear state, and release CVIM dashboard module-cache entries |
 | LSP idle timers | `core/lifecycle/lsp.lua` | Last buffer detaches from a client | Cancel on a new attachment, client stop, or Neovim exit |
 | LSP process | Neovim's native LSP client | Matching filetype and enabled server | Graceful stop after ten minutes with no loaded attached buffers |
+| Project restore | `core/lifecycle/project.lua` | Empty startup with a saved YAP project | One-shot VimEnter callback; no YAP/Telescope load |
 
 `core/lifecycle/scope.lua` provides a small cleanup scope. A scope owns cleanup callbacks, libuv timers, and autocmd groups. Closing it is idempotent and runs cleanup in reverse acquisition order.
+
+## Demand-loaded features
+
+Expensive features are activated at the earliest event that actually needs them:
+
+- DAP and its UI dependencies load on the first debugger mapping.
+- Treesitter loads on the first file buffer and requests only that filetype's parsers. Opening an empty Neovim session does not start parser installation.
+- Breadcrumbs load when an LSP client attaches.
+- Telescope loads when its command is invoked or another feature explicitly depends on it.
+- YAP loads on the first file buffer or project action. Its last-project restore is handled by the small core module above, so startup does not need to load YAP or Telescope.
+- TODO comments and the folding UI load when a file buffer opens.
+- WhichKey and other presentation features that do not need to exist before the first screen are deferred to `VeryLazy`.
+
+The Everforest colorscheme remains eager because the editor needs its colors before rendering the first screen. Session handling also remains early so automatic session read/write behavior is preserved.
 
 ## Dashboard lifecycle
 
