@@ -11,6 +11,7 @@ function M.config()
 
 	local state = sections.build(dashboard)
 	local logo_tick = 0
+	local wordmark_tick = 0
 
 	require("alpha").setup(dashboard.opts)
 
@@ -27,6 +28,11 @@ function M.config()
 			logo_tick = logo_tick + 1
 			if logo_tick % state.logo.tick_divisor == 0 then
 				state.logo.next_frame()
+			end
+
+			wordmark_tick = wordmark_tick + 1
+			if wordmark_tick % state.logo.wordmark_tick_divisor == 0 then
+				state.logo.next_wordmark_frame()
 			end
 		end,
 
