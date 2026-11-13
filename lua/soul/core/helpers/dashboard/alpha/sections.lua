@@ -147,7 +147,7 @@ local c_storage = {
 }
 
 local c_constants = {
-	["true"] = true, ["false"] = true, NULL = true, nullptr = true,
+	["true"] = true, ["false"] = true, NULL = true, nullptr = true, MAX = true,
 }
 
 -- Function names used by the tutorial. Recognizing their prefixes lets the
@@ -293,9 +293,9 @@ end
 -- This avoids a hand-maintained vocabulary that inevitably misses new copy.
 local explanation_stopwords = {
 	a = true, an = true, and = true, are = true, as = true, at = true,
-	back = true, by = true, every = true, for = true, from = true,
+	by = true, for = true, from = true,
 	in = true, into = true, is = true, it = true, its = true, of = true,
-	on = true, only = true, or = true, the = true, their = true,
+	on = true, or = true, the = true, their = true,
 	then = true, this = true, to = true, when = true, with = true,
 }
 
