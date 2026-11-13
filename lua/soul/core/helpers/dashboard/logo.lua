@@ -1,24 +1,49 @@
 local M = {}
 
-local WIDTH = 48
+local WIDTH = 66
 local HEIGHT = 15
 local C_WIDTH = 25
 local C_HEIGHT = 13
 local CENTER_X = 13
 local CENTER_Y = 7
 local ROTATION_FRAMES = 72
-local WORDMARK_START = 29
-local WORDMARK = {
-	"V   V  III  M   M",
-	"V   V   I   MM MM",
-	" V V    I   M M M",
-	"  V     I   M   M",
-	"  V    III  M   M",
-}
+local ART_START = 30
+local ART_TOP = 3
+local GLITCH_FRAMES = 24
 local TAGLINE = "C, with a better editor."
 local TAGLINE_START = math.floor((WIDTH - #TAGLINE) / 2) + 1
 
+local WORDMARK = {
+	"               ▄▄▄                 ",
+	" ▄▒▓▄   ▄▄▄  ▄▓▒▓▒▀ ▓▒▓▒▄▄         ",
+	" ▒░▒░▌ ▐▒▓▒▓  ▒░▒░  ▒░▒░▓▒▄▄▄▒▄▄   ",
+	" ░░░░   ░▒░█▌ ░█░█  ░█░▄ ▀▒▓▒░▒░░▄ ",
+	" ▐░█░▌  ░████▓████░▓░░██  ░▒ ▀░██░▌",
+	"░▒███▓ ▐██░█▌▓░░██ ▓███░▓ ▀░  ▓░░██",
+	" ▄ ███▄████▀ ▐██░░▓░████  ▄▄▄  ████",
+	"▒▓█▄▀▀██▀▀▄▄█████▌ ░███▀ █████▄▀███",
+	"██████▄▄▄█████▀▄▄▄██▄▄▄▄████████▄▄▀",
+	"███████████████████████████████████",
+}
+
+local GLITCH_GLYPHS = { "░", "▒", "▓", "█", "▄", "▀", "▐", "▌", "╱", "╲" }
 local glyphs = { ".", ":", "-", "=", "+", "*", "#", "%", "@" }
+
+local function split_chars(value)
+	local chars = {}
+	local count = vim.fn.strchars(value)
+
+	for index = 0, count - 1 do
+		chars[#chars + 1] = vim.fn.strcharpart(value, index, 1)
+	end
+
+	return chars
+end
+
+local WORDMARK_CHARS = {}
+for row, line in ipairs(WORDMARK) do
+	WORDMARK_CHARS[row] = split_chars(line)
+end
 
 local function create_grid(width, height, value)
 	local grid = {}
@@ -31,7 +56,19 @@ local function create_grid(width, height, value)
 	return grid
 end
 
-local function render_frame(frame)
+local function wordmark_group(char)
+	if char == "█" or char == "▓" then
+		return "AlphaTeal"
+	elseif char == "▒" or char == "▄" or char == "▀" or char == "▐" or char == "▌" then
+		return "AlphaAqua"
+	elseif char == "░" then
+		return "AlphaGreen"
+	end
+
+	return "AlphaYellow"
+end
+
+local function render_frame(frame, glitch_frame)
 	local rotation = (frame - 1) * (2 * math.pi / ROTATION_FRAMES)
 	local cosine = math.cos(rotation)
 	local sine = math.sin(rotation)
@@ -96,15 +133,17 @@ local function render_frame(frame)
 		end
 	end
 
+	local glitch_phase = glitch_frame % GLITCH_FRAMES
+	local glitch_active = glitch_phase == 0 or glitch_phase == 1
+	local tear_active = glitch_phase == 0
 	local lines = {}
 	local ranges = {}
 
 	for row = 1, HEIGHT do
-		local line = {}
+		local cells = {}
 		local line_ranges = {}
 		local active_group
 		local range_start
-		local shimmer_column = (frame - 1) % #WORDMARK[1] + 1
 
 		for column = 1, WIDTH do
 			local char = " "
@@ -115,20 +154,28 @@ local function render_frame(frame)
 				group = groups[row][column]
 			end
 
-			-- The VIM wordmark stays fixed while its highlight sweeps across it.
-			local wordmark_row = WORDMARK[row - 4]
-			local wordmark_column = column - WORDMARK_START + 1
-			if wordmark_row and wordmark_column >= 1 and wordmark_column <= #wordmark_row then
-				char = wordmark_row:sub(wordmark_column, wordmark_column)
-				if char ~= " " then
-					group = wordmark_column <= 5 and "AlphaTeal"
-						or wordmark_column <= 9 and "AlphaYellow"
-						or "AlphaAqua"
+			local art_row = row - ART_TOP + 1
+			local art_column = column - ART_START + 1
+			local art_chars = WORDMARK_CHARS[art_row]
 
-					if wordmark_column == shimmer_column then
-						group = "AlphaGreen"
-					end
+			if art_chars and art_column >= 1 and art_column <= #art_chars then
+				local row_tear = tear_active and (art_row == 2 or art_row == 6 or art_row == 9)
+				local shift = row_tear and (art_row % 2 == 0 and 1 or -1) or 0
+				local source_column = art_column - shift
+
+				local art_char = art_chars[source_column] or " "
+				if glitch_active and art_char ~= " "
+					and (art_row * 7 + art_column * 11 + glitch_phase * 5) % 19 == 0
+				then
+					art_char = GLITCH_GLYPHS[
+						((art_row * 3 + art_column * 5 + glitch_phase) % #GLITCH_GLYPHS) + 1
+					]
+					group = (art_column + art_row) % 2 == 0 and "AlphaYellow" or "AlphaGreen"
+				else
+					group = art_char ~= " " and wordmark_group(art_char) or nil
 				end
+
+				char = art_char
 			end
 
 			if row == HEIGHT then
@@ -139,7 +186,7 @@ local function render_frame(frame)
 				end
 			end
 
-			line[column] = char
+			cells[column] = char
 
 			if group ~= active_group then
 				if active_group then
@@ -162,10 +209,10 @@ local function render_frame(frame)
 			}
 		end
 
-		lines[row] = table.concat(line)
+		lines[row] = table.concat(cells)
 
-		-- Alpha identifies multiline highlights from the first row's first range.
-		-- Keep that shape valid even if a frame leaves the top row unlit.
+		-- Alpha detects multiline highlights from the first row's first range.
+		-- Keep the nested highlight shape valid even when the top row is blank.
 		if row == 1 and #line_ranges == 0 then
 			line_ranges[1] = { "Normal", 0, 0 }
 		end
@@ -187,10 +234,11 @@ function M.build()
 		},
 	}
 
-	local frame = 1
+	local rotation_frame = 1
+	local glitch_frame = 2
 
 	local function apply_frame()
-		local lines, character_ranges = render_frame(frame)
+		local lines, character_ranges = render_frame(rotation_frame, glitch_frame)
 		section.val = lines
 		section.opts.hl = utils.charhl_to_bytehl(character_ranges, lines)
 	end
@@ -201,9 +249,15 @@ function M.build()
 		section = section,
 		width = WIDTH,
 		tick_divisor = 1,
+		wordmark_tick_divisor = 2,
 
 		next_frame = function()
-			frame = frame % ROTATION_FRAMES + 1
+			rotation_frame = rotation_frame % ROTATION_FRAMES + 1
+			apply_frame()
+		end,
+
+		next_wordmark_frame = function()
+			glitch_frame = (glitch_frame + 1) % GLITCH_FRAMES
 			apply_frame()
 		end,
 	}
