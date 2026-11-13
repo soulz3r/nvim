@@ -1,7 +1,7 @@
 local M = {}
 
-local WIDTH = 45
-local HEIGHT = 13
+local WIDTH = 48
+local HEIGHT = 15
 local C_WIDTH = 25
 local C_HEIGHT = 13
 local CENTER_X = 13
@@ -9,12 +9,14 @@ local CENTER_Y = 7
 local ROTATION_FRAMES = 72
 local WORDMARK_START = 29
 local WORDMARK = {
-	"\\   /   _   |\\/|",
-	" \\ /   | |  |  |",
-	"  v    |_|  |  |",
-	"            |  |",
-	"            |\\/|",
+	"V   V  III  M   M",
+	"V   V   I   MM MM",
+	" V V    I   M M M",
+	"  V     I   M   M",
+	"  V    III  M   M",
 }
+local TAGLINE = "C, with a better editor."
+local TAGLINE_START = math.floor((WIDTH - #TAGLINE) / 2) + 1
 
 local glyphs = { ".", ":", "-", "=", "+", "*", "#", "%", "@" }
 
@@ -102,30 +104,38 @@ local function render_frame(frame)
 		local line_ranges = {}
 		local active_group
 		local range_start
-		local shimmer_column = (frame - 1) % 16 + 1
+		local shimmer_column = (frame - 1) % #WORDMARK[1] + 1
 
 		for column = 1, WIDTH do
 			local char = " "
 			local group
 
-			if column <= C_WIDTH then
+			if column <= C_WIDTH and row <= C_HEIGHT then
 				char = pixels[row][column]
 				group = groups[row][column]
 			end
 
-			-- The ASCII wordmark stays fixed while its highlight sweeps across it.
+			-- The VIM wordmark stays fixed while its highlight sweeps across it.
 			local wordmark_row = WORDMARK[row - 4]
 			local wordmark_column = column - WORDMARK_START + 1
 			if wordmark_row and wordmark_column >= 1 and wordmark_column <= #wordmark_row then
 				char = wordmark_row:sub(wordmark_column, wordmark_column)
 				if char ~= " " then
 					group = wordmark_column <= 5 and "AlphaTeal"
-						or wordmark_column <= 10 and "AlphaYellow"
+						or wordmark_column <= 9 and "AlphaYellow"
 						or "AlphaAqua"
 
 					if wordmark_column == shimmer_column then
 						group = "AlphaGreen"
 					end
+				end
+			end
+
+			if row == HEIGHT then
+				local tagline_column = column - TAGLINE_START + 1
+				if tagline_column >= 1 and tagline_column <= #TAGLINE then
+					char = TAGLINE:sub(tagline_column, tagline_column)
+					group = "AlphaYellow"
 				end
 			end
 
