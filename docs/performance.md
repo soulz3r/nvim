@@ -100,10 +100,18 @@ Memory values are noisy because the OS allocator and Lua garbage collector do no
 4. Run this command after leaving Alpha; it should report zero dashboard autocmds:
 
    ```vim
-   :lua print(#vim.api.nvim_get_autocmds({ group = "SoulAlpha" }))
+   :lua local ok, events = pcall(vim.api.nvim_get_autocmds, { group = "SoulAlpha" }); print(ok and #events or 0)
    ```
 
 5. Run `nvim path/to/file` and confirm Alpha does not load.
+
+### Project restore and demand loading
+
+1. Start Neovim without arguments and confirm the last valid YAP project directory is restored.
+2. Start Neovim with an explicit file path and confirm CVIM leaves the supplied working directory alone.
+3. Before pressing a debugger mapping, check `:Lazy` and confirm nvim-dap is not loaded. Press `<F5>` and confirm it loads.
+4. Open a C file and confirm only the C parser set is requested. Opening an empty Neovim session should not start Treesitter parser installation.
+5. Run `:Telescope find_files` from an empty session and confirm Telescope loads on demand.
 
 ### LSP
 
