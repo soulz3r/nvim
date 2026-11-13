@@ -377,6 +377,95 @@ else
   print_status "StyLua (not installed)" "SKIP"
 fi
 
+benchmark_startup() {
+  local runs="${CVIM_STARTUP_RUNS:-5}"
+  local benchmark_dir="$TEMP_DIR/startup-benchmark"
+  local mode log output elapsed
+  local failed=0
+  local run
+
+  if [[ ! "$runs" =~ ^[1-9][0-9]*$ ]]; then
+    print_status "Startup performance benchmark (invalid run count)" "FAIL"
+    printf '      CVIM_STARTUP_RUNS must be a positive integer; received: %s\n' "$runs"
+    (( FAIL_COUNT += 1 ))
+    return
+  fi
+
+  mkdir -p "$benchmark_dir"
+
+  for mode in configured clean; do
+    : >"$benchmark_dir/$mode.times"
+
+    for (( run = 1; run <= runs; run++ )); do
+      log="$benchmark_dir/$mode-$run.log"
+      output="$benchmark_dir/$mode-$run.output"
+
+      if [[ "$mode" == "clean" ]]; then
+        if ! nvim --clean --headless --startuptime "$log" -c 'qa!' >"$output" 2>&1; then
+          failed=1
+          break
+        fi
+      else
+        if ! nvim --headless --startuptime "$log" -c 'qa!' >"$output" 2>&1; then
+          failed=1
+          break
+        fi
+      fi
+
+      elapsed="$(awk '/--- NVIM STARTED ---/ { value = $1 } END { if (value != "") print value; else exit 1 }' "$log" 2>/dev/null || true)"
+      if [[ ! "$elapsed" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+        failed=1
+        printf '      Could not read the NVIM STARTED timing from %s\n' "$log"
+        sed 's/^/      /' "$output"
+        break
+      fi
+
+      printf '%s\n' "$elapsed" >>"$benchmark_dir/$mode.times"
+    done
+
+    if (( failed != 0 )); then
+      break
+    fi
+  done
+
+  if (( failed != 0 )); then
+    print_status "Startup performance benchmark" "FAIL"
+    printf '      Startup benchmark failed during the %s run.\n' "$mode"
+    [[ ! -s "$output" ]] || sed 's/^/      /' "$output"
+    (( FAIL_COUNT += 1 ))
+    return
+  fi
+
+  print_status "Startup performance benchmark ($runs runs)" "PASS"
+  "$PYTHON" - "$benchmark_dir" <<'PY'
+import pathlib
+import statistics
+import sys
+
+directory = pathlib.Path(sys.argv[1])
+
+def read_samples(name):
+    values = [float(line) for line in (directory / f"{name}.times").read_text().splitlines()]
+    if not values:
+        raise SystemExit(f"No startup measurements recorded for {name}")
+    return values
+
+configured = read_samples("configured")
+clean = read_samples("clean")
+configured_median = statistics.median(configured)
+clean_median = statistics.median(clean)
+overhead = configured_median - clean_median
+percent = (overhead / clean_median * 100) if clean_median else 0
+
+print(f"      Configured CVIM: median {configured_median:.3f} ms "
+      f"(min {min(configured):.3f}, max {max(configured):.3f})")
+print(f"      Clean Neovim:    median {clean_median:.3f} ms "
+      f"(min {min(clean):.3f}, max {max(clean):.3f})")
+print(f"      Configuration overhead: {overhead:+.3f} ms ({percent:+.1f}%)")
+print("      CVIM samples: " + ", ".join(f"{value:.3f}" for value in configured))
+PY
+}
+
 if command -v nvim >/dev/null 2>&1; then
   run_check "Neovim core and plugin-spec smoke tests" 0 nvim --headless --clean -u NONE -l scripts/check-nvim.lua
   run_check "Neovim module smoke tests" 0 nvim --headless --clean -u NONE -l scripts/check-integration.lua
@@ -385,6 +474,7 @@ if command -v nvim >/dev/null 2>&1; then
   run_check "DAP registry migration" 0 nvim --headless --clean -u NONE -l scripts/check-dap-registry.lua
   run_check "DAP executable discovery" 0 nvim --headless --clean -u NONE -l scripts/check-dap-executables.lua
   run_check "DAP path and project resolution" 1 nvim --headless --clean -u NONE -l scripts/check-dap-project.lua
+  benchmark_startup
 elif [[ "${REQUIRE_NVIM:-0}" == "1" ]]; then
   print_status "Neovim runtime checks (not installed)" "FAIL"
   (( FAIL_COUNT += 1 ))
