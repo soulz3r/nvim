@@ -79,10 +79,12 @@ function M.config()
 					and vim.api.nvim_buf_is_loaded(target)
 					and vim.bo[target].filetype == filetype
 				then
-					local start_ok = pcall(vim.treesitter.start, target)
-					if start_ok then
-						started[target] = true
-						set_window_folds(target)
+					if not started[target] then
+						local start_ok = pcall(vim.treesitter.start, target)
+						if start_ok then
+							started[target] = true
+							set_window_folds(target)
+						end
 					end
 				end
 			end
