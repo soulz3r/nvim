@@ -250,9 +250,18 @@ compatibility_checks() {
     return 1
   fi
 
-  if ! grep -q 'GET("soul.plugins")' init.lua \
-    && ! grep -q 'GET("soul.plugins.undotree")' init.lua; then
-    echo "Undotree plugin specification must be registered through the plugin spec import."
+  if grep -q 'GET("soul.plugins")\|GET("soul.extras")' init.lua; then
+    echo "Plugin specs must be loaded directly instead of through Lazy directory imports."
+    return 1
+  fi
+
+  if ! grep -q 'GET("soul.plugins.undotree")' init.lua; then
+    echo "Undotree plugin specification must be registered directly with Lazy."
+    return 1
+  fi
+
+  if ! grep -q 'table.insert(LAZY_PLUGIN_GET, require(module))' lua/soul/launch.lua; then
+    echo "GET must register the returned plugin spec table, not a Lazy import path."
     return 1
   fi
 
