@@ -7,6 +7,7 @@ require("soul.core.helpers.paths")
 require("soul.core.options")
 require("soul.core.keymaps")
 require("soul.core.autocmds")
+require("soul.core.lifecycle.project").setup()
 require("soul.core.helpers.ui")
 require("soul.core.neovide")
 
