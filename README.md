@@ -249,7 +249,7 @@ Python 3 is required for repository checks only; it is not a Neovim runtime depe
 - Run `:Lazy` and check whether plugin installation or compilation failed.
 - Make sure `rg`, `fd`, `clangd`, `stylua`, language servers, and `lldb-dap` are visible on `PATH`.
 - If DAP cannot start, check `LLDB_DAP` and confirm that the executable exists.
-- If the configured PowerShell shell or Windows C runner cannot start, inspect `:lua print(require("soul.core.helpers.paths").pwsh)` and verify the returned path with `:lua print(vim.fn.executable(require("soul.core.helpers.paths").pwsh))`. Set `PWSH` to the full path of PowerShell 7's `pwsh.exe` if automatic discovery selects the wrong installation. Windows PowerShell 5.1 is intentionally not accepted as the configured shell.
+- If the configured PowerShell shell or Windows C runner cannot start, inspect the validated executable with `:lua local p = require("soul.core.helpers.paths").resolve_powershell(); print(p, vim.fn.executable(p))`. The cheap `paths.pwsh` value is only a shell command hint; full PowerShell 7 validation is deferred until the C runner needs it. Set `PWSH` to the full path of PowerShell 7's `pwsh.exe` if automatic discovery selects the wrong installation. Windows PowerShell 5.1 is intentionally not accepted by the C runner.
 - If C diagnostics are missing or use the wrong standard, check the project's `compile_commands.json` or `compile_flags.txt`.
 - If Treesitter highlighting is missing after first install, run `:TSUpdate` and reopen the buffer.
 - If Telescope reports that the `fzf` extension or `libfzf.dll` is missing, run `:Lazy build telescope-fzf-native.nvim` to rebuild the native library, then restart Neovim so Telescope can load it.
