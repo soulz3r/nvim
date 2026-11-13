@@ -107,6 +107,23 @@ local c_constants = {
 	["true"] = true, ["false"] = true, NULL = true, nullptr = true,
 }
 
+-- Function names used by the tutorial. Recognizing their prefixes lets the
+-- function color appear while the identifier is still being typed.
+local c_functions = {
+	main = true, puts = true, add = true, malloc = true,
+	free = true, fopen = true, fclose = true,
+}
+
+local function has_prefix(tokens, word)
+	for token in pairs(tokens) do
+		if token:sub(1, #word) == word then
+			return true
+		end
+	end
+
+	return false
+end
+
 local function highlight_c_code(ranges, line_number, line)
 	add_range(ranges, "AlphaCodeText", line_number, 0, #line)
 
@@ -140,12 +157,18 @@ local function highlight_c_code(ranges, line_number, line)
 			local finish = line:find("[^%w_]", index) or (#line + 1)
 			local word = line:sub(index, finish - 1)
 			local next_char = line:sub(finish):match("^%s*(.)")
+			local partial = finish > #line
 			local group = c_types[word] and "AlphaCodeType"
 				or c_keywords[word] and "AlphaCodeKeyword"
 				or c_storage[word] and "AlphaCodeStorage"
 				or c_constants[word] and "AlphaCodeConstant"
 				or word:match("^[A-Z_][A-Z%d_]*$") and "AlphaCodeMacro"
 				or next_char == "(" and "AlphaCodeFunction"
+				or partial and has_prefix(c_types, word) and "AlphaCodeType"
+				or partial and has_prefix(c_keywords, word) and "AlphaCodeKeyword"
+				or partial and has_prefix(c_storage, word) and "AlphaCodeStorage"
+				or partial and has_prefix(c_constants, word) and "AlphaCodeConstant"
+				or partial and has_prefix(c_functions, word) and "AlphaCodeFunction"
 				or "AlphaCodeIdentifier"
 			add_range(ranges, group, line_number, index - 1, finish - 1)
 			index = finish
