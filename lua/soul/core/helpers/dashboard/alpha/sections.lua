@@ -367,12 +367,12 @@ local explanation_roles = {
 
 	-- Constants and operators.
 	["enum"] = "AlphaCodeKeyword",
-	["names"] = "AlphaCodeIdentifier",
+	["names"] = "AlphaMessageConcept",
 	["integer"] = "AlphaCodeType",
 	["constants"] = "AlphaCodeConstant",
 	["updates"] = "AlphaCodeOperator",
-	["existing"] = "AlphaCodeIdentifier",
-	["value"] = "AlphaCodeIdentifier",
+	["existing"] = "AlphaMessageConcept",
+	["value"] = "AlphaMessageConcept",
 
 	-- Control flow and functions.
 	["if"] = "AlphaCodeKeyword",
@@ -385,20 +385,20 @@ local explanation_roles = {
 	["zero"] = "AlphaCodeNumber",
 	["selects"] = "AlphaCodeOperator",
 	["first"] = "AlphaCodeConstant",
-	["item"] = "AlphaCodeIdentifier",
+	["item"] = "AlphaMessageConcept",
 	["strings"] = "AlphaCodeString",
 	["character"] = "AlphaCodeType",
 	["arrays"] = "AlphaCodeType",
 	["structs"] = "AlphaCodeType",
 	["group"] = "AlphaCodeFunction",
-	["related"] = "AlphaCodeIdentifier",
-	["fields"] = "AlphaCodeIdentifier",
+	["related"] = "AlphaMessageConcept",
+	["fields"] = "AlphaMessageConcept",
 
 	-- Pointers and memory.
 	["gives"] = "AlphaCodeFunction",
 	["address"] = "AlphaCodeOperator",
 	["reads"] = "AlphaCodeFunction",
-	["pointed"] = "AlphaCodeIdentifier",
+	["pointed"] = "AlphaMessageConcept",
 	["ptr"] = "AlphaCodeType",
 	["directives"] = "AlphaCodePreprocessor",
 	["run"] = "AlphaCodeFunction",
