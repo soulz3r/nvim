@@ -2,7 +2,6 @@ local M = {}
 
 local function build_animation_timeline(animation)
 	local timeline = {}
-	local chars_per_tick = math.max(1, animation.chars_per_tick or 4)
 	local hold_ticks = math.max(0, animation.hold_ticks or 0)
 
 	local function push(lines)
@@ -12,27 +11,38 @@ local function build_animation_timeline(animation)
 	for _, scene in ipairs(animation.scenes) do
 		local visible = { "", "", "", "", "" }
 
-		for line_index, line in ipairs(scene.lines) do
-			if line_index == scene.cursor_line then
-				local target = math.max(1, scene.cursor_target or 1)
+		-- Type the heading and both code lines at a steady character rate.
+		for line_index = 1, 3 do
+			local line = scene.lines[line_index] or ""
 
-				for column = 1, target, 2 do
-					visible[line_index] = string.rep(" ", column - 1) .. "^"
-					push(visible)
+			for column = 1, #line do
+				visible[line_index] = line:sub(1, column)
+
+				-- While the second code line is being typed, keep the caret
+				-- attached to its current insertion point.
+				if line_index == 3 then
+					visible[scene.cursor_line or 4] = string.rep(" ", column) .. "^"
 				end
 
-				visible[line_index] = string.rep(" ", target - 1) .. "^"
 				push(visible)
-			else
-				for column = 1, #line, chars_per_tick do
-					visible[line_index] = line:sub(1, math.min(column + chars_per_tick - 1, #line))
-					push(visible)
-				end
-
-				if line == "" then
-					push(visible)
-				end
 			end
+
+			if line == "" then
+				push(visible)
+			end
+		end
+
+		-- Once the code is complete, move the caret to the exact token
+		-- this scene explains, then type the explanation beneath it.
+		local cursor_line = scene.cursor_line or 4
+		local cursor_target = math.max(1, scene.cursor_target or 1)
+		visible[cursor_line] = string.rep(" ", cursor_target - 1) .. "^"
+		push(visible)
+
+		local explanation = scene.lines[5] or ""
+		for column = 1, #explanation do
+			visible[5] = explanation:sub(1, column)
+			push(visible)
 		end
 
 		for _ = 1, hold_ticks do
@@ -42,7 +52,6 @@ local function build_animation_timeline(animation)
 
 	return timeline
 end
-
 local function add_range(ranges, group, line_number, first, last)
 	if first < last then
 		ranges[line_number] = ranges[line_number] or {}
