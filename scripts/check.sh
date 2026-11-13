@@ -304,6 +304,11 @@ compatibility_checks() {
     return 1
   fi
 
+  if ! grep -q 'CVIM_PROFILE_OUTPUT' scripts/profile-init.lua; then
+    echo "The optional module profiler must write a machine-readable report."
+    return 1
+  fi
+
   if grep -q '"<leader>pq"\|"<leader>pi"' lua/soul/plugins/whichkey.lua; then
     echo "WhichKey must not advertise YAP mappings that do not exist."
     return 1
@@ -493,6 +498,43 @@ print("      Clean samples: " + ", ".join(f"{value:.3f}" for value in clean))
 PY
 }
 
+profile_startup() {
+  [[ "${CVIM_STARTUP_PROFILE:-0}" == "1" ]] || return
+
+  local data_dir lazy_entry profile_dir profile_output
+  data_dir="$(nvim --headless --clean -u NONE -c 'lua io.write(vim.fn.stdpath("data"))' -c 'qa!' 2>/dev/null)"
+  lazy_entry="$data_dir/lazy/lazy.nvim/lua/lazy/init.lua"
+
+  if [[ ! -f "$lazy_entry" ]]; then
+    print_status "CVIM module profile (Lazy unavailable)" "SKIP"
+    return
+  fi
+
+  profile_dir="$TEMP_DIR/startup-profile"
+  profile_output="$profile_dir/modules.tsv"
+  mkdir -p "$profile_dir"
+
+  if ! CVIM_CONFIG="$ROOT" CVIM_PROFILE_OUTPUT="$profile_output" nvim --headless \
+    -u "$ROOT/scripts/profile-init.lua" \
+    -c 'lua vim.wait(500, function() return vim.g.cvim_profile_done == true end, 10)' \
+    -c 'qa!' >"$profile_dir/output.log" 2>&1; then
+    print_status "CVIM module profile" "FAIL"
+    sed 's/^/      /' "$profile_dir/output.log"
+    (( FAIL_COUNT += 1 ))
+    return
+  fi
+
+  if [[ ! -s "$profile_output" ]]; then
+    print_status "CVIM module profile" "FAIL"
+    printf '      The profiler did not produce its module report.\\n'
+    (( FAIL_COUNT += 1 ))
+    return
+  fi
+
+  print_status "CVIM module profile" "PASS"
+  sed -n '1,44p' "$profile_output" | sed 's/^/      /'
+}
+
 if command -v nvim >/dev/null 2>&1; then
   run_check "Neovim core and plugin-spec smoke tests" 0 nvim --headless --clean -u NONE -l scripts/check-nvim.lua
   run_check "Neovim module smoke tests" 0 nvim --headless --clean -u NONE -l scripts/check-integration.lua
@@ -502,6 +544,7 @@ if command -v nvim >/dev/null 2>&1; then
   run_check "DAP executable discovery" 0 nvim --headless --clean -u NONE -l scripts/check-dap-executables.lua
   run_check "DAP path and project resolution" 1 nvim --headless --clean -u NONE -l scripts/check-dap-project.lua
   benchmark_startup
+  profile_startup
 elif [[ "${REQUIRE_NVIM:-0}" == "1" ]]; then
   print_status "Neovim runtime checks (not installed)" "FAIL"
   (( FAIL_COUNT += 1 ))
