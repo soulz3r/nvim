@@ -147,8 +147,11 @@ functions. It also instruments the pinned Lazy.nvim internals without modifying
 the installed plugin source:
 
 - `lazy.phase.config_setup()`: Lazy option and runtime-path setup.
-- `lazy.phase.spec_new()`, `spec_parse()`, `spec_normalize()`, and
-  `spec_import()`: plugin-spec construction, normalization, and imports.
+- `lazy.phase.spec_new()`, `spec_parse()`, and `spec_normalize()`:
+  plugin-spec construction and normalization.
+- `lazy.phase.spec_import()`: Lazy directory imports. CVIM now loads its
+  individual spec modules with `require()` and passes their returned tables
+  directly to Lazy, so this phase should not appear in a normal profile.
 - `lazy.phase.plugin_state()` and `plugin_load()`: installed-plugin state and
   spec resolution/loading.
 - `lazy.phase.loader_setup()`: loader setup, handler initialization, and
