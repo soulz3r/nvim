@@ -60,11 +60,17 @@ local function measure(name, callback, ...)
 end
 
 local function instrument_config(name, spec)
-	if type(spec) ~= "table" or type(spec.config) ~= "function" then
+	if type(spec) ~= "table" then
 		return
 	end
 
-	local callback = spec.config
+	-- Plugin modules may expose metatables that throw on unknown fields.
+	-- Inspect the raw plugin spec so profiling does not trigger those lookups.
+	local callback = rawget(spec, "config")
+	if type(callback) ~= "function" then
+		return
+	end
+
 	spec.config = function(...)
 		return measure(name .. ".config()", callback, ...)
 	end
