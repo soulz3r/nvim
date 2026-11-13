@@ -591,6 +591,8 @@ end
 function M.build(dashboard)
 	local icons = require("soul.core.helpers.icons")
 	local utils = require("alpha.utils")
+	local logo_data = require("soul.core.helpers.dashboard.logo")
+	local logo = logo_data.build()
 
 	--------------------------------------------------------------------------- 
 	-- Header
@@ -705,6 +707,10 @@ function M.build(dashboard)
 	dashboard.opts.layout = {
 		{ type = "padding", val = 1 },
 
+		logo.section,
+
+		{ type = "padding", val = 1 },
+
 		dashboard.section.header,
 
 		{ type = "padding", val = 1 },
@@ -725,15 +731,7 @@ function M.build(dashboard)
 	---------------------------------------------------------------------------
 
 	local animation_data = header_data.animation
-	local logo_width = 0
-	for index = 1, 6 do
-		logo_width = math.max(
-			logo_width,
-			vim.fn.strdisplaywidth(header_data.lines[index] or "")
-		)
-	end
-
-	local timeline = build_animation_timeline(animation_data, logo_width)
+	local timeline = build_animation_timeline(animation_data, logo_data.width)
 	local animation_step = 1
 
 	local function apply_animation_frame()
@@ -759,6 +757,7 @@ function M.build(dashboard)
 	apply_animation_frame()
 
 	return {
+		logo = logo,
 		footer = footer,
 		animation_data = animation_data,
 		apply_animation_frame = apply_animation_frame,
