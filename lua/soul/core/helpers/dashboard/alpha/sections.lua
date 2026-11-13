@@ -428,8 +428,8 @@ local function explanation_role(word, is_final_word)
 
 	-- Do not color one- or two-letter prefixes: they are too common in prose.
 	-- Once a prefix is long enough, color it only if every matching term has
-	-- the same semantic role. Candidate sets shrink as the word is typed, so
-	-- an established role cannot jump between groups or disappear mid-token.
+	-- the same semantic role. For a known vocabulary word, each later prefix
+	-- remains inside that same candidate set and therefore keeps its role.
 	if not is_final_word or #word < 3 then
 		return nil
 	end
@@ -750,13 +750,6 @@ function M.build(dashboard)
 		end
 
 		local ranges = vim.deepcopy(static_byte_highlights)
-
-		-- Keep a complete row shape for predictable multi-line highlight handling.
-		-- Alpha currently iterates these rows with pairs(), so empty rows are
-		-- valid and do not truncate later highlight entries.
-		for line_number = 1, start_line + 6 do
-			ranges[line_number] = ranges[line_number] or {}
-		end
 
 		local animated_ranges = build_animation_highlights(frame, start_line)
 
