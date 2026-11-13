@@ -158,7 +158,13 @@ local function build_c_frames()
 			local column = math.floor(CENTER_X + projected_x * 9 + 0.5)
 			local row = math.floor(CENTER_Y - sample.y * 5 + 0.5)
 
-			if column >= 1 and column <= C_WIDTH and row >= 1 and row <= C_HEIGHT and projected_z > depth[row][column] then
+			if
+				column >= 1
+				and column <= C_WIDTH
+				and row >= 1
+				and row <= C_HEIGHT
+				and projected_z > depth[row][column]
+			then
 				depth[row][column] = projected_z
 
 				local normal_x = sample.normal_x * cosine + sample.normal_z * sine
