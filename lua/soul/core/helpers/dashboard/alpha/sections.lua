@@ -1,6 +1,12 @@
 local M = {}
 
-local function build_animation_timeline(animation)
+local function center_line(line, width)
+	local line_width = vim.fn.strdisplaywidth(line)
+	local padding = math.max(0, math.floor((width - line_width) / 2))
+	return string.rep(" ", padding) .. line, padding
+end
+
+local function build_animation_timeline(animation, content_width)
 	local timeline = {}
 	local hold_ticks = math.max(0, animation.hold_ticks or 0)
 
@@ -12,44 +18,52 @@ local function build_animation_timeline(animation)
 		local visible = { "", "", "", "", "", "" }
 		local cursor_line = scene.cursor_line or 4
 		local code_line = scene.lines[3] or ""
+		local centered = {}
+		local offsets = {}
+
+		for _, line_index in ipairs({ 1, 2, 3, 5, 6 }) do
+			centered[line_index], offsets[line_index] =
+				center_line(scene.lines[line_index] or "", content_width)
+		end
 
 		-- Type the heading and both code lines at a steady character rate.
 		for line_index = 1, 3 do
 			local line = scene.lines[line_index] or ""
+			local padding = offsets[line_index]
 
 			for column = 1, #line do
-				visible[line_index] = line:sub(1, column)
+				visible[line_index] = string.rep(" ", padding) .. line:sub(1, column)
 
 				-- Keep the caret directly after the character being typed.
 				if line_index == 3 then
-					visible[cursor_line] = string.rep(" ", column) .. "^"
+					visible[cursor_line] = string.rep(" ", padding + column) .. "^"
 				end
 
 				push(visible)
 			end
 
 			if line == "" then
+				visible[line_index] = centered[line_index]
 				push(visible)
 			end
 		end
 
 		-- Resolve the caret from the actual token instead of a hand-counted
-		-- column, so edits to a code sample cannot silently misalign it.
+		-- column, including the centering offset.
 		local target = scene.cursor_token and code_line:find(scene.cursor_token, 1, true)
 		assert(target, ("dashboard caret token %q was not found in: %s"):format(
 			tostring(scene.cursor_token),
 			code_line
 		))
-		visible[cursor_line] = string.rep(" ", target - 1) .. "^"
+		visible[cursor_line] = string.rep(" ", offsets[3] + target - 1) .. "^"
 		push(visible)
 
-		-- Separate the code sample from its explanation visually.
-		visible[5] = scene.lines[5] or ""
+		visible[5] = centered[5]
 		push(visible)
 
 		local explanation = scene.lines[6] or ""
 		for column = 1, #explanation do
-			visible[6] = explanation:sub(1, column)
+			visible[6] = string.rep(" ", offsets[6]) .. explanation:sub(1, column)
 			push(visible)
 		end
 
@@ -293,13 +307,24 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 	local heading = line:match("^%s*(.-)%s*$")
 	local topic_group = topic_highlights[heading]
 
-	-- Keep the topic color while its title is still being typed.
+	-- A partial heading can match several topics. Only apply a color while
+	-- every matching topic agrees, avoiding arbitrary color changes from pairs().
 	if not topic_group and #heading > 0 and heading:match("^[A-Z ]+$") then
+		local candidate_group
+		local ambiguous = false
+
 		for title, group in pairs(topic_highlights) do
 			if title:sub(1, #heading) == heading then
-				topic_group = group
-				break
+				if candidate_group and candidate_group ~= group then
+					ambiguous = true
+					break
+				end
+				candidate_group = group
 			end
+		end
+
+		if not ambiguous then
+			topic_group = candidate_group
 		end
 	end
 
@@ -569,7 +594,15 @@ function M.build(dashboard)
 	---------------------------------------------------------------------------
 
 	local animation_data = header_data.animation
-	local timeline = build_animation_timeline(animation_data)
+	local logo_width = 0
+	for index = 1, 6 do
+		logo_width = math.max(
+			logo_width,
+			vim.fn.strdisplaywidth(header_data.lines[index] or "")
+		)
+	end
+
+	local timeline = build_animation_timeline(animation_data, logo_width)
 	local animation_step = 1
 
 	local function apply_animation_frame()
