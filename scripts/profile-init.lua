@@ -87,6 +87,17 @@ local function instrument_module(name, module)
 		instrument_config(name .. "[" .. index .. "]", spec)
 	end
 
+	-- Separate Lazy's module load from its setup work. The setup call is
+	-- otherwise included in soul.lazy's exclusive time.
+	if name == "lazy" then
+		local setup = rawget(module, "setup")
+		if type(setup) == "function" then
+			module.setup = function(...)
+				return measure("lazy.setup()", setup, ...)
+			end
+		end
+	end
+
 	-- Dashboard rendering is performed by builder functions after require().
 	if name:match("^soul%.core%.helpers%.dashboard%.") then
 		for key, callback in pairs(module) do
@@ -99,6 +110,16 @@ local function instrument_module(name, module)
 	end
 
 	return module
+end
+
+-- These lookups are cheap in isolation on many systems, but can become
+-- expensive with large PATH environments (notably Windows/WSL). Measure each
+-- function without changing the production configuration or its call sites.
+for _, name in ipairs({ "exepath", "executable", "expand", "stdpath" }) do
+	local original = vim.fn[name]
+	vim.fn[name] = function(...)
+		return measure("vim.fn." .. name .. "()", original, ...)
+	end
 end
 
 _G.require = function(name)
