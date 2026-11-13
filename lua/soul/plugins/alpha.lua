@@ -13,7 +13,6 @@ function M.config()
 
 	require("alpha").setup(dashboard.opts)
 
-
 	state.animation = animation_helper.new({
 		interval = state.animation_data.speed,
 
@@ -23,7 +22,6 @@ function M.config()
 
 		on_tick = function()
 			state.next_animation_frame()
-
 		end,
 
 		redraw = function()
