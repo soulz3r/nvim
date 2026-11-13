@@ -176,8 +176,8 @@ _G.loadfile = function(path, ...)
 		return chunk, err
 	end
 
-	local normalized = path:gsub("\\\\", "/")
-	local prefix = config:gsub("\\\\", "/") .. "/lua/soul/plugins/"
+	local normalized = path:gsub("\\", "/")
+	local prefix = config:gsub("\\", "/") .. "/lua/soul/plugins/"
 	if normalized:sub(1, #prefix) ~= prefix then
 		return chunk, err
 	end
