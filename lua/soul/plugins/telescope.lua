@@ -34,7 +34,10 @@ local M = {
 
 		{
 			"nvim-telescope/telescope-fzf-native.nvim",
-			build = require("soul.core.helpers.fzf_native").build,
+			-- Load build machinery only if Lazy actually runs this callback.
+			build = function(plugin)
+				require("soul.core.helpers.fzf_native").build(plugin)
+			end,
 		},
 
 		"nvim-telescope/telescope-ui-select.nvim",
