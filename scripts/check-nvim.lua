@@ -411,27 +411,23 @@ package.loaded["yap.projects"] = original_yap_projects
 
 local dap_keymaps = require("soul.core.helpers.dap.keymaps")
 local dap_continue_called = false
-dap_keymaps.setup(
-	{
-		repl = { open = function() end },
-		session = function() return nil end,
-	},
-	{
-		elements = { watches = { add = function() end } },
-		toggle = function() end,
-		float_element = function() end,
-	},
-	{ hover = function() end },
-	{
-		start_or_continue = function()
-			dap_continue_called = true
-		end,
-	},
-	{
-		select = function() end,
-		select_executable = function() end,
-	}
-)
+dap_keymaps.setup({
+	repl = { open = function() end },
+	session = function()
+		return nil
+	end,
+}, {
+	elements = { watches = { add = function() end } },
+	toggle = function() end,
+	float_element = function() end,
+}, { hover = function() end }, {
+	start_or_continue = function()
+		dap_continue_called = true
+	end,
+}, {
+	select = function() end,
+	select_executable = function() end,
+})
 
 for _, mapping in ipairs(dap_spec.keys) do
 	if mapping[1] == "<leader>dc" then
