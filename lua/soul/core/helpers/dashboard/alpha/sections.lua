@@ -90,8 +90,14 @@ local function build_animation_timeline(animation, content_width)
 		push(visible)
 
 		local explanation = scene.lines[6] or ""
+		local explanation_padding = math.max(
+			0,
+			math.floor((content_width - vim.fn.strdisplaywidth(explanation)) / 2)
+		)
+		local explanation_indent = string.rep(" ", explanation_padding)
+
 		for column = 1, #explanation do
-			visible[explanation_line] = indent .. explanation:sub(1, column)
+			visible[explanation_line] = explanation_indent .. explanation:sub(1, column)
 			push(visible)
 		end
 
@@ -301,7 +307,8 @@ local explanation_terms = {
 	"stored", "stores", "directives", "run", "before", "compile",
 	"macros", "expand", "build", "free", "releases", "memory", "close",
 	"every", "opened", "file", "masks", "select", "individual", "bits",
-	"pointer", "same",
+	"pointer", "same", "exits", "writes", "stores", "names", "runs", "only",
+	"when", "gives", "back", "are", "selects", "makes", "reads", "value",
 }
 
 local explanation_vocabulary = {}
