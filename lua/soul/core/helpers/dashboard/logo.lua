@@ -133,9 +133,12 @@ local function render_frame(frame, glitch_frame)
 	end
 
 	local glitch_phase = glitch_frame % GLITCH_FRAMES
-	-- A longer burst tears most wordmark rows, then briefly sweeps a scanline.
-	local tearing = glitch_phase <= 5
-	local scanline = glitch_phase == 6
+	-- Glitches combine horizontal tearing, chromatic channel separation,
+	-- block corruption, and a brief scanline before returning to clean art.
+	local tearing = glitch_phase <= 3
+	local chromatic = glitch_phase >= 4 and glitch_phase <= 7
+	local block_noise = glitch_phase == 7
+	local scanline = glitch_phase == 8
 	local lines = {}
 	local ranges = {}
 
@@ -174,6 +177,28 @@ local function render_frame(frame, glitch_frame)
 				local source_column = art_column - shift
 				char = art_chars[source_column] or " "
 				group = char ~= " " and wordmark_group(char) or nil
+
+				-- Split cyan/white color channels into displaced fragments.
+				-- These are temporary overlays; the clean frame keeps its
+				-- original per-glyph highlight mapping.
+				if chromatic and art_row and ((art_column + art_row + glitch_phase) % 9 <= 3) then
+					local ghost_offset = art_row % 2 == 0 and 3 or -3
+					local ghost = art_chars[art_column - ghost_offset]
+					if ghost and ghost ~= " " then
+						char = ghost
+						group = (art_column + glitch_phase) % 2 == 0
+							and "AlphaAqua"
+							or "AlphaYellow"
+					end
+				end
+
+				-- Corrupt a few short slices with displaced block fragments.
+				if block_noise and art_row and ((art_column + art_row * 3) % 13 <= 2) then
+					local blocks = { "░", "▒", "▓", "█" }
+					char = blocks[(art_column + art_row) % #blocks + 1]
+					local colors = { "AlphaGreen", "AlphaAqua", "AlphaTeal", "AlphaYellow" }
+					group = colors[(art_column + glitch_phase) % #colors + 1]
+				end
 
 			end
 
