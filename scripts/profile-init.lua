@@ -117,6 +117,9 @@ local ok, err = pcall(dofile, config .. "/init.lua")
 if not ok then
 	error(err)
 end
+if vim.g.cvim_config_loaded ~= true then
+	error("CVIM init.lua did not finish loading")
+end
 
 vim.api.nvim_create_autocmd("VimEnter", {
 	once = true,
