@@ -12,6 +12,7 @@ M.lines = {
 	"   FIRST PROGRAM",
 	"   int main(void) {",
 	"     return 0;",
+	"   }",
 	"     ^",
 	"   ---------------",
 	"   return exits main",
@@ -38,6 +39,7 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "return",
+			extra_line = "  }",
 			lines = {
 				"  FIRST PROGRAM",
 				"  int main(void) {",
@@ -110,6 +112,7 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "--",
+			extra_line = "  }",
 			lines = {
 				"  CONTROL FLOW",
 				"  if (count > 0) {",
@@ -122,6 +125,7 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "a +",
+			extra_line = "  }",
 			lines = {
 				"  FUNCTIONS",
 				"  int add(int a, int b) {",
@@ -206,6 +210,7 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "#if",
+			extra_line = "  #endif",
 			lines = {
 				"  PREPROCESSOR",
 				"  #include <stdint.h>",
