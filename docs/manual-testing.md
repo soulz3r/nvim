@@ -53,6 +53,9 @@ These checks complement CI. They exercise real plugins and external tools that h
 5. Open a new C file and verify clangd starts again and diagnostics, completion, formatting, and navigation work.
 6. Compare at least five startup samples and record idle CPU/memory before and after. Follow the repeatable procedure in [performance.md](performance.md).
 
+7. From a fresh Neovim process, test the first press of `<leader>fo`, `<leader>pp`, and `<leader>dc`. Each must open its intended Telescope, YAP, or DAP action without requiring a second press.
+8. Run `CVIM_STARTUP_RUNS=10 CVIM_STARTUP_PROFILE=1 bash scripts/check.sh` from the repository root. Confirm the configured benchmark reports that CVIM loaded, then inspect the module profile for expensive `soul.lazy`, plugin config, Alpha sections, and logo build operations. Profiling adds overhead, so compare startup medians from a run without `CVIM_STARTUP_PROFILE=1`.
+
 ## UI and platform smoke tests
 
 - Mini Files: preview, hidden files, directory navigation, working-directory change, destructive-operation confirmation, and synchronization mapping.
