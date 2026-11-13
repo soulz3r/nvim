@@ -3,7 +3,7 @@ local M = {
 	event = "VimEnter",
 
 	-- Set false to hide the animated C tutorial below the logo.
-	code_examples = true,
+	code_examples = false,
 }
 
 function M.config()
