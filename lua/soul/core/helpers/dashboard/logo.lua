@@ -436,7 +436,7 @@ function M.build()
 
 		next_frame = function()
 			rotation_frame = rotation_frame % ROTATION_FRAMES + 1
-			apply_frame()
+			apply_frame(true)
 		end,
 
 		next_wordmark_frame = function()
