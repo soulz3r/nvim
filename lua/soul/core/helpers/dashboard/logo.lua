@@ -165,7 +165,7 @@ function M.build()
 	return {
 		section = section,
 		width = WIDTH,
-		speed = 85,
+		tick_divisor = 2,
 
 		next_frame = function()
 			frame = frame % ROTATION_FRAMES + 1
