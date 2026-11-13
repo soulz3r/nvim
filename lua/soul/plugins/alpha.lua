@@ -12,6 +12,12 @@ local M = {
 }
 
 function M.config()
+	-- Keep this guard even though the Lazy spec has a matching condition:
+	-- dashboard helpers must never load during file or directory startup.
+	if vim.fn.argc() ~= 0 then
+		return
+	end
+
 	local dashboard = require("alpha.themes.dashboard")
 	local sections = require("soul.core.helpers.dashboard.alpha.sections")
 	local animation_helper = require("soul.core.helpers.dashboard.animation")
