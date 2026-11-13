@@ -157,7 +157,7 @@ local function render_frame(frame, glitch_frame)
 		local art_row = row - ART_TOP + 1
 		local art_chars = WORDMARK_CHARS[art_row]
 
-		-- Tear only a short 4-cell fragment on selected rows. The rest of
+		-- Tear a randomly sized fragment at a random position. The rest of
 		-- every line stays exactly where the ASCII artwork placed it.
 		local tear_noise = glitch_noise(art_row, 1, glitch_phase, 1)
 		local tear_start = 3 + (tear_noise % 25)
@@ -199,7 +199,6 @@ local function render_frame(frame, glitch_frame)
 		-- Add a sparse one-cell color ghost beside the original glyph.
 		-- The original character remains intact, keeping the wordmark readable.
 		if chromatic and art_chars and #art_chars > 0 then
-			local ghost_offset = art_row % 2 == 0 and 1 or -1
 			for art_column = 1, #art_chars do
 				local source = art_chars[art_column]
 				local noise = glitch_noise(art_row, art_column, glitch_phase, 3)
