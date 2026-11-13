@@ -642,7 +642,6 @@ local function build_animation_highlights(lines, start_line)
 	return ranges
 end
 
-
 M.build_animation_timeline = build_animation_timeline
 M.build_animation_highlights = build_animation_highlights
 
