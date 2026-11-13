@@ -13,8 +13,8 @@ local function build_animation_timeline(animation, content_width)
 		local cursor_source_line = scene.cursor_source_line or 3
 		local code_line = scene.lines[cursor_source_line] or ""
 		local cursor_line = 4
-		local separator_line = cursor_line + 1
-		local explanation_line = cursor_line + 2
+		local separator_line = scene.extra_line and 6 or 5
+		local explanation_line = separator_line + 1
 		local block_width = 0
 
 		-- Center the tutorial as one block. Every line shares the same left
