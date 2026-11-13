@@ -22,7 +22,7 @@ Expensive features are activated at the earliest event that actually needs them:
 - Treesitter loads on the first file buffer and requests only that filetype's parsers. Opening an empty Neovim session does not start parser installation.
 - Breadcrumbs load when an LSP client attaches.
 - Telescope loads when its command is invoked or another feature explicitly depends on it.
-- YAP loads on the first file buffer or project action. Its last-project restore is handled by the small core module above, so startup does not need to load YAP or Telescope.
+- YAP loads on the first file buffer or project action. Its last-project restore is handled by the small core module above, which reads the project data file directly without loading YAP or Telescope.
 - TODO comments and the folding UI load when a file buffer opens.
 - WhichKey and other presentation features that do not need to exist before the first screen are deferred to `VeryLazy`.
 
