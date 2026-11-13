@@ -25,7 +25,9 @@ function M.config()
 	local existing_vim_enter = {}
 
 	for _, autocmd in ipairs(vim.api.nvim_get_autocmds({ event = "VimEnter" })) do
-		existing_vim_enter[autocmd.id] = true
+		if autocmd.id then
+			existing_vim_enter[autocmd.id] = true
+		end
 	end
 
 	local ok, err = pcall(function()
@@ -49,7 +51,7 @@ function M.config()
 	-- Core owns project restoration. Remove YAP's own VimEnter callback so a
 	-- lazy-loaded YAP instance cannot leave a callback that can never run.
 	for _, autocmd in ipairs(vim.api.nvim_get_autocmds({ event = "VimEnter" })) do
-		if not existing_vim_enter[autocmd.id] then
+		if autocmd.id and not existing_vim_enter[autocmd.id] then
 			pcall(vim.api.nvim_del_autocmd, autocmd.id)
 		end
 	end
