@@ -237,7 +237,8 @@ M.clang = vim.env.CLANG and fn.executable(vim.env.CLANG) == 1 and vim.env.CLANG
 	or "clang"
 
 -- Cheap PATH lookup for Neovim's shell option. Full PowerShell validation stays lazy.
-M.pwsh = vim.env.PWSH and vim.trim(vim.env.PWSH) ~= "" and vim.trim(vim.env.PWSH)
+local configured_powershell = vim.env.PWSH and vim.trim(vim.env.PWSH)
+M.pwsh = configured_powershell and fn.executable(configured_powershell) == 1 and configured_powershell
 	or fn.exepath("pwsh")
 	or "pwsh"
 
