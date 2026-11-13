@@ -2,7 +2,6 @@ local keymap = vim.keymap.set
 local OPTS = require("soul.core.helpers.keymaps").opts
 
 
-
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
@@ -125,7 +124,6 @@ local function show_messages()
 end
 
 keymap("n", "<leader>nm", show_messages, OPTS("Show messages in floating window"))
-
 
 keymap("n", "<leader>X", function()
 	require("soul.core.helpers.c_runner").run()
