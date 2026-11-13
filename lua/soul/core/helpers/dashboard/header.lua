@@ -37,7 +37,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "return",
-			cursor_target = 6,
 			lines = {
 				"  FIRST PROGRAM",
 				"  int main(void) {",
@@ -49,7 +48,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "->",
-			cursor_target = 9,
 			lines = {
 				"  COMPILATION",
 				"  main.c -> main.i",
@@ -61,7 +59,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "puts",
-			cursor_target = 5,
 			lines = {
 				"  OUTPUT",
 				"  #include <stdio.h>",
@@ -73,7 +70,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "double",
-			cursor_target = 6,
 			lines = {
 				"  TYPES",
 				"  int count = 42;",
@@ -85,7 +81,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "MAX",
-			cursor_target = 10,
 			lines = {
 				"  CONSTANTS",
 				"  const int limit = 64;",
@@ -97,7 +92,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "+=",
-			cursor_target = 6,
 			lines = {
 				"  OPERATORS",
 				"  int sum = count + 8;",
@@ -109,7 +103,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "--",
-			cursor_target = 10,
 			lines = {
 				"  CONTROL FLOW",
 				"  if (count > 0) {",
@@ -121,7 +114,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "a +",
-			cursor_target = 12,
 			lines = {
 				"  FUNCTIONS",
 				"  int add(int a, int b) {",
@@ -133,7 +125,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "0",
-			cursor_target = 9,
 			lines = {
 				"  ARRAYS",
 				"  int values[3] = {2, 4, 6};",
@@ -145,7 +136,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "'c'",
-			cursor_target = 13,
 			lines = {
 				"  STRINGS",
 				"  char name[] = \"C lang\";",
@@ -157,7 +147,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "Point",
-			cursor_target = 10,
 			lines = {
 				"  STRUCTURES",
 				"  struct Point { int x, y; };",
@@ -169,7 +158,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "&value",
-			cursor_target = 14,
 			lines = {
 				"  POINTERS",
 				"  int value = 42;",
@@ -181,7 +169,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "*ptr",
-			cursor_target = 14,
 			lines = {
 				"  DEREFERENCE",
 				"  int *ptr = &value;",
@@ -193,7 +180,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "0x10",
-			cursor_target = 15,
 			lines = {
 				"  MEMORY",
 				"  value @ 0x10 = 42",
@@ -205,7 +191,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "#if",
-			cursor_target = 3,
 			lines = {
 				"  PREPROCESSOR",
 				"  #include <stdint.h>",
@@ -217,7 +202,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "SQR",
-			cursor_target = 13,
 			lines = {
 				"  MACROS",
 				"  #define SQR(x) ((x) * (x))",
@@ -229,7 +213,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "free",
-			cursor_target = 10,
 			lines = {
 				"  DYNAMIC MEMORY",
 				"  p = malloc(n * sizeof *p);",
@@ -241,7 +224,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "fclose",
-			cursor_target = 10,
 			lines = {
 				"  FILE I O",
 				"  FILE *f = fopen(path, \"r\");",
@@ -253,7 +235,6 @@ M.animation = {
 		{
 			cursor_line = 4,
 			cursor_token = "<<",
-			cursor_target = 9,
 			lines = {
 				"  BITWISE",
 				"  unsigned flags = 0;",
