@@ -107,6 +107,50 @@ local function add_range(ranges, group, line_number, first, last)
 	end
 end
 
+-- Alpha receives character ranges, so overlapping ranges must be resolved
+-- before conversion. Prefer the narrowest range (the most specific token);
+-- when widths match, the later range wins.
+local function normalize_line_ranges(ranges, line_number, line)
+	local source = ranges[line_number]
+	if not source or #source < 2 then
+		return
+	end
+
+	local normalized = {}
+	local active_group
+	local active_start
+
+	for column = 0, #line - 1 do
+		local best_group
+		local best_width = math.huge
+
+		for _, range in ipairs(source) do
+			local group, first, last = range[1], range[2], range[3]
+			if column >= first and column < last then
+				local width = last - first
+				if width <= best_width then
+					best_group = group
+					best_width = width
+				end
+			end
+		end
+
+		if best_group ~= active_group then
+			if active_group then
+				add_range(normalized, active_group, line_number, active_start, column)
+			end
+			active_group = best_group
+			active_start = best_group and column or nil
+		end
+	end
+
+	if active_group then
+		add_range(normalized, active_group, line_number, active_start, #line)
+	end
+
+	ranges[line_number] = normalized[line_number] or {}
+end
+
 local topic_highlights = {
 	["FIRST PROGRAM"] = "AlphaTopicCompilation",
 	COMPILATION = "AlphaTopicCompilation",
@@ -473,7 +517,9 @@ end
 local function build_animation_highlights(lines, start_line)
 	local ranges = {}
 	for index, line in ipairs(lines) do
-		highlight_animation_line(ranges, start_line + index - 1, line, index)
+		local line_number = start_line + index - 1
+		highlight_animation_line(ranges, line_number, line, index)
+		normalize_line_ranges(ranges, line_number, line)
 	end
 	return ranges
 end
