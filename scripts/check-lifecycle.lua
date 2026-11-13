@@ -146,9 +146,11 @@ vim.fn.writefile({
 }, telescope_path)
 
 assert(project_restore.restore(telescope_path), "Telescope project restore failed")
+local restored_project = vim.fs.normalize(vim.fn.getcwd())
+local expected_project = vim.fs.normalize(telescope_project)
 assert(
-	vim.fs.normalize(vim.fn.getcwd()) == vim.fs.normalize(telescope_project),
-	"project restore did not decode escaped paths or ignore inactive projects"
+	restored_project == expected_project,
+	("project restore chose '%s'; expected '%s'"):format(restored_project, expected_project)
 )
 vim.cmd.cd(vim.fn.fnameescape(original_cwd))
 
