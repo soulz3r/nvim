@@ -218,7 +218,7 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 	local topic_group = topic_highlights[heading]
 
 	-- Keep the topic color while its title is still being typed.
-	if not topic_group and heading:match("^[A-Z ]+$") then
+	if not topic_group and #heading > 0 and heading:match("^[A-Z ]+$") then
 		for title, group in pairs(topic_highlights) do
 			if title:sub(1, #heading) == heading then
 				topic_group = group
