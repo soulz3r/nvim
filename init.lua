@@ -40,13 +40,29 @@ vim.api.nvim_create_autocmd("VimEnter", {
 })
 require("soul.core.neovide")
 
--- Import each plugin-spec directory once instead of rescanning it for
--- every individual file.
-GET("soul.plugins")
-GET("soul.extras")
+-- Load spec modules directly and pass their returned tables to Lazy.
+-- This avoids Lazy's directory discovery and loadfile-based import pass.
+GET("soul.plugins.alpha")
+GET("soul.plugins.breadcrumbs")
+GET("soul.plugins.devicons")
+GET("soul.plugins.gitsigns")
+GET("soul.plugins.lualine")
+GET("soul.plugins.mini")
+GET("soul.plugins.render_md")
+GET("soul.plugins.telescope")
+GET("soul.plugins.toggleterm")
+GET("soul.plugins.treesitter")
+GET("soul.plugins.undotree")
+GET("soul.plugins.whichkey")
+GET("soul.plugins.yap")
 
--- These directories also contain non-spec modules, so keep their imports
--- explicit rather than importing the entire directory.
+GET("soul.extras.colorizer")
+GET("soul.extras.everforest")
+GET("soul.extras.eyeliner")
+GET("soul.extras.tiny_cmdline")
+GET("soul.extras.todo")
+GET("soul.extras.ufo")
+
 GET("soul.lsp.lsp")
 GET("soul.lsp.dap")
 GET("soul.cmp.blink")
