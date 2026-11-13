@@ -1,6 +1,18 @@
 local M = {
 	"soulz3r/yap.nvim",
 	branch = "main",
+	event = { "BufReadPre", "BufNewFile" },
+	keys = {
+		{ "<leader>pp", desc = "Open YAP project picker" },
+		{ "<leader>pr", desc = "Build and run current project" },
+		{ "<leader>pb", desc = "Build current project" },
+		{ "<leader>pc", desc = "Clean current project" },
+		{ "<leader>pB", desc = "Clean and rebuild current project" },
+		{ "<leader>pS", desc = "Select project build script" },
+		{ "<leader>pe", desc = "Select project executable" },
+		{ "<leader>ps", desc = "Stop project process" },
+		{ "<leader>pR", desc = "Rerun last project executable" },
+	},
 	dependencies = {
 		"nvim-telescope/telescope.nvim",
 		"nvim-telescope/telescope-project.nvim",
