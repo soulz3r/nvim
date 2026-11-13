@@ -135,8 +135,9 @@ To identify which Lua modules cost the most, run:
 CVIM_STARTUP_PROFILE=1 bash scripts/check.sh
 ```
 
-The profiler uses a separate startup entrypoint and writes a module report with
-inclusive and exclusive `require()` time. Exclusive time subtracts nested module
-loads, which helps distinguish expensive modules from modules that merely import
-other expensive modules. Profiling adds measurement overhead, so use the normal
+The profiler uses a separate startup entrypoint and writes a report for first-time
+`require()` calls, Lazy plugin configuration callbacks, and dashboard builder
+functions. Inclusive time includes nested work; exclusive time subtracts nested
+module loads and measured calls. This makes expensive setup functions visible even
+when their modules were imported cheaply. Profiling adds measurement overhead, so use the normal
 benchmark without profiling when comparing startup medians.
