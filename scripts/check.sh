@@ -462,7 +462,8 @@ print(f"      Configured CVIM: median {configured_median:.3f} ms "
 print(f"      Clean Neovim:    median {clean_median:.3f} ms "
       f"(min {min(clean):.3f}, max {max(clean):.3f})")
 print(f"      Configuration overhead: {overhead:+.3f} ms ({percent:+.1f}%)")
-print("      CVIM samples: " + ", ".join(f"{value:.3f}" for value in configured))
+print("      CVIM samples:  " + ", ".join(f"{value:.3f}" for value in configured))
+print("      Clean samples: " + ", ".join(f"{value:.3f}" for value in clean))
 PY
 }
 
