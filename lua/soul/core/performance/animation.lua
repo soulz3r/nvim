@@ -82,15 +82,7 @@ function M.report()
 		"",
 		("Samples are capped at %d per operation."):format(SAMPLE_LIMIT),
 		"",
-		("  %-22s %8s %9s %9s %9s %9s %9s"):format(
-			"operation",
-			"samples",
-			"average",
-			"median",
-			"p95",
-			"min",
-			"max"
-		),
+		("  %-22s %8s %9s %9s %9s %9s %9s"):format("operation", "samples", "average", "median", "p95", "min", "max"),
 	}
 
 	for _, row in ipairs(rows) do
