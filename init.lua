@@ -1,8 +1,18 @@
--- The benchmark loads this checkout through -u, which does not guarantee that
--- its directory is part of 'runtimepath' on every platform.
-if vim.env.CVIM_CONFIG and vim.env.CVIM_CONFIG ~= "" then
-	vim.opt.rtp:prepend(vim.env.CVIM_CONFIG)
-end
+-- Resolve the config root from this file itself. Do not depend on the
+-- caller's working directory or environment-variable path conversion.
+local source = debug.getinfo(1, "S").source
+local config_root = vim.fn.fnamemodify(source:sub(2), ":p:h")
+local lua_root = vim.fs.joinpath(config_root, "lua")
+
+vim.opt.rtp:prepend(config_root)
+
+-- Keep Lua module resolution explicit during early startup. This also covers
+-- launchers that provide -u with a path outside the initial runtimepath.
+package.path = table.concat({
+	vim.fs.joinpath(lua_root, "?.lua"),
+	vim.fs.joinpath(lua_root, "?", "init.lua"),
+	package.path,
+}, ";")
 
 vim.g.cvim_start_ns = vim.uv.hrtime()
 
