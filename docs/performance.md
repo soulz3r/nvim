@@ -140,8 +140,13 @@ The profiler uses a separate startup entrypoint and writes its report from a
 scheduled callback after `VimEnter`. Do not add a blocking `vim.wait()` command
 before that event: Neovim processes the startup command queue before dispatching
 `VimEnter`, so waiting there would prevent the profiler from ever completing.
-The report covers first-time `require()` calls, Lazy plugin configuration
-callbacks, and dashboard builder functions. Inclusive time includes nested work; exclusive time subtracts nested
-module loads and measured calls. This makes expensive setup functions visible even
-when their modules were imported cheaply. Profiling adds measurement overhead, so use the normal
+The report covers first-time `require()` calls, Lazy's `setup()` call,
+selected `vim.fn` path lookups (`exepath`, `executable`, `expand`, and
+`stdpath`), Lazy plugin configuration callbacks, and dashboard builder
+functions. This separates the cost of loading Lazy from registering its plugin
+specifications, and shows whether executable discovery or other path lookups
+account for the cost of importing `soul.core.helpers.paths`.
+
+Inclusive time includes nested work; exclusive time subtracts nested module
+loads and measured calls. Profiling adds measurement overhead, so use the normal
 benchmark without profiling when comparing startup medians.
