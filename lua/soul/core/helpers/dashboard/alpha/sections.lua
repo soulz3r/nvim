@@ -23,13 +23,14 @@ local function build_animation_timeline(animation, content_width)
 		))
 
 		local block_width = 0
-		for _, line_index in ipairs({ 1, 2, 3, 5 }) do
+		for line_index = 1, 3 do
 			block_width = math.max(
 				block_width,
-				vim.fn.strdisplaywidth(
-					line_index == 5 and (scene.extra_line or "") or (scene.lines[line_index] or "")
-				)
+				vim.fn.strdisplaywidth(scene.lines[line_index] or "")
 			)
+		end
+		if scene.extra_line then
+			block_width = math.max(block_width, vim.fn.strdisplaywidth(scene.extra_line))
 		end
 
 		local padding = math.max(0, math.floor((content_width - block_width) / 2))
