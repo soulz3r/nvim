@@ -1,5 +1,7 @@
 local M = {}
 
+local horizontal_rule = require("soul.core.helpers.dashboard.horizontal_rule").build
+
 local function build_animation_timeline(animation, content_width)
 	local timeline = {}
 	local hold_ticks = math.max(0, animation.hold_ticks or 0)
@@ -83,7 +85,7 @@ local function build_animation_timeline(animation, content_width)
 			push(visible)
 		end
 
-		visible[6] = indent .. (scene.lines[5] or "")
+		visible[6] = indent .. horizontal_rule(math.max(0, content_width - padding))
 		push(visible)
 
 		local explanation = scene.lines[6] or ""
@@ -605,7 +607,7 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 		return
 	end
 
-	if line:match("^%s*%-+%s*$") then
+	if line:match("^%s*%-+%s*$") or line:match("^%s*─+$") then
 		add_range(ranges, "AlphaCodeSeparator", line_number, 0, #line)
 		return
 	end
