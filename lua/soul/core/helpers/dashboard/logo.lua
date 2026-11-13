@@ -156,29 +156,19 @@ local function build_c_frame(frame)
 		local column = math.floor(CENTER_X + projected_x * 9 + 0.5)
 		local row = math.floor(CENTER_Y - sample.y * 5 + 0.5)
 
-		if
-			column >= 1
-			and column <= C_WIDTH
-			and row >= 1
-			and row <= C_HEIGHT
-			and projected_z > depth[row][column]
-		then
+		if column >= 1 and column <= C_WIDTH and row >= 1 and row <= C_HEIGHT and projected_z > depth[row][column] then
 			depth[row][column] = projected_z
 
 			local normal_x = sample.normal_x * cosine + sample.normal_z * sine
 			local normal_z = -sample.normal_x * sine + sample.normal_z * cosine
-			local diffuse = math.max(
-				0,
-				normal_x * LIGHT_X + sample.normal_y * LIGHT_Y + normal_z * LIGHT_Z
-			)
+			local diffuse = math.max(0, normal_x * LIGHT_X + sample.normal_y * LIGHT_Y + normal_z * LIGHT_Z)
 			local view = math.max(0, normal_z)
 			local specular = view ^ 10
 			local shade = math.min(1, 0.14 + diffuse * 0.72 + specular * 0.42)
 			local glyph_index = math.floor(shade * (#glyphs - 1)) + 1
 
 			pixels[row][column] = glyphs[glyph_index]
-			groups[row][column] =
-				shade > 0.82 and "AlphaAqua" or shade > 0.48 and "AlphaTeal" or "AlphaGreen"
+			groups[row][column] = shade > 0.82 and "AlphaAqua" or shade > 0.48 and "AlphaTeal" or "AlphaGreen"
 		end
 	end
 
