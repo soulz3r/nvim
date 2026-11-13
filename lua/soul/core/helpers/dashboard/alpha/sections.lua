@@ -32,8 +32,8 @@ local function build_animation_timeline(animation, content_width)
 		local padding = math.max(0, math.floor((content_width - block_width) / 2))
 		local indent = string.rep(" ", padding)
 
-		-- Type the heading first, then show the semantic caret before the
-		-- code snippet starts typing. Keep it fixed on its target as code grows.
+		-- Type the heading first, then let the caret travel with the
+		-- typewriter until it reaches the selected token.
 		local heading = scene.lines[1] or ""
 		for column = 1, #heading do
 			visible[1] = indent .. heading:sub(1, column)
@@ -45,17 +45,25 @@ local function build_animation_timeline(animation, content_width)
 			tostring(scene.cursor_token),
 			code_line
 		))
-		local caret_column = padding
-			+ vim.fn.strdisplaywidth(code_line:sub(1, target - 1))
-		visible[cursor_line] = string.rep(" ", caret_column) .. "^"
-		push(visible)
 
-		-- Type both code lines while the caret stays visible at its target.
 		for line_index = 2, 3 do
 			local line = scene.lines[line_index] or ""
 
+			if line_index == cursor_source_line then
+				visible[cursor_line] = string.rep(" ", padding) .. "^"
+				push(visible)
+			end
+
 			for column = 1, #line do
 				visible[line_index] = indent .. line:sub(1, column)
+
+				if line_index == cursor_source_line then
+					local caret_offset = math.min(column, target - 1)
+					local caret_column = padding
+						+ vim.fn.strdisplaywidth(line:sub(1, caret_offset))
+					visible[cursor_line] = string.rep(" ", caret_column) .. "^"
+				end
+
 				push(visible)
 			end
 
