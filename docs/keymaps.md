@@ -2,6 +2,26 @@
 
 The leader key is Space. This is a compact reference for the most-used mappings; WhichKey provides descriptions for many additional mappings.
 
+## Dashboard
+
+The Alpha dashboard exposes these single-key actions when it is open:
+
+| Key | Action |
+|---|---|
+| `f` | Find files |
+| `e` | Open Mini Files in the current working directory |
+| `n` | Create a new empty buffer and enter Insert mode |
+| `p` | Open the YAP project picker |
+| `r` | Find recent files |
+| `t` | Search text with live grep |
+| `m` | Browse marks |
+| `c` | Open the configuration's `init.lua` |
+| `l` | Open Lazy.nvim |
+| `h` | Run `:checkhealth` |
+| `q` | Quit Neovim |
+
+See [dashboard.md](dashboard.md) for the animated header, optional C tutorial, and dashboard configuration.
+
 ## Navigation and editing
 
 | Mapping | Action |
