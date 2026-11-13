@@ -393,6 +393,20 @@ benchmark_startup() {
 
   mkdir -p "$benchmark_dir"
 
+  # The configured sample must load this checkout, not whatever happens to be
+  # installed as the user's default config. CI runners without Lazy installed
+  # cannot boot the full config, so report that limitation instead of silently
+  # benchmarking a clean Neovim process.
+  local data_dir lazy_entry
+  data_dir="$(nvim --headless --clean -u NONE -c 'lua io.write(vim.fn.stdpath("data"))' -c 'qa!' 2>/dev/null)"
+  lazy_entry="$data_dir/lazy/lazy.nvim/lua/lazy/init.lua"
+
+  if [[ ! -f "$lazy_entry" ]]; then
+    print_status "CVIM startup benchmark (Lazy unavailable)" "SKIP"
+    printf '      Install the CVIM plugin dependencies to benchmark the configured checkout.\\n'
+    return
+  fi
+
   for mode in configured clean; do
     : >"$benchmark_dir/$mode.times"
 
@@ -406,7 +420,9 @@ benchmark_startup() {
           break
         fi
       else
-        if ! nvim --headless --startuptime "$log" -c 'qa!' >"$output" 2>&1; then
+        if ! CVIM_CONFIG="$ROOT" nvim --headless --startuptime "$log" \\
+          --cmd 'lua vim.opt.rtp:prepend(vim.env.CVIM_CONFIG)' \\
+          -u "$ROOT/init.lua" -c 'qa!' >"$output" 2>&1; then
           failed=1
           break
         fi
