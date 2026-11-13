@@ -9,8 +9,7 @@ local function build_animation_timeline(animation, content_width)
 	end
 
 	for _, scene in ipairs(animation.scenes) do
-		local visible = { "", "", "", "", "", "" }
-		local cursor_line = scene.cursor_line or 4
+		local visible = { "", "", "", "", "", "", "" }
 		local code_line = scene.lines[3] or ""
 		local block_width = 0
 
@@ -22,20 +21,22 @@ local function build_animation_timeline(animation, content_width)
 				vim.fn.strdisplaywidth(scene.lines[line_index] or "")
 			)
 		end
+		if scene.extra_line then
+			block_width = math.max(block_width, vim.fn.strdisplaywidth(scene.extra_line))
+		end
 
 		local padding = math.max(0, math.floor((content_width - block_width) / 2))
 		local indent = string.rep(" ", padding)
 
-		-- Type the heading and both code lines at a steady character rate.
+		-- Type the heading and code lines, including an optional completion line.
 		for line_index = 1, 3 do
 			local line = scene.lines[line_index] or ""
 
 			for column = 1, #line do
 				visible[line_index] = indent .. line:sub(1, column)
 
-				-- Keep the caret directly after the character being typed.
 				if line_index == 3 then
-					visible[cursor_line] = string.rep(" ", padding + column) .. "^"
+					visible[5] = string.rep(" ", padding + column) .. "^"
 				end
 
 				push(visible)
@@ -47,22 +48,28 @@ local function build_animation_timeline(animation, content_width)
 			end
 		end
 
-		-- Resolve the caret from the actual token instead of a hand-counted
-		-- column, including the shared block offset.
+		if scene.extra_line then
+			for column = 1, #scene.extra_line do
+				visible[4] = indent .. scene.extra_line:sub(1, column)
+				push(visible)
+			end
+		end
+
+		-- Resolve the caret from the actual token in the second code line.
 		local target = scene.cursor_token and code_line:find(scene.cursor_token, 1, true)
 		assert(target, ("dashboard caret token %q was not found in: %s"):format(
 			tostring(scene.cursor_token),
 			code_line
 		))
-		visible[cursor_line] = string.rep(" ", padding + target - 1) .. "^"
+		visible[5] = string.rep(" ", padding + target - 1) .. "^"
 		push(visible)
 
-		visible[5] = indent .. (scene.lines[5] or "")
+		visible[6] = indent .. (scene.lines[5] or "")
 		push(visible)
 
 		local explanation = scene.lines[6] or ""
 		for column = 1, #explanation do
-			visible[6] = indent .. explanation:sub(1, column)
+			visible[7] = indent .. explanation:sub(1, column)
 			push(visible)
 		end
 
@@ -457,17 +464,17 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 		return
 	end
 
-	if line_index == 2 or line_index == 3 then
+	if line_index == 2 or line_index == 3 or line_index == 4 then
 		highlight_c_code(ranges, line_number, line)
 		return
 	end
 
-	if line_index == 5 then
+	if line_index == 6 then
 		add_range(ranges, "AlphaCodeSeparator", line_number, 0, #line)
 		return
 	end
 
-	if line_index == 6 then
+	if line_index == 7 then
 		highlight_message(ranges, line_number, line)
 	end
 end
@@ -628,7 +635,7 @@ function M.build(dashboard)
 		local frame = timeline[animation_step]
 		local start_line = animation_data.start_line
 
-		for index = 1, 6 do
+		for index = 1, 7 do
 			dashboard.section.header.val[start_line + index - 1] = frame[index] or ""
 		end
 
