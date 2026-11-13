@@ -426,11 +426,11 @@ function M.build()
 					glitch_state.interference = false
 					-- Leave a noticeable quiet interval after every event.
 					-- These are wordmark updates, not raw timer milliseconds.
-					glitch_cooldown = random_int(27) + 26
+					glitch_cooldown = random_int(11) + 7
 				end
 			elseif glitch_cooldown > 0 then
 				glitch_cooldown = glitch_cooldown - 1
-			elseif random_int(100) <= 40 then
+			elseif random_int(100) <= 65 then
 				local kind = random_int(7)
 				glitch_state.tearing = kind == 1 or kind == 5 or kind == 6 or kind == 7
 				glitch_state.chromatic = kind == 2 or kind == 5 or kind == 6
@@ -453,7 +453,7 @@ function M.build()
 			else
 				-- A missed trigger also waits before trying again, rather than
 				-- rolling for a new event on every single animation update.
-				glitch_cooldown = random_int(8) + 7
+				glitch_cooldown = random_int(4) + 2
 			end
 
 			apply_frame()
