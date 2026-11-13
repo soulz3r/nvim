@@ -18,6 +18,69 @@ local started_at = vim.uv.hrtime()
 local original_require = require
 local stack = {}
 local records = {}
+local unpack_values = table.unpack or unpack
+
+local function record_time(name, elapsed, child_ms)
+	local record = records[name]
+	if not record then
+		record = { calls = 0, inclusive_ms = 0, exclusive_ms = 0 }
+		records[name] = record
+	end
+
+	record.calls = record.calls + 1
+	record.inclusive_ms = record.inclusive_ms + elapsed
+	record.exclusive_ms = record.exclusive_ms + math.max(0, elapsed - child_ms)
+end
+
+local function measure(name, callback, ...)
+	local parent = stack[#stack]
+	local frame = { child_ms = 0 }
+	stack[#stack + 1] = frame
+
+	local started = vim.uv.hrtime()
+	local result = { pcall(callback, ...) }
+	local elapsed = (vim.uv.hrtime() - started) / 1e6
+
+	stack[#stack] = nil
+	if parent then
+		parent.child_ms = parent.child_ms + elapsed
+	end
+
+	record_time(name, elapsed, frame.child_ms)
+
+	if not result[1] then
+		error(result[2], 0)
+	end
+
+	return unpack_values(result, 2, #result)
+end
+
+local function instrument_module(name, module)
+	if type(module) ~= "table" then
+		return module
+	end
+
+	-- Lazy plugin setup runs after its specification module is imported.
+	if name:match("^soul%.plugins%.") and type(module.config) == "function" then
+		local callback = module.config
+		module.config = function(...)
+			return measure(name .. ".config()", callback, ...)
+		end
+	end
+
+	-- Dashboard rendering is performed by builder functions after require().
+	if name:match("^soul%.core%.helpers%.dashboard%.") then
+		for key, callback in pairs(module) do
+			if type(callback) == "function" then
+				module[key] = function(...)
+					return measure(name .. "." .. key .. "()", callback, ...)
+				end
+			end
+		end
+	end
+
+	return module
+end
 
 _G.require = function(name)
 	if type(name) ~= "string" or package.loaded[name] ~= nil then
@@ -25,10 +88,7 @@ _G.require = function(name)
 	end
 
 	local parent = stack[#stack]
-	local frame = {
-		name = name,
-		child_ms = 0,
-	}
+	local frame = { child_ms = 0 }
 	stack[#stack + 1] = frame
 
 	local started = vim.uv.hrtime()
@@ -40,25 +100,13 @@ _G.require = function(name)
 		parent.child_ms = parent.child_ms + elapsed
 	end
 
-	local record = records[name]
-	if not record then
-		record = {
-			calls = 0,
-			inclusive_ms = 0,
-			exclusive_ms = 0,
-		}
-		records[name] = record
-	end
-
-	record.calls = record.calls + 1
-	record.inclusive_ms = record.inclusive_ms + elapsed
-	record.exclusive_ms = record.exclusive_ms + math.max(0, elapsed - frame.child_ms)
+	record_time(name, elapsed, frame.child_ms)
 
 	if not ok then
 		error(result, 0)
 	end
 
-	return result
+	return instrument_module(name, result)
 end
 
 local ok, err = pcall(dofile, config .. "/init.lua")
@@ -87,9 +135,10 @@ vim.api.nvim_create_autocmd("VimEnter", {
 			local lines = {
 				"CVIM STARTUP MODULE PROFILE",
 				("Elapsed through VimEnter: %.3f ms"):format((vim.uv.hrtime() - started_at) / 1e6),
-				"Times are require() costs; exclusive time subtracts nested module loads.",
+				"Includes first require() costs and measured setup/build callbacks.",
+				"Exclusive time subtracts nested module loads and measured calls.",
 				"",
-				"exclusive_ms\tinclusive_ms\tcalls\tmodule",
+				"exclusive_ms\tinclusive_ms\tcalls\toperation",
 			}
 
 			for _, row in ipairs(rows) do
