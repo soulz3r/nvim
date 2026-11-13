@@ -85,7 +85,11 @@ local function build_animation_timeline(animation, content_width)
 			push(visible)
 		end
 
-		visible[6] = indent .. horizontal_rule(block_width)
+		local code_indent = vim.fn.strdisplaywidth((scene.lines[2] or ""):match("^%s*"))
+		local rule_indent = string.rep(" ", padding + code_indent)
+		local rule_width = math.max(0, block_width - code_indent)
+
+		visible[6] = rule_indent .. horizontal_rule(rule_width)
 		push(visible)
 
 		local explanation = scene.lines[6] or ""
