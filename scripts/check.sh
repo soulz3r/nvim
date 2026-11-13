@@ -328,6 +328,12 @@ compatibility_checks() {
     return 1
   fi
 
+  if ! grep -q 'vim.g.cvim_config_loaded = true' init.lua \
+    || ! grep -q 'vim.g.cvim_config_loaded == true' scripts/check.sh; then
+    echo "The configured startup benchmark must verify that this checkout loaded."
+    return 1
+  fi
+
   if ! grep -q 'CVIM_PROFILE_OUTPUT' scripts/profile-init.lua; then
     echo "The optional module profiler must write a machine-readable report."
     return 1
@@ -465,7 +471,7 @@ benchmark_startup() {
       else
         if ! CVIM_CONFIG="$config_path" nvim --headless --startuptime "$log" \
           --cmd 'lua vim.opt.rtp:prepend(vim.env.CVIM_CONFIG)' \
-          -u "$ROOT/init.lua" -c 'qa!' >"$output" 2>&1; then
+          -u "$ROOT/init.lua" -c 'lua assert(vim.g.cvim_config_loaded == true, "CVIM config did not load")' -c 'qa!' >"$output" 2>&1; then
           failed=1
           break
         fi
