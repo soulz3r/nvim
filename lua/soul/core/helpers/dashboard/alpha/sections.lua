@@ -726,9 +726,11 @@ function M.build(dashboard)
 
 		local ranges = vim.deepcopy(static_byte_highlights)
 
-		-- Alpha expects a contiguous per-line highlight table. Keep the blank
-		-- tagline separator (line 8) so ipairs does not stop before the animation.
-		for line_number = 1, start_line - 1 do
+		-- Alpha walks per-line highlight entries with ipairs. Every header row
+		-- must therefore exist, even when that row has no ranges in this frame.
+		-- During typing, early rows are often empty while later rows already
+		-- contain highlights; a nil entry would make Alpha stop at that point.
+		for line_number = 1, start_line + 6 do
 			ranges[line_number] = ranges[line_number] or {}
 		end
 
