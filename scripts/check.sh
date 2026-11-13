@@ -329,7 +329,8 @@ compatibility_checks() {
   fi
 
   if ! grep -q 'vim.g.cvim_config_loaded = true' init.lua \
-    || ! grep -q 'vim.g.cvim_config_loaded == true' scripts/check.sh; then
+    || ! grep -q 'vim.g.cvim_alpha_ready = true' lua/soul/plugins/alpha.lua \
+    || ! grep -q 'vim.g.cvim_config_loaded ~= true or vim.g.cvim_alpha_ready ~= true' scripts/check.sh; then
     echo "The configured startup benchmark must verify that this checkout loaded."
     return 1
   fi
@@ -446,6 +447,7 @@ benchmark_startup() {
   data_dir="$(nvim --headless --clean -u NONE -c 'lua io.write(vim.fn.stdpath("data"))' -c 'qa!' 2>/dev/null)"
   data_dir="$(to_shell_path "$data_dir")"
   lazy_entry="$data_dir/lazy/lazy.nvim/lua/lazy/init.lua"
+  alpha_entry="$data_dir/lazy/alpha-nvim/lua/alpha/init.lua"
 
   local config_path
   config_path="$(to_native_path "$ROOT")"
@@ -453,6 +455,12 @@ benchmark_startup() {
   if [[ ! -f "$lazy_entry" ]]; then
     print_status "CVIM startup benchmark (Lazy unavailable)" "SKIP"
     printf '      Install the CVIM plugin dependencies to benchmark the configured checkout.\n'
+    return
+  fi
+  
+  if [[ ! -f "$alpha_entry" ]]; then
+    print_status "CVIM startup benchmark (Alpha unavailable)" "SKIP"
+    printf '      Install alpha-nvim to benchmark the first usable dashboard screen.\n'
     return
   fi
 
@@ -471,7 +479,7 @@ benchmark_startup() {
       else
         if ! CVIM_CONFIG="$config_path" nvim --headless --startuptime "$log" \
           --cmd 'lua vim.opt.rtp:prepend(vim.env.CVIM_CONFIG)' \
-          -u "$ROOT/init.lua" -c 'lua if vim.g.cvim_config_loaded ~= true then vim.cmd.cquit() end' -c 'qa!' >"$output" 2>&1; then
+          -u "$ROOT/init.lua" -c 'lua if vim.g.cvim_config_loaded ~= true or vim.g.cvim_alpha_ready ~= true then vim.cmd.cquit() end' -c 'qa!' >"$output" 2>&1; then
           failed=1
           break
         fi
@@ -542,6 +550,11 @@ profile_startup() {
 
   if [[ ! -f "$lazy_entry" ]]; then
     print_status "CVIM module profile (Lazy unavailable)" "SKIP"
+    return
+  fi
+  
+  if [[ ! -f "$alpha_entry" ]]; then
+    print_status "CVIM module profile (Alpha unavailable)" "SKIP"
     return
   fi
 
