@@ -14,7 +14,7 @@ function M.config()
 		cpp = { "cpp" },
 		lua = { "lua" },
 		vim = { "vim" },
-		help = { "vimdoc" },
+		["help"] = { "vimdoc" },
 		bash = { "bash" },
 		json = { "json" },
 		yaml = { "yaml" },
@@ -29,6 +29,8 @@ function M.config()
 	treesitter.setup({
 		install_dir = vim.fn.stdpath("data") .. "/site",
 	})
+
+	vim.treesitter.language.register("vimdoc", "help")
 
 	local function set_window_folds(buf)
 		if not started[buf] or not vim.api.nvim_buf_is_valid(buf) then
@@ -49,45 +51,47 @@ function M.config()
 		end
 		requested[filetype] = true
 
-		local install_ok, task = pcall(treesitter.install, parsers)
+		local install_ok, install_task = pcall(treesitter.install, parsers)
 		if not install_ok then
 			requested[filetype] = nil
 			vim.notify(
-				("Could not install Treesitter parsers for %s: %s"):format(filetype, tostring(task)),
+				("Could not install Treesitter parsers for %s: %s"):format(filetype, tostring(install_task)),
 				vim.log.levels.WARN,
 				{ title = "Treesitter" }
 			)
 			return
 		end
 
-		local await_ok, await_error = pcall(task.await, task, function(err)
-			if err then
-				requested[filetype] = nil
-				vim.notify(
-					("Treesitter parser installation failed for %s: %s"):format(filetype, tostring(err)),
-					vim.log.levels.WARN,
-					{ title = "Treesitter" }
-				)
-				return
-			end
+		local await_ok, await_error = pcall(function()
+			install_task:await(function(err)
+				if err then
+					requested[filetype] = nil
+					vim.notify(
+						("Treesitter parser installation failed for %s: %s"):format(filetype, tostring(err)),
+						vim.log.levels.WARN,
+						{ title = "Treesitter" }
+					)
+					return
+				end
 
-			-- More than one buffer may have opened while the parsers were being
-			-- installed. Start every still-loaded buffer of this filetype.
-			for _, target in ipairs(vim.api.nvim_list_bufs()) do
-				if
-					vim.api.nvim_buf_is_valid(target)
-					and vim.api.nvim_buf_is_loaded(target)
-					and vim.bo[target].filetype == filetype
-				then
-					if not started[target] then
-						local start_ok = pcall(vim.treesitter.start, target)
-						if start_ok then
-							started[target] = true
-							set_window_folds(target)
+				-- More than one buffer may have opened while the parsers were being
+				-- installed. Start every still-loaded buffer of this filetype.
+				for _, target in ipairs(vim.api.nvim_list_bufs()) do
+					if
+						vim.api.nvim_buf_is_valid(target)
+						and vim.api.nvim_buf_is_loaded(target)
+						and vim.bo[target].filetype == filetype
+					then
+						if not started[target] then
+							local start_ok = pcall(vim.treesitter.start, target)
+							if start_ok then
+								started[target] = true
+								set_window_folds(target)
+							end
 						end
 					end
 				end
-			end
+			end)
 		end)
 
 		if not await_ok then
