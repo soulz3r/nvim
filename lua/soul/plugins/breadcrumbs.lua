@@ -1,5 +1,6 @@
 local M = {
 	"LunarVim/breadcrumbs.nvim",
+	event = "LspAttach",
 	dependencies = {
 		"neovim/nvim-lspconfig",
 		"SmiteshP/nvim-navic",
