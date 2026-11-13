@@ -448,7 +448,7 @@ benchmark_startup() {
   data_dir="$(nvim --headless --clean -u NONE -c 'lua io.write(vim.fn.stdpath("data"))' -c 'qa!' 2>/dev/null)"
   data_dir="$(to_shell_path "$data_dir")"
   lazy_entry="$data_dir/lazy/lazy.nvim/lua/lazy/init.lua"
-  alpha_entry="$data_dir/lazy/alpha-nvim/lua/alpha/init.lua"
+  alpha_entry="$data_dir/lazy/alpha-nvim/lua/alpha.lua"
 
   local config_path
   config_path="$(to_native_path "$ROOT")"
@@ -568,7 +568,7 @@ profile_startup() {
   data_dir="$(nvim --headless --clean -u NONE -c 'lua io.write(vim.fn.stdpath("data"))' -c 'qa!' 2>/dev/null)"
   data_dir="$(to_shell_path "$data_dir")"
   lazy_entry="$data_dir/lazy/lazy.nvim/lua/lazy/init.lua"
-  alpha_entry="$data_dir/lazy/alpha-nvim/lua/alpha/init.lua"
+  alpha_entry="$data_dir/lazy/alpha-nvim/lua/alpha.lua"
 
   if [[ ! -f "$lazy_entry" ]]; then
     print_status "CVIM module profile (Lazy unavailable)" "SKIP"
