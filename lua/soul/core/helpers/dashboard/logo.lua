@@ -26,7 +26,14 @@ local WORDMARK = {
 	"███████████████████████████████████",
 }
 
-local GLITCH_GLYPHS = { "░", "▒", "▓", "█", "▄", "▀", "▐", "▌", "╱", "╲" }
+local GLITCH_FRAMES = 32
+local CYBER_COLORS = {
+	"AlphaAqua",
+	"AlphaTeal",
+	"AlphaPurple",
+	"AlphaRed",
+}
+
 local glyphs = { ".", ":", "-", "=", "+", "*", "#", "%", "@" }
 
 local function split_chars(value)
@@ -56,16 +63,20 @@ local function create_grid(width, height, value)
 	return grid
 end
 
-local function wordmark_group(char)
+local function wordmark_group(row, column, char)
+	-- Cool cyan through violet into hot magenta, rather than the old
+	-- unrelated Everforest yellow/green flicker.
+	local color_index = math.floor((column + row * 2) / 8) % #CYBER_COLORS + 1
+
 	if char == "█" or char == "▓" then
-		return "AlphaTeal"
+		return CYBER_COLORS[color_index]
 	elseif char == "▒" or char == "▄" or char == "▀" or char == "▐" or char == "▌" then
-		return "AlphaAqua"
+		return CYBER_COLORS[(color_index % #CYBER_COLORS) + 1]
 	elseif char == "░" then
-		return "AlphaGreen"
+		return "AlphaPurple"
 	end
 
-	return "AlphaYellow"
+	return "AlphaAqua"
 end
 
 local function render_frame(frame, glitch_frame)
@@ -134,8 +145,13 @@ local function render_frame(frame, glitch_frame)
 	end
 
 	local glitch_phase = glitch_frame % GLITCH_FRAMES
-	local glitch_active = glitch_phase == 0 or glitch_phase == 1
-	local tear_active = glitch_phase == 0
+	-- Keep the artwork clean most of the time. Short, deliberate bursts feel
+	-- like a signal breaking through, not random characters being replaced.
+	local burst = glitch_phase <= 3
+	local tear = glitch_phase == 0 or glitch_phase == 1
+	local rgb_split = glitch_phase == 0
+	local scan_row = glitch_phase == 2 and 1 + (glitch_frame * 3) % #WORDMARK or nil
+	local flicker = glitch_phase == 3
 	local lines = {}
 	local ranges = {}
 
@@ -159,24 +175,104 @@ local function render_frame(frame, glitch_frame)
 			local art_chars = WORDMARK_CHARS[art_row]
 
 			if art_chars and art_column >= 1 and art_column <= #art_chars then
-				local row_tear = tear_active and (art_row == 2 or art_row == 6 or art_row == 9)
-				local shift = row_tear and (art_row % 2 == 0 and 1 or -1) or 0
+				local tear_row = tear and (art_row == 2 or art_row == 5 or art_row == 8)
+				local shift = tear_row and (art_row % 2 == 0 and 2 or -2) or 0
 				local source_column = art_column - shift
-
 				local art_char = art_chars[source_column] or " "
-				if glitch_active and art_char ~= " "
-					and (art_row * 7 + art_column * 11 + glitch_phase * 5) % 19 == 0
-				then
-					art_char = GLITCH_GLYPHS[
-						((art_row * 3 + art_column * 5 + glitch_phase) % #GLITCH_GLYPHS) + 1
-					]
-					group = (art_column + art_row) % 2 == 0 and "AlphaYellow" or "AlphaGreen"
+				local color_column = math.max(1, math.min(#art_chars, source_column))
+
+				-- RGB split: colored afterimages sit one cell off the real glyphs.
+				-- They are restricted to selected slices so the silhouette stays readable.
+				if rgb_split and art_char ~= " " and art_column % 5 == 0 then
+					group = "AlphaRed"
 				else
-					group = art_char ~= " " and wordmark_group(art_char) or nil
+					group = art_char ~= " " and wordmark_group(art_row, color_column, art_char) or nil
+				end
+
+				if scan_row == art_row and art_char ~= " " then
+					group = "AlphaPurple"
+				elseif flicker and art_char ~= " " then
+					group = "AlphaRed"
 				end
 
 				char = art_char
 			end
+
+			cells[column] = char
+
+			if group ~= active_group then
+				if active_group then
+					line_ranges[#line_ranges + 1] = {
+						active_group,
+						range_start - 1,
+						column - 1,
+					}
+				end
+				active_group = group
+				range_start = group and column or nil
+			end
+		end
+
+		-- A tiny cyan/magenta offset on the burst frame creates a chromatic edge.
+		-- It only fills existing whitespace and never overwrites the original art.
+		if rgb_split then
+			local art_row = row - ART_TOP + 1
+			local art_chars = WORDMARK_CHARS[art_row]
+			if art_chars then
+				for column = 1, #art_chars do
+					local char = art_chars[column]
+					local target = ART_START + column - 2
+					if char ~= " " and target >= 1 and target <= WIDTH and cells[target] == " " then
+						cells[target] = char
+						line_ranges[#line_ranges + 1] = {
+							"AlphaPurple",
+							target - 1,
+							target,
+						}
+					end
+				end
+			end
+		end
+
+		-- The scanline is a thin neon sweep across the full wordmark.
+		if scan_row == row - ART_TOP + 1 then
+			local scan_column = ART_START + ((glitch_frame * 7) % #WORDMARK_CHARS[scan_row])
+			if scan_column >= 1 and scan_column <= WIDTH then
+				cells[scan_column] = "╱"
+				line_ranges[#line_ranges + 1] = {
+					"AlphaAqua",
+					scan_column - 1,
+					scan_column,
+				}
+			end
+		end
+
+		if flicker and row >= ART_TOP and row < ART_TOP + #WORDMARK then
+			for column = ART_START, math.min(WIDTH, ART_START + #WORDMARK_CHARS[row - ART_TOP + 1] - 1) do
+				if cells[column] ~= " " then
+					line_ranges[#line_ranges + 1] = { "AlphaRed", column - 1, column }
+				end
+			end
+		end
+
+		if active_group then
+			line_ranges[#line_ranges + 1] = {
+				active_group,
+				range_start - 1,
+				WIDTH,
+			}
+		end
+
+		lines[row] = table.concat(cells)
+
+		-- Alpha detects multiline highlights from the first row's first range.
+		-- Keep the nested highlight shape valid even when the top row is blank.
+		if row == 1 and #line_ranges == 0 then
+			line_ranges[1] = { "Normal", 0, 0 }
+		end
+
+		ranges[row] = line_ranges
+	end
 
 			if row == HEIGHT then
 				local tagline_column = column - TAGLINE_START + 1
@@ -235,7 +331,7 @@ function M.build()
 	}
 
 	local rotation_frame = 1
-	local glitch_frame = 2
+	local glitch_frame = 8
 
 	local function apply_frame()
 		local lines, character_ranges = render_frame(rotation_frame, glitch_frame)
