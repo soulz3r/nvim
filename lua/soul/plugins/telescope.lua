@@ -2,6 +2,7 @@ local OPTS = require("soul.core.helpers.keymaps").opts
 
 local M = {
 	"nvim-telescope/telescope.nvim",
+	cmd = "Telescope",
 
 	dependencies = {
 		"nvim-lua/plenary.nvim",
