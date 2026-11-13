@@ -10,6 +10,8 @@ local function build_animation_timeline(animation)
 
 	for _, scene in ipairs(animation.scenes) do
 		local visible = { "", "", "", "", "" }
+		local cursor_line = scene.cursor_line or 4
+		local code_line = scene.lines[3] or ""
 
 		-- Type the heading and both code lines at a steady character rate.
 		for line_index = 1, 3 do
@@ -18,10 +20,9 @@ local function build_animation_timeline(animation)
 			for column = 1, #line do
 				visible[line_index] = line:sub(1, column)
 
-				-- While the second code line is being typed, keep the caret
-				-- attached to its current insertion point.
+				-- Keep the caret directly after the character being typed.
 				if line_index == 3 then
-					visible[scene.cursor_line or 4] = string.rep(" ", column) .. "^"
+					visible[cursor_line] = string.rep(" ", column) .. "^"
 				end
 
 				push(visible)
@@ -32,11 +33,13 @@ local function build_animation_timeline(animation)
 			end
 		end
 
-		-- Once the code is complete, move the caret to the exact token
-		-- this scene explains, then type the explanation beneath it.
-		local cursor_line = scene.cursor_line or 4
-		local cursor_target = math.max(1, scene.cursor_target or 1)
-		visible[cursor_line] = string.rep(" ", cursor_target - 1) .. "^"
+		-- Resolve the caret from the actual token instead of a hand-counted
+		-- column, so edits to a code sample cannot silently misalign it.
+		local target = scene.cursor_token and code_line:find(scene.cursor_token, 1, true)
+		if not target then
+			target = math.max(1, scene.cursor_target or 1)
+		end
+		visible[cursor_line] = string.rep(" ", target - 1) .. "^"
 		push(visible)
 
 		local explanation = scene.lines[5] or ""
@@ -343,7 +346,7 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 		return
 	end
 
-	if line:find("[;{}()=]") or line:match("^%s*%a+%s+[%w_*]+%s*[;=]") then
+	if line_index == 2 or line_index == 3 then
 		highlight_c_code(ranges, line_number, line)
 		return
 	end
