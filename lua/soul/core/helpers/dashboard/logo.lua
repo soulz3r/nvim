@@ -4,14 +4,16 @@ local WIDTH = 66
 local HEIGHT = 15
 local C_WIDTH = 25
 local C_HEIGHT = 13
-local CENTER_X = 13
+local CENTER_X = 11
 local CENTER_Y = 7
 local ROTATION_FRAMES = 72
 local ART_START = 29
 local ART_TOP = 3
 local GLITCH_FRAMES = 20
 local TAGLINE = "C, with a better editor."
+local TAGLINE_RULE = " ──────────"
 local TAGLINE_START = math.floor((WIDTH - #TAGLINE) / 2) + 1
+local TAGLINE_RULE_START = TAGLINE_START + #TAGLINE
 
 local WORDMARK = {
 	"               ▄▄▄                 ",
@@ -216,6 +218,13 @@ local function render_frame(frame, glitch_frame)
 				local target = TAGLINE_START + column - 1
 				cells[target] = TAGLINE:sub(column, column)
 				cell_groups[target] = "AlphaYellow"
+			end
+
+			-- A short rule follows the tagline without changing its alignment.
+			for column = 1, #TAGLINE_RULE do
+				local target = TAGLINE_RULE_START + column - 1
+				cells[target] = TAGLINE_RULE:sub(column, column)
+				cell_groups[target] = "AlphaTeal"
 			end
 		end
 
