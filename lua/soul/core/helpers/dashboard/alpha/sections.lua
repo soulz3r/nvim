@@ -398,6 +398,139 @@ local explanation_roles = {
 	["build"] = "AlphaCodeStage",
 	["individual"] = "AlphaCodeConstant",
 	["true"] = "AlphaCodeConstant",
+
+	-- Core language and compilation vocabulary.
+	["program"] = "AlphaCodeStage",
+	["source"] = "AlphaCodeFile",
+	["file"] = "AlphaCodeFile",
+	["files"] = "AlphaCodeFile",
+	["preprocessor"] = "AlphaCodePreprocessor",
+	["compile"] = "AlphaCodeStage",
+	["compiled"] = "AlphaCodeStage",
+	["compilation"] = "AlphaCodeStage",
+	["translation"] = "AlphaCodeStage",
+	["object"] = "AlphaCodeIdentifier",
+	["executable"] = "AlphaCodeStage",
+	["binary"] = "AlphaCodeNumber",
+	["assembly"] = "AlphaCodeStage",
+	["output"] = "AlphaCodeString",
+
+	-- Types, values, and data layout.
+	["type"] = "AlphaCodeType",
+	["types"] = "AlphaCodeType",
+	["integer"] = "AlphaCodeType",
+	["integers"] = "AlphaCodeType",
+	["float"] = "AlphaCodeType",
+	["floating"] = "AlphaCodeType",
+	["decimal"] = "AlphaCodeNumber",
+	["number"] = "AlphaCodeNumber",
+	["numbers"] = "AlphaCodeNumber",
+	["character"] = "AlphaCodeString",
+	["characters"] = "AlphaCodeString",
+	["array"] = "AlphaCodeType",
+	["arrays"] = "AlphaCodeType",
+	["string"] = "AlphaCodeString",
+	["strings"] = "AlphaCodeString",
+	["struct"] = "AlphaCodeType",
+	["structs"] = "AlphaCodeType",
+	["structure"] = "AlphaCodeType",
+	["structures"] = "AlphaCodeType",
+	["field"] = "AlphaCodeIdentifier",
+	["fields"] = "AlphaCodeIdentifier",
+	["member"] = "AlphaCodeIdentifier",
+	["members"] = "AlphaCodeIdentifier",
+	["variable"] = "AlphaCodeIdentifier",
+	["variables"] = "AlphaCodeIdentifier",
+	["identifier"] = "AlphaCodeIdentifier",
+	["identifiers"] = "AlphaCodeIdentifier",
+	["size"] = "AlphaCodeNumber",
+	["length"] = "AlphaCodeNumber",
+	["index"] = "AlphaCodeNumber",
+	["zero"] = "AlphaCodeNumber",
+	["first"] = "AlphaCodeConstant",
+	["item"] = "AlphaCodeIdentifier",
+	["items"] = "AlphaCodeIdentifier",
+
+	-- Memory and pointer vocabulary.
+	["memory"] = "AlphaTopicPointers",
+	["pointer"] = "AlphaCodeType",
+	["pointers"] = "AlphaCodeType",
+	["address"] = "AlphaCodeOperator",
+	["addresses"] = "AlphaCodeOperator",
+	["dereference"] = "AlphaCodeOperator",
+	["dereferences"] = "AlphaCodeOperator",
+	["allocate"] = "AlphaCodeFunction",
+	["allocates"] = "AlphaCodeFunction",
+	["allocation"] = "AlphaCodeFunction",
+	["allocated"] = "AlphaCodeFunction",
+	["release"] = "AlphaCodeFunction",
+	["releases"] = "AlphaCodeFunction",
+	["free"] = "AlphaCodeFunction",
+	["malloc"] = "AlphaCodeFunction",
+	["heap"] = "AlphaTopicPointers",
+	["stack"] = "AlphaTopicPointers",
+	["dynamic"] = "AlphaTopicPointers",
+	["static"] = "AlphaCodeStorage",
+
+	-- Control flow, operators, and behavior.
+	["condition"] = "AlphaCodeKeyword",
+	["conditions"] = "AlphaCodeKeyword",
+	["loop"] = "AlphaCodeKeyword",
+	["loops"] = "AlphaCodeKeyword",
+	["iteration"] = "AlphaCodeKeyword",
+	["iterations"] = "AlphaCodeKeyword",
+	["branch"] = "AlphaCodeKeyword",
+	["branches"] = "AlphaCodeKeyword",
+	["operator"] = "AlphaCodeOperator",
+	["operators"] = "AlphaCodeOperator",
+	["expression"] = "AlphaCodeOperator",
+	["expressions"] = "AlphaCodeOperator",
+	["operation"] = "AlphaCodeOperator",
+	["operations"] = "AlphaCodeOperator",
+	["increment"] = "AlphaCodeOperator",
+	["decrement"] = "AlphaCodeOperator",
+	["assign"] = "AlphaCodeOperator",
+	["assigns"] = "AlphaCodeOperator",
+	["assignment"] = "AlphaCodeOperator",
+	["updates"] = "AlphaCodeOperator",
+	["selects"] = "AlphaCodeOperator",
+	["checks"] = "AlphaCodeKeyword",
+	["runs"] = "AlphaCodeFunction",
+	["exits"] = "AlphaCodeKeyword",
+	["sends"] = "AlphaCodeFunction",
+	["returns"] = "AlphaCodeKeyword",
+	["reads"] = "AlphaCodeFunction",
+	["writes"] = "AlphaCodeFunction",
+	["stores"] = "AlphaCodeFunction",
+	["opens"] = "AlphaCodeFunction",
+	["closes"] = "AlphaCodeFunction",
+	["opened"] = "AlphaCodeFunction",
+	["close"] = "AlphaCodeFunction",
+	["gives"] = "AlphaCodeOperator",
+	["groups"] = "AlphaCodeType",
+	["contains"] = "AlphaCodeIdentifier",
+	["represents"] = "AlphaCodeIdentifier",
+	["represents"] = "AlphaCodeIdentifier",
+
+	-- Constants, macros, and bitwise concepts.
+	["constant"] = "AlphaCodeConstant",
+	["constants"] = "AlphaCodeConstant",
+	["literal"] = "AlphaCodeConstant",
+	["literals"] = "AlphaCodeConstant",
+	["macro"] = "AlphaCodeMacro",
+	["macros"] = "AlphaCodeMacro",
+	["directive"] = "AlphaCodePreprocessor",
+	["directives"] = "AlphaCodePreprocessor",
+	["defined"] = "AlphaCodePreprocessor",
+	["bit"] = "AlphaCodeNumber",
+	["bits"] = "AlphaCodeNumber",
+	["mask"] = "AlphaCodeConstant",
+	["masks"] = "AlphaCodeConstant",
+	["binary"] = "AlphaCodeNumber",
+	["hexadecimal"] = "AlphaCodeNumber",
+	["decimal"] = "AlphaCodeNumber",
+	["true"] = "AlphaCodeConstant",
+	["false"] = "AlphaCodeConstant",
 }
 
 local function explanation_role(word, is_final_word)
@@ -410,17 +543,36 @@ local function explanation_role(word, is_final_word)
 		return nil
 	end
 
-	local matched_group
+	local priority = {
+		"AlphaCodeKeyword",
+		"AlphaCodePreprocessor",
+		"AlphaCodeMacro",
+		"AlphaCodeType",
+		"AlphaCodeFunction",
+		"AlphaCodeConstant",
+		"AlphaCodeNumber",
+		"AlphaCodeOperator",
+		"AlphaCodeString",
+		"AlphaCodeIdentifier",
+		"AlphaCodeFile",
+		"AlphaCodeStage",
+		"AlphaTopicPointers",
+	}
+	local matched_groups = {}
+
 	for term, group in pairs(explanation_roles) do
 		if term:sub(1, #word) == word then
-			if matched_group and matched_group ~= group then
-				return nil
-			end
-			matched_group = group
+			matched_groups[group] = true
 		end
 	end
 
-	return matched_group
+	for _, group in ipairs(priority) do
+		if matched_groups[group] then
+			return group
+		end
+	end
+
+	return nil
 end
 
 local function highlight_message(ranges, line_number, line)
@@ -726,10 +878,9 @@ function M.build(dashboard)
 
 		local ranges = vim.deepcopy(static_byte_highlights)
 
-		-- Alpha walks per-line highlight entries with ipairs. Every header row
-		-- must therefore exist, even when that row has no ranges in this frame.
-		-- During typing, early rows are often empty while later rows already
-		-- contain highlights; a nil entry would make Alpha stop at that point.
+		-- Keep a complete row shape for predictable multi-line highlight handling.
+		-- Alpha currently iterates these rows with pairs(), so empty rows are
+		-- valid and do not truncate later highlight entries.
 		for line_number = 1, start_line + 6 do
 			ranges[line_number] = ranges[line_number] or {}
 		end
