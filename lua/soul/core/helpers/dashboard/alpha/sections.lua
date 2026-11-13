@@ -9,7 +9,7 @@ local function build_animation_timeline(animation)
 	end
 
 	for _, scene in ipairs(animation.scenes) do
-		local visible = { "", "", "", "", "" }
+		local visible = { "", "", "", "", "", "" }
 		local cursor_line = scene.cursor_line or 4
 		local code_line = scene.lines[3] or ""
 
@@ -43,9 +43,13 @@ local function build_animation_timeline(animation)
 		visible[cursor_line] = string.rep(" ", target - 1) .. "^"
 		push(visible)
 
-		local explanation = scene.lines[5] or ""
+		-- Separate the code sample from its explanation visually.
+		visible[5] = scene.lines[5] or ""
+		push(visible)
+
+		local explanation = scene.lines[6] or ""
 		for column = 1, #explanation do
-			visible[5] = explanation:sub(1, column)
+			visible[6] = explanation:sub(1, column)
 			push(visible)
 		end
 
@@ -233,7 +237,15 @@ local function highlight_message(ranges, line_number, line)
 
 	add_range(ranges, "AlphaMessage", line_number, 0, #line)
 
-	for _, term in ipairs({ "&value", "*ptr", "address", "stored value", "pointer", "same value" }) do
+	for _, term in ipairs({
+		"&value", "*ptr", "return", "main", "compiler", "translates", "stages",
+		"puts", "stdout", "double", "decimals", "enum", "integer", "constants",
+		"+=", "updates", "existing value", "if", "true", "sends", "value",
+		"index", "zero", "first item", "character arrays", "structs", "fields",
+		"address", "reads", "pointed value", "stores", "directives", "before compile",
+		"macros", "expand", "build", "free", "releases", "memory", "close",
+		"opened file", "masks", "bits", "pointer", "same value",
+	}) do
 		local first = 1
 		while true do
 			local start_index, end_index = line:find(term, first, true)
@@ -376,6 +388,11 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 	end
 
 	if line_index == 5 then
+		add_range(ranges, "AlphaCodeSeparator", line_number, 0, #line)
+		return
+	end
+
+	if line_index == 6 then
 		highlight_message(ranges, line_number, line)
 	end
 end
@@ -528,7 +545,7 @@ function M.build(dashboard)
 		local frame = timeline[animation_step]
 		local start_line = animation_data.start_line
 
-		for index = 1, 5 do
+		for index = 1, 6 do
 			dashboard.section.header.val[start_line + index - 1] = frame[index] or ""
 		end
 
