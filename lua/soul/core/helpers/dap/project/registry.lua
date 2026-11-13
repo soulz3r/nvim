@@ -101,6 +101,9 @@ function M.setup(path, override)
 
 		local entry = type(data[key]) == "table" and data[key] or { root = root, created_at = os.time() }
 		for name, value in pairs(fields) do
+			if name == "executable" and type(value) == "string" then
+				value = path.normalize(value)
+			end
 			entry[name] = value
 		end
 
