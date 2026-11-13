@@ -187,9 +187,19 @@ local function render_frame(frame, glitch_state)
 		-- Tear a randomly sized fragment at a random position. The rest of
 		-- every line stays exactly where the ASCII artwork placed it.
 		local tear_noise = glitch_noise(art_row, 1, glitch_seed, 1)
-		local tear_row = glitch_seed % #WORDMARK_CHARS + 1
-		local tear_start = 1 + (math.floor(glitch_seed / 29) % 12)
-		local tear_end = math.min(#(art_chars or {}), tear_start + 10 + (math.floor(glitch_seed / 43) % 17))
+		local tear_row = glitch_seed % (#WORDMARK_CHARS - 1) + 1
+		local tear_chars = WORDMARK_CHARS[tear_row]
+		local first_glyph = 1
+		local last_glyph = #tear_chars
+		while first_glyph <= last_glyph and tear_chars[first_glyph] == " " do
+			first_glyph = first_glyph + 1
+		end
+		while last_glyph >= first_glyph and tear_chars[last_glyph] == " " do
+			last_glyph = last_glyph - 1
+		end
+		local tear_span = math.max(1, last_glyph - first_glyph - 10)
+		local tear_start = first_glyph + (math.floor(glitch_seed / 29) % tear_span)
+		local tear_end = math.min(last_glyph, tear_start + 10 + (math.floor(glitch_seed / 43) % 17))
 		local tear_shift = (math.floor(glitch_seed / 113) % 17) - 8
 		local burst_row = math.floor(glitch_seed / 7) % #WORDMARK_CHARS + 1
 		local burst_start = 1 + (math.floor(glitch_seed / 17) % 20)
