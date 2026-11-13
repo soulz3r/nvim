@@ -42,6 +42,12 @@ The headless integration test exercises the custom DAP plugin configuration with
 
 GitHub Actions runs full-repository StyLua validation and static checks on Ubuntu. A separate compatibility matrix runs the headless repository/integration checks against Neovim stable and nightly on Windows and Linux, plus stable Neovim on macOS. Windows CI prints the PowerShell resolver duration when profiling is enabled. Its smoke test checks invalid inherited `PWSH` and `PSHOME` hints, rejection of Windows PowerShell 5.1 when PowerShell 7 is available, and a PowerShell 7 executable path with spaces. The resolver checks an inherited `PSHOME` executable before running slower WindowsApps and AppX discovery probes.
 
+## Performance and resource lifecycle
+
+The resource lifecycle implementation lives under `lua/soul/core/lifecycle/`. Use cleanup scopes for timers and autocmd groups, and give every long-lived resource an explicit owner and teardown path. Alpha is a startup-only surface; its animation timer and dashboard state are released when the Alpha buffer is left. LSP clients are shut down gracefully only after their final loaded attached buffer is detached and the idle timeout expires. Hidden buffers intentionally keep their server alive.
+
+Run `nvim --headless --clean -u NONE -l scripts/check-lifecycle.lua` to test cleanup-scope behavior and idle LSP shutdown/cancellation with fake clients. The repository check runs this test automatically. See [performance.md](performance.md) for manual lifecycle checks and repeatable startup/idle benchmarks.
+
 ## DAP module boundaries
 
 The DAP plugin specification in `lua/soul/lsp/dap.lua` is the composition layer. Keep it limited to loading the dependencies and wiring their setup functions. Focused helpers own independent concerns:
