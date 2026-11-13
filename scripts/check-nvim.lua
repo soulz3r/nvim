@@ -376,6 +376,21 @@ end
 assert(fzf_spec and type(fzf_spec.build) == "function", "Telescope fzf-native needs a platform-aware build function")
 
 local yap_spec = require("soul.plugins.yap")
+local dap_spec = require("soul.lsp.dap")
+
+for _, spec in ipairs({ yap_spec, dap_spec }) do
+	for _, mapping in ipairs(spec.keys or {}) do
+		assert(
+			type(mapping[2]) == "function",
+			("Lazy mapping %s must have a real first-use handler"):format(mapping[1])
+		)
+	end
+end
+
+assert(
+	vim.fn.readfile(root .. "/lua/soul/plugins/yap.lua")[1] ~= nil,
+	"YAP plugin specification must be readable"
+)
 assert(
 	vim.tbl_contains(yap_spec.dependencies or {}, "nvim-telescope/telescope-project.nvim"),
 	"YAP must declare the Telescope project extension"
