@@ -230,6 +230,25 @@ local function highlight_preprocessor(ranges, line_number, line)
 	end
 end
 
+local explanation_terms = {
+	"&value", "*ptr", "return", "main", "compiler", "translates", "stages",
+	"puts", "stdout", "double", "decimals", "enum", "integer", "constants",
+	"+=", "updates", "existing", "value", "if", "true", "sends",
+	"index", "zero", "first", "item", "strings", "character", "arrays",
+	"structs", "group", "related", "fields", "address", "reads", "pointed",
+	"stored", "stores", "directives", "run", "before", "compile",
+	"macros", "expand", "build", "free", "releases", "memory", "close",
+	"every", "opened", "file", "masks", "select", "individual", "bits",
+	"pointer", "same",
+}
+
+local explanation_vocabulary = {}
+for _, term in ipairs(explanation_terms) do
+	if term:match("^[%a_]+$") then
+		explanation_vocabulary[term] = true
+	end
+end
+
 local function highlight_message(ranges, line_number, line)
 	if #line == 0 then
 		return
@@ -237,15 +256,29 @@ local function highlight_message(ranges, line_number, line)
 
 	add_range(ranges, "AlphaMessage", line_number, 0, #line)
 
-	for _, term in ipairs({
-		"&value", "*ptr", "return", "main", "compiler", "translates", "stages",
-		"puts", "stdout", "double", "decimals", "enum", "integer", "constants",
-		"+=", "updates", "existing value", "if", "true", "sends", "value",
-		"index", "zero", "first item", "character arrays", "structs", "fields",
-		"address", "reads", "pointed value", "stores", "directives", "before compile",
-		"macros", "expand", "build", "free", "releases", "memory", "close",
-		"opened file", "masks", "bits", "pointer", "same value",
-	}) do
+	-- Color recognized words as soon as their prefixes become unambiguous.
+	-- Earlier complete words stay highlighted while the current word types in.
+	for first, word in line:gmatch("()([%a_]+)") do
+		local last = first + #word - 1
+		local is_current_word = last == #line
+		local matched = explanation_vocabulary[word]
+
+		if not matched and is_current_word then
+			for known in pairs(explanation_vocabulary) do
+				if #word >= 2 and known:sub(1, #word) == word then
+					matched = true
+					break
+				end
+			end
+		end
+
+		if matched then
+			add_range(ranges, "AlphaMessageKey", line_number, first - 1, last)
+		end
+	end
+
+	-- Keep pointer expressions and symbolic operators readable as single concepts.
+	for _, term in ipairs({ "&value", "*ptr", "+=" }) do
 		local first = 1
 		while true do
 			local start_index, end_index = line:find(term, first, true)
@@ -257,7 +290,6 @@ local function highlight_message(ranges, line_number, line)
 		end
 	end
 end
-
 local function highlight_animation_line(ranges, line_number, line, line_index)
 	local heading = line:match("^%s*(.-)%s*$")
 	local topic_group = topic_highlights[heading]
