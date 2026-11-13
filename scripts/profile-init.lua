@@ -59,17 +59,27 @@ local function measure(name, callback, ...)
 	return unpack_values(result, 2, result.n)
 end
 
+local function instrument_config(name, spec)
+	if type(spec) ~= "table" or type(spec.config) ~= "function" then
+		return
+	end
+
+	local callback = spec.config
+	spec.config = function(...)
+		return measure(name .. ".config()", callback, ...)
+	end
+end
+
 local function instrument_module(name, module)
 	if type(module) ~= "table" then
 		return module
 	end
 
-	-- Lazy plugin setup runs after its specification module is imported.
-	if name:match("^soul%.plugins%.") and type(module.config) == "function" then
-		local callback = module.config
-		module.config = function(...)
-			return measure(name .. ".config()", callback, ...)
-		end
+	-- Lazy accepts both single plugin specs and lists of plugin specs.
+	-- Measure either form, including the LSP and Mini spec arrays.
+	instrument_config(name, module)
+	for index, spec in ipairs(module) do
+		instrument_config(name .. "[" .. index .. "]", spec)
 	end
 
 	-- Dashboard rendering is performed by builder functions after require().
