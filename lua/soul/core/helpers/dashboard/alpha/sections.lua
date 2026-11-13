@@ -607,7 +607,7 @@ local function highlight_animation_line(ranges, line_number, line, line_index)
 		return
 	end
 
-	if line:match("^%s*%-+%s*$") or line:match("^%s*─+$") then
+	if line:match("^%s*%-+%s*$") or line:find("─", 1, true) then
 		add_range(ranges, "AlphaCodeSeparator", line_number, 0, #line)
 		return
 	end
