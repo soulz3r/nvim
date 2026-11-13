@@ -140,54 +140,48 @@ end
 -- Build the finite set of C rotations once per dashboard instance. The
 -- resulting grids are read-only: wordmark updates only composite these cached
 -- pixels and never repeat the surface projection, lighting, or depth tests.
-local function build_c_frames()
-	local frames = {}
+local function build_c_frame(frame)
+	local rotation = (frame - 1) * (2 * math.pi / ROTATION_FRAMES)
+	local cosine = math.cos(rotation)
+	local sine = math.sin(rotation)
+	local depth = create_grid(C_WIDTH, C_HEIGHT, -math.huge)
+	local pixels = create_grid(C_WIDTH, C_HEIGHT, " ")
+	local groups = create_grid(C_WIDTH, C_HEIGHT, nil)
 
-	for frame = 1, ROTATION_FRAMES do
-		local rotation = (frame - 1) * (2 * math.pi / ROTATION_FRAMES)
-		local cosine = math.cos(rotation)
-		local sine = math.sin(rotation)
-		local depth = create_grid(C_WIDTH, C_HEIGHT, -math.huge)
-		local pixels = create_grid(C_WIDTH, C_HEIGHT, " ")
-		local groups = create_grid(C_WIDTH, C_HEIGHT, nil)
+	-- Project one rotation from the immutable surface samples. Frames are
+	-- cached on demand so startup only pays for the first visible rotation.
+	for _, sample in ipairs(SURFACE_SAMPLES) do
+		local projected_x = sample.x * cosine + sample.z * sine
+		local projected_z = -sample.x * sine + sample.z * cosine
+		local column = math.floor(CENTER_X + projected_x * 9 + 0.5)
+		local row = math.floor(CENTER_Y - sample.y * 5 + 0.5)
 
-		-- Project the cached C-shaped surface. Diffuse light defines the form;
-		-- a narrow specular highlight gives the tube a clearer metallic edge.
-		for _, sample in ipairs(SURFACE_SAMPLES) do
-			local projected_x = sample.x * cosine + sample.z * sine
-			local projected_z = -sample.x * sine + sample.z * cosine
-			local column = math.floor(CENTER_X + projected_x * 9 + 0.5)
-			local row = math.floor(CENTER_Y - sample.y * 5 + 0.5)
+		if
+			column >= 1
+			and column <= C_WIDTH
+			and row >= 1
+			and row <= C_HEIGHT
+			and projected_z > depth[row][column]
+		then
+			depth[row][column] = projected_z
 
-			if
-				column >= 1
-				and column <= C_WIDTH
-				and row >= 1
-				and row <= C_HEIGHT
-				and projected_z > depth[row][column]
-			then
-				depth[row][column] = projected_z
+			local normal_x = sample.normal_x * cosine + sample.normal_z * sine
+			local normal_z = -sample.normal_x * sine + sample.normal_z * cosine
+			local diffuse = math.max(0, normal_x * LIGHT_X + sample.normal_y * LIGHT_Y + normal_z * LIGHT_Z)
+			local view = math.max(0, normal_z)
+			local specular = view ^ 10
+			local shade = math.min(1, 0.14 + diffuse * 0.72 + specular * 0.42)
+			local glyph_index = math.floor(shade * (#glyphs - 1)) + 1
 
-				local normal_x = sample.normal_x * cosine + sample.normal_z * sine
-				local normal_z = -sample.normal_x * sine + sample.normal_z * cosine
-				local diffuse = math.max(0, normal_x * LIGHT_X + sample.normal_y * LIGHT_Y + normal_z * LIGHT_Z)
-				local view = math.max(0, normal_z)
-				local specular = view ^ 10
-				local shade = math.min(1, 0.14 + diffuse * 0.72 + specular * 0.42)
-				local glyph_index = math.floor(shade * (#glyphs - 1)) + 1
-
-				pixels[row][column] = glyphs[glyph_index]
-				groups[row][column] = shade > 0.82 and "AlphaAqua" or shade > 0.48 and "AlphaTeal" or "AlphaGreen"
-			end
+			pixels[row][column] = glyphs[glyph_index]
+			groups[row][column] = shade > 0.82 and "AlphaAqua" or shade > 0.48 and "AlphaTeal" or "AlphaGreen"
 		end
-
-		frames[frame] = {
-			pixels = pixels,
-			groups = groups,
-		}
 	end
 
-	return frames
+	return {
+		pixels = pixels,
+		groups = groups,
+	}
 end
 
 local function render_frame(c_frame, glitch_state)
@@ -388,10 +382,29 @@ function M.build()
 		},
 	}
 
-	-- The C has only 96 possible rotations. Pay the projection cost once when
-	-- the dashboard is built, then keep these immutable frames for its lifetime.
-	local c_frames = build_c_frames()
+	-- Cache the finite rotation set on demand. The first frame is ready for
+	-- Alpha's initial render; later frames are projected during animation ticks.
+	local c_frames = {}
 	local rotation_frame = 1
+
+	local function get_c_frame(frame)
+		local cached = c_frames[frame]
+		if cached then
+			return cached
+		end
+
+		local started = FrameProfile.enabled and vim.uv.hrtime() or nil
+		cached = build_c_frame(frame)
+		c_frames[frame] = cached
+
+		if started then
+			FrameProfile.record("logo.project", (vim.uv.hrtime() - started) / 1e6)
+		end
+
+		return cached
+	end
+
+	get_c_frame(rotation_frame)
 	local random_state = math.floor((vim.uv and vim.uv.hrtime and vim.uv.hrtime() or os.time()) % 2147483646) + 1
 	local function random_int(maximum)
 		random_state = (random_state * 48271) % 2147483647
@@ -413,7 +426,7 @@ function M.build()
 
 	local function apply_frame(profile_frame)
 		local started = profile_frame and FrameProfile.enabled and vim.uv.hrtime() or nil
-		local lines, character_ranges = render_frame(c_frames[rotation_frame], glitch_state)
+		local lines, character_ranges = render_frame(get_c_frame(rotation_frame), glitch_state)
 		if started then
 			FrameProfile.record("logo.render", (vim.uv.hrtime() - started) / 1e6)
 		end
