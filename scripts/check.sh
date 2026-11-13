@@ -426,7 +426,7 @@ fi
 benchmark_startup() {
   local runs="${CVIM_STARTUP_RUNS:-5}"
   local benchmark_dir="$TEMP_DIR/startup-benchmark"
-  local mode log output elapsed
+  local mode log output elapsed ready_output ready_elapsed
   local failed=0
   local run
 
@@ -438,6 +438,7 @@ benchmark_startup() {
   fi
 
   mkdir -p "$benchmark_dir"
+  : >"$benchmark_dir/configured-ready.times"
 
   # The configured sample must load this checkout, not whatever happens to be
   # installed as the user's default config. CI runners without Lazy installed
@@ -477,9 +478,16 @@ benchmark_startup() {
           break
         fi
       else
-        if ! CVIM_CONFIG="$config_path" nvim --headless --startuptime "$log" \
+        ready_output="$benchmark_dir/configured-ready-$run.ms"
+        local ready_output_native
+        ready_output_native="$(to_native_path "$ready_output")"
+
+        if ! CVIM_CONFIG="$config_path" CVIM_BENCHMARK_READY_OUTPUT="$ready_output_native" nvim --headless --startuptime "$log" \
           --cmd 'lua vim.opt.rtp:prepend(vim.env.CVIM_CONFIG)' \
-          -u "$ROOT/init.lua" -c 'lua if vim.g.cvim_config_loaded ~= true or vim.g.cvim_alpha_ready ~= true then vim.cmd.cquit() end' -c 'qa!' >"$output" 2>&1; then
+          -u "$ROOT/init.lua" \
+          -c 'lua if vim.g.cvim_config_loaded ~= true or vim.g.cvim_alpha_ready ~= true then vim.cmd.cquit() end' \
+          -c 'lua vim.fn.writefile({ tostring(vim.g.cvim_alpha_ready_ms or -1) }, vim.env.CVIM_BENCHMARK_READY_OUTPUT)' \
+          -c 'qa!' >"$output" 2>&1; then
           failed=1
           break
         fi
@@ -494,6 +502,16 @@ benchmark_startup() {
       fi
 
       printf '%s\n' "$elapsed" >>"$benchmark_dir/$mode.times"
+      if [[ "$mode" == "configured" ]]; then
+        ready_elapsed="$(cat "$ready_output" 2>/dev/null || true)"
+        if [[ ! "$ready_elapsed" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+          failed=1
+          printf '      Could not read the Alpha-ready timing from %s\n' "$ready_output"
+          sed 's/^/      /' "$output"
+          break
+        fi
+        printf '%s\n' "$ready_elapsed" >>"$benchmark_dir/configured-ready.times"
+      fi
     done
 
     if (( failed != 0 )); then
@@ -525,6 +543,7 @@ def read_samples(name):
 
 configured = read_samples("configured")
 clean = read_samples("clean")
+alpha_ready = read_samples("configured-ready")
 configured_median = statistics.median(configured)
 clean_median = statistics.median(clean)
 overhead = configured_median - clean_median
@@ -535,6 +554,8 @@ print(f"      Configured CVIM: median {configured_median:.3f} ms "
 print(f"      Clean Neovim:    median {clean_median:.3f} ms "
       f"(min {min(clean):.3f}, max {max(clean):.3f})")
 print(f"      Configuration overhead: {overhead:+.3f} ms ({percent:+.1f}%)")
+print(f"      CVIM init to Alpha ready: median {statistics.median(alpha_ready):.3f} ms "
+      f"(min {min(alpha_ready):.3f}, max {max(alpha_ready):.3f})")
 print("      CVIM samples:  " + ", ".join(f"{value:.3f}" for value in configured))
 print("      Clean samples: " + ", ".join(f"{value:.3f}" for value in clean))
 PY
