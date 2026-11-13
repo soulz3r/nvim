@@ -322,8 +322,9 @@ compatibility_checks() {
     return 1
   fi
 
-  if ! grep -q 'build = require("soul.core.helpers.fzf_native").build' lua/soul/plugins/telescope.lua; then
-    echo "Telescope fzf-native must use the extracted platform-aware build helper."
+  if ! grep -Eq 'build = require\("soul.core.helpers.fzf_native"\)\.build|build = function\(plugin\)' lua/soul/plugins/telescope.lua \
+    || ! grep -q 'require("soul.core.helpers.fzf_native").build(plugin)' lua/soul/plugins/telescope.lua; then
+    echo "Telescope fzf-native must lazily invoke the extracted platform-aware build helper."
     return 1
   fi
 
