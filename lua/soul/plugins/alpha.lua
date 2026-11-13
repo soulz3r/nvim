@@ -13,6 +13,8 @@ function M.config()
 
 	require("alpha").setup(dashboard.opts)
 
+	local logo_tick = 0
+
 	state.animation = animation_helper.new({
 		interval = state.animation_data.speed,
 
@@ -20,7 +22,14 @@ function M.config()
 			return vim.bo.filetype == "alpha"
 		end,
 
-		on_tick = state.next_animation_frame,
+		on_tick = function()
+			state.next_animation_frame()
+
+			logo_tick = logo_tick + 1
+			if logo_tick % state.logo.tick_divisor == 0 then
+				state.logo.next_frame()
+			end
+		end,
 
 		redraw = function()
 			vim.cmd.AlphaRedraw()
