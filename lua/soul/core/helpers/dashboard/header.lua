@@ -168,7 +168,7 @@ M.animation = {
 				"  #include <stdint.h>",
 				"  #if defined(DEBUG)",
 				"  #define SIZE 256",
-				"  #endif runs before compilation",
+				"  #endif ends the condition",
 			},
 		},
 		{
@@ -177,7 +177,7 @@ M.animation = {
 				"  #define SQR(x) ((x) * (x))",
 				"  int area = SQR(side);",
 				"  #undef SQR",
-				"  macros expand before compiling",
+				"  macros expand before build",
 			},
 		},
 		{
