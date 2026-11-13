@@ -22,7 +22,6 @@ local function run_probe(command, deadline)
 		return
 	end
 
-	local process_helper = require("soul.core.helpers.process")
 	local result = process_helper.wait(child, math.min(remaining, probe_timeout_ms))
 	if not result then
 		return nil
@@ -220,7 +219,6 @@ local function find_powershell()
 	-- Let the shell report a clear error if PowerShell 7 is unavailable.
 	return "pwsh"
 end
-
 
 local resolved
 
