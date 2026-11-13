@@ -1,6 +1,21 @@
 local M = {
 	"nvim-treesitter/nvim-treesitter",
-	event = { "BufReadPre", "BufNewFile" },
+	ft = {
+		"c",
+		"cpp",
+		"lua",
+		"vim",
+		"help",
+		"bash",
+		"json",
+		"yaml",
+		"markdown",
+		"python",
+		"rust",
+		"toml",
+		"javascript",
+		"typescript",
+	},
 	build = ":TSUpdate",
 }
 
