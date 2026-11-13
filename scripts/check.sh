@@ -637,6 +637,15 @@ if command -v nvim >/dev/null 2>&1; then
   run_check "DAP registry migration" 0 nvim --headless --clean -u NONE -l scripts/check-dap-registry.lua
   run_check "DAP executable discovery" 0 nvim --headless --clean -u NONE -l scripts/check-dap-executables.lua
   run_check "DAP path and project resolution" 1 nvim --headless --clean -u NONE -l scripts/check-dap-project.lua
+
+  # A real file-backed startup must not load Alpha or any CVIM dashboard helper.
+  printf 'return true\\n' >"$TEMP_DIR/cvim-file-startup.lua"
+  run_check "Dashboard skipped on file startup" 0 bash -c '
+    CVIM_BENCHMARK=1 CVIM_CONFIG="$1" nvim --headless -u "$1/init.lua" "$2" \\
+      -c '\''lua local prefix = "soul.core.helpers.dashboard."; for name in pairs(package.loaded) do assert(name:sub(1, #prefix) ~= prefix, "dashboard module loaded during file startup: " .. name) end; assert(package.loaded["alpha"] == nil, "Alpha loaded during file startup"); assert(package.loaded["alpha.themes.dashboard"] == nil, "Alpha dashboard theme loaded during file startup")'\'' \\
+      -c '\''qa!'\''
+  ' _ "$ROOT" "$TEMP_DIR/cvim-file-startup.lua"
+
   benchmark_startup
   profile_startup
 elif [[ "${REQUIRE_NVIM:-0}" == "1" ]]; then
