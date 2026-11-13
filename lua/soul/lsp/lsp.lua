@@ -236,6 +236,9 @@ return {
 				end,
 			})
 
+			-- Stop servers only after their final attached buffer is gone.
+			require("soul.core.lifecycle.lsp").setup()
+
 			-- Enable each server independently so one removed or broken config
 			-- cannot prevent every other language server from starting.
 			for _, server in ipairs(M.servers) do
