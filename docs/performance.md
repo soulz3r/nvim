@@ -180,8 +180,9 @@ benchmark without profiling when comparing startup medians.
 
 ## Dashboard animation profiling
 
-The dashboard frame profiler is opt-in and does no per-frame timing or sample-storage work in
-normal sessions. Enable it before starting Neovim:
+The dashboard frame profiler is opt-in. In normal sessions, CVIM does not even load
+its reporting and sample-storage module; the animation loop uses a tiny no-op
+recorder instead. Enable the profiler before starting Neovim:
 
 PowerShell:
 
