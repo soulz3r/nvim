@@ -26,13 +26,7 @@ local WORDMARK = {
 	"███████████████████████████████████",
 }
 
-local GLITCH_FRAMES = 32
-local CYBER_COLORS = {
-	"AlphaAqua",
-	"AlphaTeal",
-	"AlphaPurple",
-	"AlphaRed",
-}
+local GLITCH_FRAMES = 24
 
 local glyphs = { ".", ":", "-", "=", "+", "*", "#", "%", "@" }
 
@@ -63,20 +57,16 @@ local function create_grid(width, height, value)
 	return grid
 end
 
-local function wordmark_group(row, column, char)
-	-- Cool cyan through violet into hot magenta, rather than the old
-	-- unrelated Everforest yellow/green flicker.
-	local color_index = math.floor((column + row * 2) / 8) % #CYBER_COLORS + 1
-
+local function wordmark_group(char)
 	if char == "█" or char == "▓" then
-		return CYBER_COLORS[color_index]
+		return "AlphaTeal"
 	elseif char == "▒" or char == "▄" or char == "▀" or char == "▐" or char == "▌" then
-		return CYBER_COLORS[(color_index % #CYBER_COLORS) + 1]
+		return "AlphaAqua"
 	elseif char == "░" then
-		return "AlphaPurple"
+		return "AlphaGreen"
 	end
 
-	return "AlphaAqua"
+	return "AlphaYellow"
 end
 
 local function render_frame(frame, glitch_frame)
@@ -145,18 +135,31 @@ local function render_frame(frame, glitch_frame)
 	end
 
 	local glitch_phase = glitch_frame % GLITCH_FRAMES
-	-- The artwork stays clean for most frames, with short, intentional signal
-	-- disruptions instead of constant random character replacement.
-	local tear = glitch_phase == 0 or glitch_phase == 1
-	local rgb_split = glitch_phase == 0
-	local scan_row = glitch_phase == 2 and 1 + (glitch_frame * 3) % #WORDMARK or nil
-	local flicker = glitch_phase == 3
+	-- Mostly clean artwork, interrupted by a short, unmistakable signal burst.
+	local tearing = glitch_phase <= 2
+	local scanline = glitch_phase == 3
+	local color_flash = glitch_phase == 4 or glitch_phase == 5
 	local lines = {}
 	local ranges = {}
 
 	for row = 1, HEIGHT do
 		local cells = {}
 		local cell_groups = {}
+		local art_row = row - ART_TOP + 1
+		local art_chars = WORDMARK_CHARS[art_row]
+
+		-- Three separated slices jump in opposite directions during the tear.
+		-- Larger offsets make the interference visible without destroying the logo.
+		local shift = 0
+		if tearing then
+			if art_row == 2 then
+				shift = 3
+			elseif art_row == 5 then
+				shift = -4
+			elseif art_row == 8 then
+				shift = 3
+			end
+		end
 
 		for column = 1, WIDTH do
 			local char = " "
@@ -167,64 +170,27 @@ local function render_frame(frame, glitch_frame)
 				group = groups[row][column]
 			end
 
-			local art_row = row - ART_TOP + 1
 			local art_column = column - ART_START + 1
-			local art_chars = WORDMARK_CHARS[art_row]
-
 			if art_chars and art_column >= 1 and art_column <= #art_chars then
-				local tear_row = tear and (art_row == 2 or art_row == 5 or art_row == 8)
-				local shift = tear_row and (art_row % 2 == 0 and 1 or -1) or 0
 				local source_column = art_column - shift
-				local art_char = art_chars[source_column] or " "
-				group = art_char ~= " " and wordmark_group(
-					art_row,
-					math.max(1, math.min(#art_chars, source_column)),
-					art_char
-				) or nil
+				char = art_chars[source_column] or " "
+				group = char ~= " " and wordmark_group(char) or nil
 
-				if scan_row == art_row and art_char ~= " " then
-					group = "AlphaPurple"
-				elseif flicker and art_char ~= " " then
-					group = "AlphaRed"
+				-- Brief color inversion using only the original Everforest groups.
+				if color_flash and char ~= " " then
+					group = (art_row + art_column) % 2 == 0 and "AlphaYellow" or "AlphaGreen"
 				end
-
-				char = art_char
 			end
 
 			cells[column] = char
 			cell_groups[column] = group
 		end
 
-		local art_row = row - ART_TOP + 1
-		local art_chars = WORDMARK_CHARS[art_row]
-
-		-- Chromatic aberration: a magenta ghost trails the cyan source by one
-		-- terminal cell during the strongest glitch frame. Never replaces art.
-		if rgb_split and art_chars then
-			for column = 1, #art_chars do
-				local char = art_chars[column]
-				local target = ART_START + column - 2
-				if char ~= " " and target >= 1 and target <= WIDTH and cells[target] == " " then
-					cells[target] = char
-					cell_groups[target] = "AlphaPurple"
-				end
-			end
-		end
-
-		-- A single neon scanline sweeps across the wordmark between glitch bursts.
-		if scan_row == art_row and art_chars then
-			local scan_column = ART_START + ((glitch_frame * 7) % #art_chars)
-			if scan_column >= 1 and scan_column <= WIDTH then
-				cells[scan_column] = "╱"
-				cell_groups[scan_column] = "AlphaAqua"
-			end
-		end
-
-		-- One-frame signal flicker, using a hot red accent rather than random glyphs.
-		if flicker and art_chars then
+		-- A bright full-width scanline crosses the artwork for one frame.
+		if scanline and art_chars then
 			for column = ART_START, math.min(WIDTH, ART_START + #art_chars - 1) do
 				if cells[column] ~= " " then
-					cell_groups[column] = "AlphaRed"
+					cell_groups[column] = "AlphaAqua"
 				end
 			end
 		end
