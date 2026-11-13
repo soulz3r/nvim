@@ -256,28 +256,20 @@ local function highlight_message(ranges, line_number, line)
 
 	add_range(ranges, "AlphaMessage", line_number, 0, #line)
 
-	-- Color recognized words as soon as their prefixes become unambiguous.
-	-- Earlier complete words stay highlighted while the current word types in.
+	-- Completed known words stay colored. The final word also matches from
+	-- its first character, so its color grows in step with the typewriter.
 	for first, word in line:gmatch("()([%a_]+)") do
 		local last = first + #word - 1
-		local is_current_word = last == #line
+		local is_final_word = line:sub(last + 1):match("^%s*[%p]*$") ~= nil
 		local matched = explanation_vocabulary[word]
-
-		if not matched and is_current_word then
-			for known in pairs(explanation_vocabulary) do
-				if #word >= 2 and known:sub(1, #word) == word then
-					matched = true
-					break
-				end
-			end
-		end
+			or (is_final_word and has_prefix(explanation_vocabulary, word))
 
 		if matched then
 			add_range(ranges, "AlphaMessageKey", line_number, first - 1, last)
 		end
 	end
 
-	-- Keep pointer expressions and symbolic operators readable as single concepts.
+	-- Highlight complete symbolic concepts and their growing final prefixes.
 	for _, term in ipairs({ "&value", "*ptr", "+=" }) do
 		local first = 1
 		while true do
@@ -287,6 +279,13 @@ local function highlight_message(ranges, line_number, line)
 			end
 			add_range(ranges, "AlphaMessageKey", line_number, start_index - 1, end_index)
 			first = end_index + 1
+		end
+
+		for length = 1, #term - 1 do
+			local prefix = term:sub(1, length)
+			if line:sub(-length) == prefix then
+				add_range(ranges, "AlphaMessageKey", line_number, #line - length, #line)
+			end
 		end
 	end
 end
