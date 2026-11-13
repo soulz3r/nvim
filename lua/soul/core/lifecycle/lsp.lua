@@ -60,6 +60,10 @@ local function schedule_shutdown(client_id)
 end
 
 function M.setup()
+	for client_id in pairs(timers) do
+		cancel_timer(client_id)
+	end
+
 	local group = vim.api.nvim_create_augroup("SoulLspLifecycle", {
 		clear = true,
 	})
