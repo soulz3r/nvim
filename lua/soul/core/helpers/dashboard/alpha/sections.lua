@@ -107,9 +107,9 @@ local function add_range(ranges, group, line_number, first, last)
 	end
 end
 
--- Alpha receives character ranges, so overlapping ranges must be resolved
--- before conversion. Prefer the narrowest range (the most specific token);
--- when widths match, the later range wins.
+-- Animated ranges use byte offsets, matching Alpha's native API.
+-- Resolve overlaps by preferring the narrowest range (the most specific
+-- token); when widths match, the later range wins.
 local function normalize_line_ranges(ranges, line_number, line)
 	local source = ranges[line_number]
 	if not source or #source < 2 then
@@ -345,159 +345,79 @@ end
 -- Explanation terms reuse the same semantic palette as the C snippets.
 -- Ordinary prose stays neutral; only language concepts and important actions
 -- receive syntax-role colors.
+-- Explanation vocabulary uses the same semantic roles as the C snippets.
+-- Keep this list focused on the concepts actually taught by the dashboard.
+-- Unknown prose remains neutral instead of receiving arbitrary rainbow colors.
 local explanation_roles = {
-	-- C language constructs.
+	-- First program and compilation.
 	["return"] = "AlphaCodeKeyword",
-	["if"] = "AlphaCodeKeyword",
-	["enum"] = "AlphaCodeKeyword",
-	["directives"] = "AlphaCodePreprocessor",
-	["macros"] = "AlphaCodeMacro",
-	["constant"] = "AlphaCodeConstant",
-	["constants"] = "AlphaCodeConstant",
+	["exits"] = "AlphaCodeKeyword",
+	["main"] = "AlphaCodeFunction",
+	["compiler"] = "AlphaCodeFunction",
+	["translates"] = "AlphaCodeOperator",
+	["stages"] = "AlphaCodeType",
 
-	-- Types and data concepts.
+	-- Output and types.
+	["puts"] = "AlphaCodeFunction",
+	["writes"] = "AlphaCodeOperator",
+	["stdout"] = "AlphaCodeFile",
 	["double"] = "AlphaCodeType",
-	["integer"] = "AlphaCodeType",
+	["stores"] = "AlphaCodeFunction",
 	["decimals"] = "AlphaCodeNumber",
-	["character"] = "AlphaCodeType",
-	["characters"] = "AlphaCodeType",
-	["arrays"] = "AlphaCodeType",
-	["structs"] = "AlphaCodeType",
-	["fields"] = "AlphaCodeIdentifier",
-	["strings"] = "AlphaCodeString",
-	["memory"] = "AlphaTopicPointers",
-	["address"] = "AlphaCodeOperator",
-	["pointer"] = "AlphaCodeType",
-	["pointers"] = "AlphaCodeType",
+
+	-- Constants and operators.
+	["enum"] = "AlphaCodeKeyword",
+	["names"] = "AlphaCodeIdentifier",
+	["integer"] = "AlphaCodeType",
+	["constants"] = "AlphaCodeConstant",
+	["updates"] = "AlphaCodeOperator",
+	["existing"] = "AlphaCodeIdentifier",
 	["value"] = "AlphaCodeIdentifier",
-	["values"] = "AlphaCodeIdentifier",
+
+	-- Control flow and functions.
+	["if"] = "AlphaCodeKeyword",
+	["runs"] = "AlphaCodeFunction",
+	["true"] = "AlphaCodeConstant",
+	["sends"] = "AlphaCodeFunction",
+
+	-- Arrays, strings, and structures.
 	["index"] = "AlphaCodeNumber",
 	["zero"] = "AlphaCodeNumber",
-	["bits"] = "AlphaCodeNumber",
-	["masks"] = "AlphaCodeConstant",
-
-	-- Functions and operations.
-	["main"] = "AlphaCodeFunction",
-	["puts"] = "AlphaCodeFunction",
-	["stdout"] = "AlphaCodeFunction",
-	["compiler"] = "AlphaCodeStage",
-	["translates"] = "AlphaCodeStage",
-	["stages"] = "AlphaCodeStage",
-	["writes"] = "AlphaCodeFunction",
-	["stores"] = "AlphaCodeFunction",
-	["sends"] = "AlphaCodeFunction",
-	["updates"] = "AlphaCodeOperator",
 	["selects"] = "AlphaCodeOperator",
-	["gives"] = "AlphaCodeOperator",
-	["reads"] = "AlphaCodeFunction",
-	["releases"] = "AlphaCodeFunction",
-	["close"] = "AlphaCodeFunction",
-	["opened"] = "AlphaCodeFunction",
-	["expand"] = "AlphaCodePreprocessor",
-	["expands"] = "AlphaCodePreprocessor",
-	["build"] = "AlphaCodeStage",
-	["individual"] = "AlphaCodeConstant",
-	["true"] = "AlphaCodeConstant",
-
-	-- Core language and compilation vocabulary.
-	["program"] = "AlphaCodeStage",
-	["source"] = "AlphaCodeFile",
-	["file"] = "AlphaCodeFile",
-	["files"] = "AlphaCodeFile",
-	["preprocessor"] = "AlphaCodePreprocessor",
-	["compile"] = "AlphaCodeStage",
-	["compiled"] = "AlphaCodeStage",
-	["compilation"] = "AlphaCodeStage",
-	["translation"] = "AlphaCodeStage",
-	["object"] = "AlphaCodeIdentifier",
-	["executable"] = "AlphaCodeStage",
-	["binary"] = "AlphaCodeNumber",
-	["assembly"] = "AlphaCodeStage",
-	["output"] = "AlphaCodeString",
-
-	-- Types, values, and data layout.
-	["type"] = "AlphaCodeType",
-	["types"] = "AlphaCodeType",
-	["integers"] = "AlphaCodeType",
-	["float"] = "AlphaCodeType",
-	["floating"] = "AlphaCodeType",
-	["decimal"] = "AlphaCodeNumber",
-	["number"] = "AlphaCodeNumber",
-	["numbers"] = "AlphaCodeNumber",
-	["array"] = "AlphaCodeType",
-	["string"] = "AlphaCodeString",
-	["struct"] = "AlphaCodeType",
-	["structure"] = "AlphaCodeType",
-	["structures"] = "AlphaCodeType",
-	["field"] = "AlphaCodeIdentifier",
-	["member"] = "AlphaCodeIdentifier",
-	["members"] = "AlphaCodeIdentifier",
-	["variable"] = "AlphaCodeIdentifier",
-	["variables"] = "AlphaCodeIdentifier",
-	["identifier"] = "AlphaCodeIdentifier",
-	["identifiers"] = "AlphaCodeIdentifier",
-	["size"] = "AlphaCodeNumber",
-	["length"] = "AlphaCodeNumber",
 	["first"] = "AlphaCodeConstant",
 	["item"] = "AlphaCodeIdentifier",
-	["items"] = "AlphaCodeIdentifier",
+	["strings"] = "AlphaCodeString",
+	["character"] = "AlphaCodeType",
+	["arrays"] = "AlphaCodeType",
+	["structs"] = "AlphaCodeType",
+	["group"] = "AlphaCodeFunction",
+	["related"] = "AlphaCodeIdentifier",
+	["fields"] = "AlphaCodeIdentifier",
 
-	-- Memory and pointer vocabulary.
-	["addresses"] = "AlphaCodeOperator",
-	["dereference"] = "AlphaCodeOperator",
-	["dereferences"] = "AlphaCodeOperator",
-	["allocate"] = "AlphaCodeFunction",
-	["allocates"] = "AlphaCodeFunction",
-	["allocation"] = "AlphaCodeFunction",
-	["allocated"] = "AlphaCodeFunction",
-	["release"] = "AlphaCodeFunction",
+	-- Pointers and memory.
+	["gives"] = "AlphaCodeFunction",
+	["address"] = "AlphaCodeOperator",
+	["reads"] = "AlphaCodeFunction",
+	["pointed"] = "AlphaCodeIdentifier",
+	["ptr"] = "AlphaCodeType",
+	["directives"] = "AlphaCodePreprocessor",
+	["run"] = "AlphaCodeFunction",
+	["compile"] = "AlphaCodeStage",
+	["macros"] = "AlphaCodeMacro",
+	["expand"] = "AlphaCodePreprocessor",
+	["build"] = "AlphaCodeStage",
 	["free"] = "AlphaCodeFunction",
-	["malloc"] = "AlphaCodeFunction",
-	["heap"] = "AlphaTopicPointers",
-	["stack"] = "AlphaTopicPointers",
-	["dynamic"] = "AlphaTopicPointers",
-	["static"] = "AlphaCodeStorage",
+	["releases"] = "AlphaCodeFunction",
+	["memory"] = "AlphaTopicPointers",
 
-	-- Control flow, operators, and behavior.
-	["condition"] = "AlphaCodeKeyword",
-	["conditions"] = "AlphaCodeKeyword",
-	["loop"] = "AlphaCodeKeyword",
-	["loops"] = "AlphaCodeKeyword",
-	["iteration"] = "AlphaCodeKeyword",
-	["iterations"] = "AlphaCodeKeyword",
-	["branch"] = "AlphaCodeKeyword",
-	["branches"] = "AlphaCodeKeyword",
-	["operator"] = "AlphaCodeOperator",
-	["operators"] = "AlphaCodeOperator",
-	["expression"] = "AlphaCodeOperator",
-	["expressions"] = "AlphaCodeOperator",
-	["operation"] = "AlphaCodeOperator",
-	["operations"] = "AlphaCodeOperator",
-	["increment"] = "AlphaCodeOperator",
-	["decrement"] = "AlphaCodeOperator",
-	["assign"] = "AlphaCodeOperator",
-	["assigns"] = "AlphaCodeOperator",
-	["assignment"] = "AlphaCodeOperator",
-	["checks"] = "AlphaCodeKeyword",
-	["runs"] = "AlphaCodeFunction",
-	["exits"] = "AlphaCodeKeyword",
-	["returns"] = "AlphaCodeKeyword",
-	["opens"] = "AlphaCodeFunction",
-	["closes"] = "AlphaCodeFunction",
-	["groups"] = "AlphaCodeType",
-	["contains"] = "AlphaCodeIdentifier",
-	["represents"] = "AlphaCodeIdentifier",
-
-	-- Constants, macros, and bitwise concepts.
-	["literal"] = "AlphaCodeConstant",
-	["literals"] = "AlphaCodeConstant",
-	["macro"] = "AlphaCodeMacro",
-	["directive"] = "AlphaCodePreprocessor",
-	["defined"] = "AlphaCodePreprocessor",
-	["bit"] = "AlphaCodeNumber",
-	["mask"] = "AlphaCodeConstant",
-	["hexadecimal"] = "AlphaCodeNumber",
-	["false"] = "AlphaCodeConstant",
+	-- Files and bitwise operations.
+	["close"] = "AlphaCodeFunction",
+	["opened"] = "AlphaCodeFunction",
+	["file"] = "AlphaCodeFile",
+	["masks"] = "AlphaCodeConstant",
+	["select"] = "AlphaCodeOperator",
+	["individual"] = "AlphaCodeConstant",
+	["bits"] = "AlphaCodeNumber",
 }
 
 local function explanation_role(word, is_final_word)
@@ -506,40 +426,26 @@ local function explanation_role(word, is_final_word)
 		return exact
 	end
 
-	if not is_final_word then
+	-- Do not color one- or two-letter prefixes: they are too common in prose.
+	-- Once a prefix is long enough, color it only if every matching term has
+	-- the same semantic role. Candidate sets shrink as the word is typed, so
+	-- an established role cannot jump between groups or disappear mid-token.
+	if not is_final_word or #word < 3 then
 		return nil
 	end
 
-	local priority = {
-		"AlphaCodeKeyword",
-		"AlphaCodePreprocessor",
-		"AlphaCodeMacro",
-		"AlphaCodeType",
-		"AlphaCodeFunction",
-		"AlphaCodeConstant",
-		"AlphaCodeNumber",
-		"AlphaCodeOperator",
-		"AlphaCodeString",
-		"AlphaCodeIdentifier",
-		"AlphaCodeFile",
-		"AlphaCodeStage",
-		"AlphaTopicPointers",
-	}
-	local matched_groups = {}
+	local matched_group
 
 	for term, group in pairs(explanation_roles) do
 		if term:sub(1, #word) == word then
-			matched_groups[group] = true
+			if matched_group and matched_group ~= group then
+				return nil
+			end
+			matched_group = group
 		end
 	end
 
-	for _, group in ipairs(priority) do
-		if matched_groups[group] then
-			return group
-		end
-	end
-
-	return nil
+	return matched_group
 end
 
 local function highlight_message(ranges, line_number, line)
@@ -792,7 +698,7 @@ function M.build(dashboard)
 			dashboard.section.footer.val[index].val = line
 		end
 
-		pcall(vim.cmd.AlphaRedraw)
+		vim.cmd.AlphaRedraw()
 	end
 
 	local footer = footer_data.new(set_footer)
