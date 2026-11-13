@@ -586,9 +586,7 @@ profile_startup() {
   profile_output_path="$(to_native_path "$profile_output")"
 
   if ! CVIM_CONFIG="$config_path" CVIM_PROFILE_OUTPUT="$profile_output_path" nvim --headless \
-    -u "$ROOT/scripts/profile-init.lua" \
-    -c 'lua vim.wait(500, function() return vim.g.cvim_profile_done == true end, 10)' \
-    -c 'qa!' >"$profile_dir/output.log" 2>&1; then
+    -u "$ROOT/scripts/profile-init.lua" >"$profile_dir/output.log" 2>&1; then
     print_status "CVIM module profile" "FAIL"
     sed 's/^/      /' "$profile_dir/output.log"
     (( FAIL_COUNT += 1 ))
@@ -598,6 +596,7 @@ profile_startup() {
   if [[ ! -s "$profile_output" ]]; then
     print_status "CVIM module profile" "FAIL"
     printf '      The profiler did not produce its module report.\n'
+    [[ ! -s "$profile_dir/output.log" ]] || sed 's/^/      /' "$profile_dir/output.log"
     (( FAIL_COUNT += 1 ))
     return
   fi
