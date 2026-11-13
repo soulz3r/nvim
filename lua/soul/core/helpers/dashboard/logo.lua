@@ -27,6 +27,8 @@ local WORDMARK = {
 }
 
 local glyphs = { ".", ":", "-", "=", "+", "*", "#", "%", "@" }
+local GLITCH_BLOCKS = { "░", "▒", "▓", "█" }
+local GLITCH_COLORS = { "AlphaGreen", "AlphaAqua", "AlphaTeal", "AlphaYellow" }
 
 local function split_chars(value)
 	local chars = {}
@@ -194,10 +196,8 @@ local function render_frame(frame, glitch_frame)
 
 				-- Corrupt a few short slices with displaced block fragments.
 				if block_noise and art_row and ((art_column + art_row * 3) % 13 <= 2) then
-					local blocks = { "░", "▒", "▓", "█" }
-					char = blocks[(art_column + art_row) % #blocks + 1]
-					local colors = { "AlphaGreen", "AlphaAqua", "AlphaTeal", "AlphaYellow" }
-					group = colors[(art_column + glitch_phase) % #colors + 1]
+					char = GLITCH_BLOCKS[(art_column + art_row) % #GLITCH_BLOCKS + 1]
+					group = GLITCH_COLORS[(art_column + glitch_phase) % #GLITCH_COLORS + 1]
 				end
 
 			end
