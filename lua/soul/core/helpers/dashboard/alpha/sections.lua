@@ -744,6 +744,13 @@ function M.build(dashboard)
 
 		local ranges = vim.deepcopy(static_byte_highlights)
 
+		-- Alpha detects multiline highlights by inspecting the first range.
+		-- The first two header rows are intentionally blank, so seed a
+		-- zero-width range to keep the following row-indexed ranges nested.
+		if not ranges[1] or not ranges[1][1] then
+			ranges[1] = { { "Normal", 0, 0 } }
+		end
+
 		local animated_ranges = build_animation_highlights(frame, start_line)
 
 		-- Animated ranges already use byte offsets, matching Alpha's API.
