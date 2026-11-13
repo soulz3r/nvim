@@ -35,7 +35,7 @@ M.items = {
 		icon_group = "git",
 		icon = "Repo",
 		label = " Projects",
-		command = "<cmd>lua require('yap').project_picker.open(require('yap').config)<CR>",
+		command = "<cmd>lua require('yap'); require('telescope').extensions.project.project()<CR>",
 		highlight = "AlphaPurple",
 	},
 
