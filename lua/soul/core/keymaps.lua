@@ -62,8 +62,39 @@ keymap("n", "<leader>q", "<cmd>quit<CR>", OPTS("Quit window"))
 keymap("n", "<A-j>", ":m .+1<CR>==", OPTS("Move line down"))
 keymap("n", "<A-k>", ":m .-2<CR>==", OPTS("Move line up"))
 
-keymap("v", "<A-j>", ":m '>+1<CR>gv=gv", OPTS("Move selection down"))
-keymap("v", "<A-k>", ":m '<-2<CR>gv=gv", OPTS("Move selection up"))
+local function move_visual_selection(direction)
+	local anchor_line = vim.fn.getpos("v")[2]
+	local cursor_line = vim.api.nvim_win_get_cursor(0)[1]
+	local first_line = math.min(anchor_line, cursor_line)
+	local last_line = math.max(anchor_line, cursor_line)
+	local line_count = vim.api.nvim_buf_line_count(0)
+	local destination
+
+	if direction > 0 then
+		if last_line >= line_count then
+			return
+		end
+
+		destination = last_line + 1
+	else
+		if first_line <= 1 then
+			return
+		end
+
+		destination = first_line - 2
+	end
+
+	vim.cmd(("%d,%dmove %d"):format(first_line, last_line, destination))
+	vim.cmd("normal! gv=gv")
+end
+
+keymap("x", "<A-j>", function()
+	move_visual_selection(1)
+end, OPTS("Move selection down"))
+
+keymap("x", "<A-k>", function()
+	move_visual_selection(-1)
+end, OPTS("Move selection up"))
 
 keymap({ "i", "x" }, ",,", "<ESC>", OPTS())
 keymap("n", ",,", "<CMD>nohl<CR>", OPTS("Clear highlight"))
