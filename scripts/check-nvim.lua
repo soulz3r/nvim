@@ -387,7 +387,59 @@ for _, spec in ipairs({ yap_spec, dap_spec }) do
 	end
 end
 
-assert(vim.fn.readfile(root .. "/lua/soul/plugins/yap.lua")[1] ~= nil, "YAP plugin specification must be readable")
+local yap_source = table.concat(vim.fn.readfile(root .. "/lua/soul/plugins/yap.lua"), "\n")
+assert(yap_source:find("keymaps = false", 1, true), "YAP must not install duplicate internal project mappings")
+
+local yap_keymaps = require("soul.core.helpers.yap.keymaps")
+local original_yap_projects = package.loaded["yap.projects"]
+local yap_stop_called = false
+package.loaded["yap.projects"] = {
+	stop = function()
+		yap_stop_called = true
+	end,
+}
+yap_keymaps.setup()
+
+for _, mapping in ipairs(yap_spec.keys) do
+	if mapping[1] == "<leader>ps" then
+		mapping[2]()
+		break
+	end
+end
+assert(yap_stop_called, "YAP first-use mapping must dispatch its requested action")
+package.loaded["yap.projects"] = original_yap_projects
+
+local dap_keymaps = require("soul.core.helpers.dap.keymaps")
+local dap_continue_called = false
+dap_keymaps.setup(
+	{
+		repl = { open = function() end },
+		session = function() return nil end,
+	},
+	{
+		elements = { watches = { add = function() end } },
+		toggle = function() end,
+		float_element = function() end,
+	},
+	{ hover = function() end },
+	{
+		start_or_continue = function()
+			dap_continue_called = true
+		end,
+	},
+	{
+		select = function() end,
+		select_executable = function() end,
+	}
+)
+
+for _, mapping in ipairs(dap_spec.keys) do
+	if mapping[1] == "<leader>dc" then
+		mapping[2]()
+		break
+	end
+end
+assert(dap_continue_called, "DAP first-use mapping must dispatch its requested action")
 assert(
 	vim.tbl_contains(yap_spec.dependencies or {}, "nvim-telescope/telescope-project.nvim"),
 	"YAP must declare the Telescope project extension"
