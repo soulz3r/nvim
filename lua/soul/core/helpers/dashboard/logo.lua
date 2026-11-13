@@ -6,7 +6,7 @@ local C_WIDTH = 25
 local C_HEIGHT = 13
 local CENTER_X = 13
 local CENTER_Y = 7
-local ROTATION_FRAMES = 36
+local ROTATION_FRAMES = 72
 
 local glyphs = { ".", ":", "-", "=", "+", "*", "#", "%", "@" }
 
@@ -165,7 +165,7 @@ function M.build()
 	return {
 		section = section,
 		width = WIDTH,
-		tick_divisor = 2,
+		tick_divisor = 1,
 
 		next_frame = function()
 			frame = frame % ROTATION_FRAMES + 1
