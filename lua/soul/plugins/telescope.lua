@@ -1,8 +1,33 @@
-local OPTS = require("soul.core.helpers.keymaps").opts
-
 local M = {
 	"nvim-telescope/telescope.nvim",
 	cmd = "Telescope",
+
+	keys = {
+		{ "<leader>fb", "<cmd>Telescope buffers previewer=false<CR>", desc = "Buffers" },
+		{ "<leader>fC", "<cmd>Telescope colorscheme<CR>", desc = "Colorscheme" },
+		{ "<leader>ff", "<cmd>Telescope find_files<CR>", desc = "Find Files" },
+		{ "<leader>ft", "<cmd>Telescope live_grep<CR>", desc = "Live Grep" },
+		{ "<leader>fh", "<cmd>Telescope help_tags<CR>", desc = "Help" },
+		{ "<leader>fr", "<cmd>Telescope resume<CR>", desc = "Resume" },
+		{ "<leader>fo", "<cmd>Telescope oldfiles<CR>", desc = "Recent Files" },
+		{ "<leader>flr", "<cmd>Telescope lsp_references<CR>", desc = "LSP References" },
+		{ "<leader>fld", "<cmd>Telescope lsp_definitions<CR>", desc = "LSP Definitions" },
+		{ "<leader>flD", "<cmd>Telescope lsp_declarations<CR>", desc = "LSP Declarations" },
+		{ "<leader>fli", "<cmd>Telescope lsp_implementations<CR>", desc = "LSP Implementations" },
+		{ "<leader>flt", "<cmd>Telescope lsp_type_definitions<CR>", desc = "LSP Type Definitions" },
+		{ "<leader>fgb", "<cmd>Telescope git_branches<CR>", desc = "Git Branches" },
+		{ "<leader>fgc", "<cmd>Telescope git_commits<CR>", desc = "Git Commits" },
+		{ "<leader>fgs", "<cmd>Telescope git_status<CR>", desc = "Git Status" },
+		{ "<leader>fgS", "<cmd>Telescope git_stash<CR>", desc = "Git Stash" },
+		{ "<leader>fgf", "<cmd>Telescope git_files<CR>", desc = "Git Files" },
+		{ "<leader>fgB", "<cmd>Telescope git_bcommits<CR>", desc = "Git Buffer Commits" },
+		{ "<leader>fs", "<cmd>Telescope treesitter<CR>", desc = "Treesitter Symbols" },
+		{ "<leader>fx", "<cmd>Telescope diagnostics<CR>", desc = "Diagnostics" },
+		{ "<leader>fch", "<cmd>Telescope command_history<CR>", desc = "Command History" },
+		{ "<leader>fcc", "<cmd>Telescope commands<CR>", desc = "Commands" },
+		{ "<leader>fy", "<cmd>Telescope registers<CR>", desc = "Registers" },
+		{ "<leader>fm", "<cmd>Telescope marks<CR>", desc = "Marks" },
+	},
 
 	dependencies = {
 		"nvim-lua/plenary.nvim",
@@ -243,55 +268,6 @@ function M.config()
 	load_extension("fzf")
 	load_extension("ui-select")
 
-	local keymap = vim.keymap.set
-
-	keymap("n", "<leader>fb", "<cmd>Telescope buffers previewer=false<CR>", OPTS("Buffers"))
-
-	keymap("n", "<leader>fC", "<cmd>Telescope colorscheme<CR>", OPTS("Colorscheme"))
-
-	keymap("n", "<leader>ff", "<cmd>Telescope find_files<CR>", OPTS("Find Files"))
-
-	keymap("n", "<leader>ft", "<cmd>Telescope live_grep<CR>", OPTS("Live Grep"))
-
-	keymap("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", OPTS("Help"))
-
-	keymap("n", "<leader>fr", "<cmd>Telescope resume<CR>", OPTS("Resume"))
-
-	keymap("n", "<leader>fo", "<cmd>Telescope oldfiles<CR>", OPTS("Recent Files"))
-
-	keymap("n", "<leader>flr", "<cmd>Telescope lsp_references<CR>", OPTS("LSP References"))
-
-	keymap("n", "<leader>fld", "<cmd>Telescope lsp_definitions<CR>", OPTS("LSP Definitions"))
-
-	keymap("n", "<leader>flD", "<cmd>Telescope lsp_declarations<CR>", OPTS("LSP Declarations"))
-
-	keymap("n", "<leader>fli", "<cmd>Telescope lsp_implementations<CR>", OPTS("LSP Implementations"))
-
-	keymap("n", "<leader>flt", "<cmd>Telescope lsp_type_definitions<CR>", OPTS("LSP Type Definitions"))
-
-	keymap("n", "<leader>fgb", "<cmd>Telescope git_branches<CR>", OPTS("Git Branches"))
-
-	keymap("n", "<leader>fgc", "<cmd>Telescope git_commits<CR>", OPTS("Git Commits"))
-
-	keymap("n", "<leader>fgs", "<cmd>Telescope git_status<CR>", OPTS("Git Status"))
-
-	keymap("n", "<leader>fgS", "<cmd>Telescope git_stash<CR>", OPTS("Git Stash"))
-
-	keymap("n", "<leader>fgf", "<cmd>Telescope git_files<CR>", OPTS("Git Files"))
-
-	keymap("n", "<leader>fgB", "<cmd>Telescope git_bcommits<CR>", OPTS("Git Buffer Commits"))
-
-	keymap("n", "<leader>fs", "<cmd>Telescope treesitter<CR>", OPTS("Treesitter Symbols"))
-
-	keymap("n", "<leader>fx", "<cmd>Telescope diagnostics<CR>", OPTS("Diagnostics"))
-
-	keymap("n", "<leader>fch", "<cmd>Telescope command_history<CR>", OPTS("Command History"))
-
-	keymap("n", "<leader>fcc", "<cmd>Telescope commands<CR>", OPTS("Commands"))
-
-	keymap("n", "<leader>fy", "<cmd>Telescope registers<CR>", OPTS("Registers"))
-
-	keymap("n", "<leader>fm", "<cmd>Telescope marks<CR>", OPTS("Marks"))
 end
 
 return M
