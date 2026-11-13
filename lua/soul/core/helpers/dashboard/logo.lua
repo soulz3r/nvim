@@ -30,25 +30,25 @@ local WORDMARK = {
 local glyphs = { ".", ":", "-", "=", "+", "*", "#", "%", "@" }
 local GLITCH_BLOCKS = { "░", "▒", "▓", "█" }
 local GLITCH_COLORS = {
-	"CvimGlitchPink",
 	"CvimGlitchRed",
 	"CvimGlitchOrange",
 	"CvimGlitchYellow",
-	"CvimGlitchGreen",
+	"CvimGlitchLime",
 	"CvimGlitchCyan",
 	"CvimGlitchBlue",
-	"CvimGlitchPurple",
+	"CvimGlitchViolet",
+	"CvimGlitchWhite",
 }
 
 local GLITCH_PALETTE = {
-	CvimGlitchPink = "#ff3bd4",
-	CvimGlitchRed = "#ff365e",
-	CvimGlitchOrange = "#ff8a24",
-	CvimGlitchYellow = "#f9f871",
-	CvimGlitchGreen = "#a8ff3e",
-	CvimGlitchCyan = "#28f0e5",
-	CvimGlitchBlue = "#438bff",
-	CvimGlitchPurple = "#b56bff",
+	CvimGlitchRed = "#ff304f",
+	CvimGlitchOrange = "#ff8c24",
+	CvimGlitchYellow = "#fff04a",
+	CvimGlitchLime = "#9dff00",
+	CvimGlitchCyan = "#00f5ff",
+	CvimGlitchBlue = "#287bff",
+	CvimGlitchViolet = "#8a4dff",
+	CvimGlitchWhite = "#f4fbff",
 }
 
 local function setup_glitch_highlights()
@@ -187,17 +187,16 @@ local function render_frame(frame, glitch_state)
 		-- Tear a randomly sized fragment at a random position. The rest of
 		-- every line stays exactly where the ASCII artwork placed it.
 		local tear_noise = glitch_noise(art_row, 1, glitch_seed, 1)
-		local tear_start = 1 + (tear_noise % 24)
-		local tear_end = tear_start + 5 + (math.floor(tear_noise / 29) % 13)
-		local tear_shift = (math.floor(tear_noise / 113) % 13) - 6
-		local burst_row = glitch_seed % #WORDMARK_CHARS + 1
+		local tear_row = glitch_seed % #WORDMARK_CHARS + 1
+		local tear_start = 1 + (math.floor(glitch_seed / 29) % 12)
+		local tear_end = math.min(#(art_chars or {}), tear_start + 10 + (math.floor(glitch_seed / 43) % 17))
+		local tear_shift = (math.floor(glitch_seed / 113) % 17) - 8
+		local burst_row = math.floor(glitch_seed / 7) % #WORDMARK_CHARS + 1
 		local burst_start = 1 + (math.floor(glitch_seed / 17) % 20)
 		local burst_end = burst_start + 9 + (math.floor(glitch_seed / 43) % 16)
 		local burst_shift = (math.floor(glitch_seed / 97) % 19) - 9
-		local row_shift = tearing and tear_shift or 0
-		if burst and art_row == burst_row then
-			row_shift = burst_shift
-		end
+		local row_shift = burst and art_row == burst_row and burst_shift or 0
+		local tear_active = tearing and art_row == tear_row
 
 		for column = 1, WIDTH do
 			local char = " "
@@ -210,15 +209,23 @@ local function render_frame(frame, glitch_state)
 
 			local art_column = column - ART_START + 1
 			if art_chars and art_column >= 1 and art_column <= #art_chars then
-				local source_column = art_column - row_shift
 				local in_burst = burst and art_row == burst_row
 					and art_column >= burst_start and art_column <= burst_end
-				local in_tear = tearing and art_column >= tear_start and art_column <= tear_end
+				local in_tear = tear_active and art_column >= tear_start and art_column <= tear_end
+				local source_column = art_column
+				if in_tear then
+					source_column = art_column - tear_shift
+				elseif in_burst then
+					source_column = art_column - row_shift
+				end
 				char = art_chars[source_column] or " "
 				group = char ~= " " and wordmark_group(char) or nil
 				local noise = glitch_noise(art_row, art_column, glitch_seed, 2)
-				if (in_tear or in_burst) and char ~= " " then
+				if in_tear or in_burst then
 					group = GLITCH_COLORS[noise % #GLITCH_COLORS + 1]
+					if noise % 4 == 0 then
+						char = GLITCH_BLOCKS[math.floor(noise / 17) % #GLITCH_BLOCKS + 1]
+					end
 				end
 
 				-- Dense digital corruption: replace glyphs and empty cells with
