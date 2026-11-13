@@ -163,7 +163,7 @@ M.animation = {
 				"  int value = 42;",
 				"  int *ptr = &value;",
 				"",
-				"  &value gets the object's address",
+				"  &value gives an address",
 			},
 		},
 		{
@@ -185,45 +185,45 @@ M.animation = {
 				"  value @ 0x10 = 42",
 				"  ptr @ 0x20 = 0x10",
 				"",
-				"  ptr stores the object's address",
+				"  ptr stores an address",
 			},
 		},
 		{
 			cursor_line = 4,
-			cursor_target = 4,
+			cursor_target = 3,
 			lines = {
 				"  PREPROCESSOR",
 				"  #include <stdint.h>",
 				"  #if defined(DEBUG)",
 				"",
-				"  directives run before compilation",
+				"  directives run before compile",
 			},
 		},
 		{
 			cursor_line = 4,
-			cursor_target = 12,
+			cursor_target = 13,
 			lines = {
 				"  MACROS",
 				"  #define SQR(x) ((x) * (x))",
 				"  int area = SQR(side);",
 				"",
-				"  macros expand before compilation",
+				"  macros expand before build",
 			},
 		},
 		{
 			cursor_line = 4,
-			cursor_target = 8,
+			cursor_target = 10,
 			lines = {
 				"  DYNAMIC MEMORY",
 				"  p = malloc(n * sizeof *p);",
 				"  if (p) free(p);",
 				"",
-				"  free releases allocated memory",
+				"  free releases allocated storage",
 			},
 		},
 		{
 			cursor_line = 4,
-			cursor_target = 9,
+			cursor_target = 10,
 			lines = {
 				"  FILE I O",
 				"  FILE *f = fopen(path, \"r\");",
@@ -234,7 +234,7 @@ M.animation = {
 		},
 		{
 			cursor_line = 4,
-			cursor_target = 8,
+			cursor_target = 9,
 			lines = {
 				"  BITWISE",
 				"  unsigned flags = 0;",
