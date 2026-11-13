@@ -584,7 +584,16 @@ profile_startup() {
     return
   fi
 
-  if ! grep -q '^Alpha dashboard ready: true
+  if ! grep -Fq 'Alpha dashboard ready: true' "$profile_output"; then
+    print_status "CVIM dashboard readiness (profile)" "FAIL"
+    sed 's/^/      /' "$profile_output"
+    (( FAIL_COUNT += 1 ))
+    return
+  fi
+
+  print_status "CVIM module profile" "PASS"
+  sed -n '1,44p' "$profile_output" | sed 's/^/      /'
+}
 
 if command -v nvim >/dev/null 2>&1; then
   run_check "Neovim core and plugin-spec smoke tests" 0 nvim --headless --clean -u NONE -l scripts/check-nvim.lua
