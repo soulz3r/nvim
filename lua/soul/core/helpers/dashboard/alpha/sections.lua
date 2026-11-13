@@ -49,7 +49,7 @@ local function build_animation_timeline(animation, content_width)
 		for line_index = 2, 3 do
 			local line = scene.lines[line_index] or ""
 
-			if line_index == cursor_source_line then
+			if line_index == cursor_source_line and not scene.extra_line then
 				visible[cursor_line] = string.rep(" ", padding) .. "^"
 				push(visible)
 			end
@@ -57,7 +57,7 @@ local function build_animation_timeline(animation, content_width)
 			for column = 1, #line do
 				visible[line_index] = indent .. line:sub(1, column)
 
-				if line_index == cursor_source_line then
+				if line_index == cursor_source_line and not scene.extra_line then
 					local caret_offset = math.min(column, target - 1)
 					local caret_column = padding
 						+ vim.fn.strdisplaywidth(line:sub(1, caret_offset))
@@ -78,8 +78,14 @@ local function build_animation_timeline(animation, content_width)
 				visible[5] = indent .. scene.extra_line:sub(1, column)
 				push(visible)
 			end
-		end
 
+			-- Once the closing line is complete, reveal the caret at its
+			-- semantic target without moving the code or brace.
+			local caret_column = padding
+				+ vim.fn.strdisplaywidth(code_line:sub(1, target - 1))
+			visible[cursor_line] = string.rep(" ", caret_column) .. "^"
+			push(visible)
+		end
 		visible[separator_line] = indent .. (scene.lines[5] or "")
 		push(visible)
 
