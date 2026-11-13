@@ -66,7 +66,8 @@ vim.opt.fillchars:append({
 
 vim.opt.shortmess:append("c")
 
-vim.opt.winborder = require("soul.core.helpers.ui.floats").style
+-- Core options should not import a helper used by optional floating UIs.
+vim.opt.winborder = "rounded"
 
 vim.cmd("set whichwrap+=<,>,[,],h,l")
 vim.cmd([[set iskeyword+=-]])
