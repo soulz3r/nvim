@@ -121,3 +121,22 @@ Memory values are noisy because the OS allocator and Lua garbage collector do no
 ## What this does not claim
 
 These lifecycle changes reduce unnecessary background work. They do not establish that CVIM is faster than NvChad without measurements on the same hardware and workload. Plugin count and repository size are not runtime benchmarks.
+
+
+## Per-module startup profiling
+
+The standard benchmark loads the current checkout explicitly and compares it with
+`nvim --clean`. It skips the configured benchmark when Lazy.nvim is not installed,
+rather than silently measuring a clean process.
+
+To identify which Lua modules cost the most, run:
+
+```sh
+CVIM_STARTUP_PROFILE=1 bash scripts/check.sh
+```
+
+The profiler uses a separate startup entrypoint and writes a module report with
+inclusive and exclusive `require()` time. Exclusive time subtracts nested module
+loads, which helps distinguish expensive modules from modules that merely import
+other expensive modules. Profiling adds measurement overhead, so use the normal
+benchmark without profiling when comparing startup medians.
