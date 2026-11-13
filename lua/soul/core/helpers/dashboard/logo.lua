@@ -6,7 +6,7 @@ local C_WIDTH = 25
 local C_HEIGHT = 13
 local CENTER_X = 11
 local CENTER_Y = 7
-local ROTATION_FRAMES = 72
+local ROTATION_FRAMES = 96
 local ART_START = 25
 local ART_TOP = 3
 local TAGLINE = "C, with a better editor."
@@ -73,6 +73,37 @@ for row, line in ipairs(WORDMARK) do
 	WORDMARK_CHARS[row] = split_chars(line)
 end
 
+-- The surface never changes. Precompute its trigonometric coordinates once;
+-- each frame only needs to rotate and project the cached samples.
+local SURFACE_SAMPLES = {}
+for theta_step = 0, 144 do
+	local theta = math.rad(48 + theta_step * (264 / 144))
+	local theta_cos = math.cos(theta)
+	local theta_sin = math.sin(theta)
+
+	for phi_step = 0, 63 do
+		local phi = phi_step * (2 * math.pi / 64)
+		local phi_cos = math.cos(phi)
+		local phi_sin = math.sin(phi)
+		local radius = 1 + 0.23 * phi_cos
+
+		SURFACE_SAMPLES[#SURFACE_SAMPLES + 1] = {
+			x = radius * theta_cos,
+			y = radius * theta_sin,
+			z = 0.23 * phi_sin,
+			normal_x = phi_cos * theta_cos,
+			normal_y = phi_cos * theta_sin,
+			normal_z = phi_sin,
+		}
+	end
+end
+
+local LIGHT_X, LIGHT_Y, LIGHT_Z = -0.35, 0.55, 0.76
+local LIGHT_LENGTH = math.sqrt(LIGHT_X ^ 2 + LIGHT_Y ^ 2 + LIGHT_Z ^ 2)
+LIGHT_X = LIGHT_X / LIGHT_LENGTH
+LIGHT_Y = LIGHT_Y / LIGHT_LENGTH
+LIGHT_Z = LIGHT_Z / LIGHT_LENGTH
+
 local function create_grid(width, height, value)
 	local grid = {}
 	for y = 1, height do
@@ -96,11 +127,13 @@ local function wordmark_group(char)
 	return "AlphaYellow"
 end
 
--- Stable pseudo-random values make each glitch phase look irregular without
--- changing the artwork every time the rotating C redraws.
-local function glitch_noise(row, column, phase, salt)
-	local value = (row * 73856093 + column * 19349663 + phase * 83492791 + salt * 49979687)
-	return (value * 48271) % 2147483647
+-- Keep every intermediate below 2^53 so Lua's double-backed numbers retain
+-- exact integer arithmetic. The frame changes the pattern during an event.
+local function glitch_noise(row, column, seed, frame, salt)
+	local value = seed % 2147483647
+	value = (value * 48271 + row * 97 + column * 193 + salt * 389) % 2147483647
+	value = (value * 48271 + frame * 997 + row * 31 + column * 17) % 2147483647
+	return value
 end
 
 local function render_frame(frame, glitch_state)
@@ -112,57 +145,38 @@ local function render_frame(frame, glitch_state)
 	local pixels = create_grid(C_WIDTH, C_HEIGHT, " ")
 	local groups = create_grid(C_WIDTH, C_HEIGHT, nil)
 
-	local light_x, light_y, light_z = -0.35, 0.55, 0.76
-	local light_length = math.sqrt(light_x ^ 2 + light_y ^ 2 + light_z ^ 2)
-	light_x = light_x / light_length
-	light_y = light_y / light_length
-	light_z = light_z / light_length
+	-- Project the cached C-shaped surface. Diffuse light defines the form;
+	-- a narrow specular highlight gives the tube a clearer metallic edge.
+	for _, sample in ipairs(SURFACE_SAMPLES) do
+		local projected_x = sample.x * cosine + sample.z * sine
+		local projected_z = -sample.x * sine + sample.z * cosine
+		local column = math.floor(CENTER_X + projected_x * 9 + 0.5)
+		local row = math.floor(CENTER_Y - sample.y * 5 + 0.5)
 
-	-- A C-shaped tube, sampled as a 3D surface and projected into terminal cells.
-	for theta_step = 0, 144 do
-		local theta = math.rad(48 + theta_step * (264 / 144))
-		local theta_cos = math.cos(theta)
-		local theta_sin = math.sin(theta)
+		if
+			column >= 1
+			and column <= C_WIDTH
+			and row >= 1
+			and row <= C_HEIGHT
+			and projected_z > depth[row][column]
+		then
+			depth[row][column] = projected_z
 
-		for phi_step = 0, 63 do
-			local phi = phi_step * (2 * math.pi / 64)
-			local phi_cos = math.cos(phi)
-			local phi_sin = math.sin(phi)
+			local normal_x = sample.normal_x * cosine + sample.normal_z * sine
+			local normal_z = -sample.normal_x * sine + sample.normal_z * cosine
+			local diffuse = math.max(
+				0,
+				normal_x * LIGHT_X + sample.normal_y * LIGHT_Y + normal_z * LIGHT_Z
+			)
+			local view = math.max(0, normal_z)
+			local specular = view ^ 10
+			local shade = math.min(1, 0.14 + diffuse * 0.72 + specular * 0.42)
+			local glyph_index = math.floor(shade * (#glyphs - 1)) + 1
 
-			local radius = 1 + 0.23 * phi_cos
-			local x = radius * theta_cos
-			local y = radius * theta_sin
-			local z = 0.23 * phi_sin
-
-			local projected_x = x * cosine + z * sine
-			local projected_z = -x * sine + z * cosine
-
-			local column = math.floor(CENTER_X + projected_x * 9 + 0.5)
-			local row = math.floor(CENTER_Y - y * 5 + 0.5)
-
-			if
-				column >= 1
-				and column <= C_WIDTH
-				and row >= 1
-				and row <= C_HEIGHT
-				and projected_z > depth[row][column]
-			then
-				depth[row][column] = projected_z
-
-				local normal_x = phi_cos * theta_cos
-				local normal_y = phi_cos * theta_sin
-				local normal_z = phi_sin
-				local rotated_normal_x = normal_x * cosine + normal_z * sine
-				local rotated_normal_z = -normal_x * sine + normal_z * cosine
-
-				local diffuse =
-					math.max(0, rotated_normal_x * light_x + normal_y * light_y + rotated_normal_z * light_z)
-				local shade = 0.2 + diffuse * 0.8
-				local glyph_index = math.floor(shade * (#glyphs - 1)) + 1
-
-				pixels[row][column] = glyphs[glyph_index]
-				groups[row][column] = shade > 0.72 and "AlphaAqua" or shade > 0.46 and "AlphaTeal" or "AlphaGreen"
-			end
+			pixels[row][column] = glyphs[glyph_index]
+			groups[row][column] = shade > 0.82 and "AlphaAqua"
+				or shade > 0.48 and "AlphaTeal"
+				or "AlphaGreen"
 		end
 	end
 
@@ -175,6 +189,7 @@ local function render_frame(frame, glitch_state)
 	local burst = glitch_state.burst
 	local interference = glitch_state.interference
 	local glitch_seed = glitch_state.seed
+	local glitch_frame = glitch_state.frame or 0
 	local lines = {}
 	local ranges = {}
 
@@ -186,7 +201,6 @@ local function render_frame(frame, glitch_state)
 
 		-- Tear a randomly sized fragment at a random position. The rest of
 		-- every line stays exactly where the ASCII artwork placed it.
-		local tear_noise = glitch_noise(art_row, 1, glitch_seed, 1)
 		local tear_row = glitch_seed % (#WORDMARK_CHARS - 1) + 1
 		local tear_chars = WORDMARK_CHARS[tear_row]
 		local first_glyph = 1
@@ -197,17 +211,19 @@ local function render_frame(frame, glitch_state)
 		while last_glyph >= first_glyph and tear_chars[last_glyph] == " " do
 			last_glyph = last_glyph - 1
 		end
-		local tear_span = math.max(1, last_glyph - first_glyph - 10)
+		local tear_span = math.max(1, last_glyph - first_glyph + 1)
 		local tear_start = first_glyph + (math.floor(glitch_seed / 29) % tear_span)
-		local tear_end = math.min(last_glyph, tear_start + 10 + (math.floor(glitch_seed / 43) % 17))
-		local tear_shift = (math.floor(glitch_seed / 113) % 16) - 8
-		if tear_shift >= 0 then
-			tear_shift = tear_shift + 1
+		local tear_end = math.min(last_glyph, tear_start + 7 + (math.floor(glitch_seed / 43) % 14))
+		local tear_shift = (math.floor(glitch_seed / 113 + glitch_frame * 3) % 13) - 6
+		if tear_shift == 0 then
+			tear_shift = 1
 		end
-		local burst_row = math.floor(glitch_seed / 7) % #WORDMARK_CHARS + 1
+		local burst_row = math.floor(glitch_seed / 7) % (#WORDMARK_CHARS - 1) + 1
 		local burst_start = 1 + (math.floor(glitch_seed / 17) % 20)
 		local burst_end = burst_start + 9 + (math.floor(glitch_seed / 43) % 16)
-		local burst_shift = (math.floor(glitch_seed / 97) % 19) - 9
+		local burst_shift = (math.floor(glitch_seed / 97 + glitch_frame * 5) % 19) - 9
+		local interference_row = (math.floor(glitch_seed / 53 + glitch_frame * 3) % (#WORDMARK_CHARS - 1)) + 1
+		local interference_shift = (math.floor(glitch_seed / 71 + glitch_frame * 2) % 7) - 3
 		local row_shift = burst and art_row == burst_row and burst_shift or 0
 		local tear_active = tearing and art_row == tear_row
 
@@ -225,27 +241,35 @@ local function render_frame(frame, glitch_state)
 				local in_burst = burst and art_row == burst_row
 					and art_column >= burst_start and art_column <= burst_end
 				local in_tear = tear_active and art_column >= tear_start and art_column <= tear_end
+				local in_interference = interference and art_row == interference_row
 				local source_column = art_column
 				if in_tear then
 					source_column = art_column - tear_shift
 				elseif in_burst then
 					source_column = art_column - row_shift
+				elseif in_interference then
+					source_column = art_column - interference_shift
 				end
 				char = art_chars[source_column] or " "
 				group = char ~= " " and wordmark_group(char) or nil
-				local noise = glitch_noise(art_row, art_column, glitch_seed, 2)
+				local noise = glitch_noise(art_row, art_column, glitch_seed, glitch_frame, 2)
+
 				if in_tear or in_burst then
 					group = GLITCH_COLORS[noise % #GLITCH_COLORS + 1]
-					-- Keep most original glyphs intact. A few block fragments
-					-- sell the signal break without turning the wordmark to static.
-					if noise % (in_burst and 9 or 15) == 0 then
+					-- Preserve the logo silhouette while animating sparse
+					-- substitutions inside the displaced fragment.
+					if noise % (in_burst and 7 or 13) == 0 then
+						char = GLITCH_BLOCKS[math.floor(noise / 17) % #GLITCH_BLOCKS + 1]
+					end
+				elseif in_interference and char ~= " " then
+					group = GLITCH_COLORS[(noise % 4) + 1]
+					if noise % 11 == 0 then
 						char = GLITCH_BLOCKS[math.floor(noise / 17) % #GLITCH_BLOCKS + 1]
 					end
 				end
 
-				-- Noise stays inside the active fragment. Never corrupt the
-				-- entire wordmark just because a glitch event is running.
-				if block_noise and (in_tear or in_burst) and noise % 19 == 0 then
+				-- Noise stays local to the active fragment or interference row.
+				if block_noise and (in_tear or in_burst or in_interference) and noise % 17 == 0 then
 					char = GLITCH_BLOCKS[math.floor(noise / 17) % #GLITCH_BLOCKS + 1]
 					group = GLITCH_COLORS[math.floor(noise / 71) % #GLITCH_COLORS + 1]
 				end
@@ -257,14 +281,14 @@ local function render_frame(frame, glitch_state)
 
 		-- Add a sparse one-cell color ghost beside the original glyph.
 		-- The original character remains intact, keeping the wordmark readable.
-		if chromatic and art_chars and #art_chars > 0 then
-			for art_column = 1, #art_chars do
+		if chromatic and art_chars and art_row == tear_row then
+			for art_column = tear_start, tear_end do
 				local source = art_chars[art_column]
-				local noise = glitch_noise(art_row, art_column, glitch_seed, 3)
-				if source ~= " " and noise % 13 == 0 then
+				local noise = glitch_noise(art_row, art_column, glitch_seed, glitch_frame, 3)
+				if source and source ~= " " and noise % 5 == 0 then
 					local ghost_offset = (math.floor(noise / 13) % 5) - 2
 					if ghost_offset == 0 then
-						ghost_offset = art_row % 2 == 0 and 1 or -1
+						ghost_offset = glitch_frame % 2 == 0 and 1 or -1
 					end
 					local target = ART_START + art_column - 1 + ghost_offset
 					if target >= ART_START and target <= WIDTH then
@@ -278,7 +302,7 @@ local function render_frame(frame, glitch_state)
 		-- Bright scanline bands cut through the wordmark for a few frames.
 		if scanline and art_chars and #art_chars > 0 and art_row == tear_row then
 			for column = ART_START + tear_start - 1, math.min(WIDTH, ART_START + tear_end - 1) do
-				local noise = glitch_noise(art_row, column - ART_START + 1, glitch_seed, 5)
+				local noise = glitch_noise(art_row, column - ART_START + 1, glitch_seed, glitch_frame, 5)
 				if noise % 11 == 0 then
 					cells[column] = GLITCH_BLOCKS[math.floor(noise / 17) % #GLITCH_BLOCKS + 1]
 					cell_groups[column] = GLITCH_COLORS[noise % #GLITCH_COLORS + 1]
@@ -364,6 +388,7 @@ function M.build()
 		burst = false,
 		interference = false,
 		seed = random_int(2147483646),
+		frame = 0,
 	}
 	local glitch_remaining = 0
 	local glitch_cooldown = 0
@@ -388,6 +413,8 @@ function M.build()
 		end,
 
 		next_wordmark_frame = function()
+			glitch_state.frame = glitch_state.frame + 1
+
 			if glitch_remaining > 0 then
 				glitch_remaining = glitch_remaining - 1
 				if glitch_remaining == 0 then
@@ -399,11 +426,11 @@ function M.build()
 					glitch_state.interference = false
 					-- Leave a noticeable quiet interval after every event.
 					-- These are wordmark updates, not raw timer milliseconds.
-					glitch_cooldown = random_int(17) + 12
+					glitch_cooldown = random_int(27) + 26
 				end
 			elseif glitch_cooldown > 0 then
 				glitch_cooldown = glitch_cooldown - 1
-			elseif random_int(100) <= 55 then
+			elseif random_int(100) <= 40 then
 				local kind = random_int(7)
 				glitch_state.tearing = kind == 1 or kind == 5 or kind == 6 or kind == 7
 				glitch_state.chromatic = kind == 2 or kind == 5 or kind == 6
@@ -412,6 +439,7 @@ function M.build()
 				glitch_state.burst = kind == 6
 				glitch_state.interference = kind == 7
 				glitch_state.seed = random_int(2147483646)
+				glitch_state.frame = 0
 				-- A mix of quick flickers, medium disruptions, and occasional
 				-- longer holds. Duration is measured in wordmark updates.
 				local duration_roll = random_int(10)
@@ -425,7 +453,7 @@ function M.build()
 			else
 				-- A missed trigger also waits before trying again, rather than
 				-- rolling for a new event on every single animation update.
-				glitch_cooldown = random_int(6) + 4
+				glitch_cooldown = random_int(8) + 7
 			end
 
 			apply_frame()
