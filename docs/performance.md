@@ -153,7 +153,7 @@ benchmark without profiling when comparing startup medians.
 
 ## Dashboard animation profiling
 
-The dashboard frame profiler is opt-in and has no timing or sample-storage work in
+The dashboard frame profiler is opt-in and does no per-frame timing or sample-storage work in
 normal sessions. Enable it before starting Neovim:
 
 PowerShell:
@@ -185,8 +185,8 @@ The report separates:
 - `animation.frame`: activity check, update, and redraw combined.
 - `animation.activity`: the dashboard-active check.
 
-Each operation reports sample count, average, median, 95th percentile, minimum,
-and maximum in milliseconds. Samples are capped at 4096 per operation. The
+Each operation reports total sample count, average, median, 95th percentile, minimum,
+and maximum in milliseconds. Percentiles use the latest 4096 samples per operation. The
 profiler does not print on every tick; it only collects timings until the report
 command is run. Use `:CvimAnimationProfileReset` to clear samples and start a
 fresh measurement while the dashboard is still active.
