@@ -150,3 +150,53 @@ account for the cost of importing `soul.core.helpers.paths`.
 Inclusive time includes nested work; exclusive time subtracts nested module
 loads and measured calls. Profiling adds measurement overhead, so use the normal
 benchmark without profiling when comparing startup medians.
+
+## Dashboard animation profiling
+
+The dashboard frame profiler is opt-in and has no timing or sample-storage work in
+normal sessions. Enable it before starting Neovim:
+
+PowerShell:
+
+```powershell
+$env:CVIM_ANIMATION_PROFILE = "1"
+nvim
+```
+
+Bash:
+
+```sh
+CVIM_ANIMATION_PROFILE=1 nvim
+```
+
+Leave the dashboard animating for 20–30 seconds, then run:
+
+```vim
+:CvimAnimationProfile
+```
+
+The report separates:
+
+- `logo.render`: dynamic wordmark composition using the cached C rotation.
+- `logo.highlights`: conversion of character highlight ranges to Alpha byte ranges.
+- `animation.update`: the complete animation update callback, including tutorial,
+  logo rotation, and wordmark/glitch updates.
+- `animation.redraw`: the Alpha redraw command.
+- `animation.frame`: activity check, update, and redraw combined.
+- `animation.activity`: the dashboard-active check.
+
+Each operation reports sample count, average, median, 95th percentile, minimum,
+and maximum in milliseconds. Samples are capped at 4096 per operation. The
+profiler does not print on every tick; it only collects timings until the report
+command is run. Use `:CvimAnimationProfileReset` to clear samples and start a
+fresh measurement while the dashboard is still active.
+
+The frame timer currently uses a 65 ms interval. Compare the update, redraw, and
+combined frame timings across repeated runs. The 95th percentile and maximum are
+more useful for spotting occasional stutters than the average alone. The
+profiler itself adds some overhead, so use it to find relative hotspots, then
+disable it and judge smoothness in a normal session. Do not use a profiled
+session for the startup benchmark.
+
+The feature is disabled unless `CVIM_ANIMATION_PROFILE=1` is present when
+Neovim starts. Remove the variable or set it to `0` for normal use.
