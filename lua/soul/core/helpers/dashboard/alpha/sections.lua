@@ -299,10 +299,10 @@ end
 -- Keep grammatical glue neutral and highlight every meaningful word.
 -- This avoids a hand-maintained vocabulary that inevitably misses new copy.
 local explanation_stopwords = {
-	a = true, an = true, and = true, are = true, as = true, at = true,
+	a = true, an = true, ["and"] = true, are = true, as = true, at = true,
 	by = true, for = true, from = true,
-	in = true, into = true, is = true, it = true, its = true, of = true,
-	on = true, or = true, the = true, their = true,
+	["in"] = true, into = true, is = true, it = true, its = true, of = true,
+	on = true, ["or"] = true, the = true, their = true,
 	then = true, this = true, to = true, when = true, with = true,
 }
 
