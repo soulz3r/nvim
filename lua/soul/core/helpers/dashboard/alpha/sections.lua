@@ -638,7 +638,9 @@ local function build_animation_highlights(lines, start_line)
 	return ranges
 end
 
-function M.build(dashboard)
+function M.build(dashboard, code_examples)
+	code_examples = code_examples ~= false
+
 	local icons = require("soul.core.helpers.icons")
 	local utils = require("alpha.utils")
 	local logo_data = require("soul.core.helpers.dashboard.logo")
@@ -763,9 +765,11 @@ function M.build(dashboard)
 
 		{ type = "padding", val = 1 },
 
-		dashboard.section.header,
-
-		{ type = "padding", val = 1 },
+		-- The C tutorial is optional; the logo and dashboard controls remain.
+		unpack(code_examples and {
+			dashboard.section.header,
+			{ type = "padding", val = 1 },
+		} or {}),
 
 		dashboard.section.buttons,
 
@@ -783,10 +787,14 @@ function M.build(dashboard)
 	---------------------------------------------------------------------------
 
 	local animation_data = header_data.animation
-	local timeline = build_animation_timeline(animation_data, logo.width)
+	local timeline = code_examples and build_animation_timeline(animation_data, logo.width) or {}
 	local animation_step = 1
 
 	local function apply_animation_frame()
+		if not code_examples then
+			return
+		end
+
 		local frame = timeline[animation_step]
 		local start_line = animation_data.start_line
 
@@ -822,6 +830,10 @@ function M.build(dashboard)
 		apply_animation_frame = apply_animation_frame,
 
 		next_animation_frame = function()
+			if not code_examples then
+				return
+			end
+
 			animation_step = animation_step + 1
 
 			if animation_step > #timeline then
