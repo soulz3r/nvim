@@ -3,7 +3,14 @@ local M = {
 	event = { "BufReadPost", "BufNewFile" },
 	cmd = "Gitsigns",
 	keys = {
-		{ "ih", function() require("gitsigns").select_hunk() end, mode = { "o", "x" }, desc = "Select Git hunk" },
+		{
+			"ih",
+			function()
+				require("gitsigns").select_hunk()
+			end,
+			mode = { "o", "x" },
+			desc = "Select Git hunk",
+		},
 		{
 			"<leader>gj",
 			"<cmd>lua require('gitsigns').next_hunk({ navigation_message = false })<CR>",
