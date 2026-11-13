@@ -322,26 +322,41 @@ local function highlight_message(ranges, line_number, line)
 		return
 	end
 
-	add_range(ranges, "AlphaMessage", line_number, 0, #line)
+	-- Keep ranges disjoint. Alpha's character-range conversion can otherwise
+	-- let the full-line base range mask the more specific keyword highlights.
+	local cursor = 0
 
 	for first, word in line:gmatch("()([%a_]+)") do
-		local last = first + #word - 1
-		local is_final_word = line:sub(last + 1):match("^%s*[%p]*$") ~= nil
-		local should_highlight = false
+		local start_column = first - 1
+		local end_column = start_column + #word
+
+		if cursor < start_column then
+			add_range(ranges, "AlphaMessage", line_number, cursor, start_column)
+		end
+
+		local is_final_word = line:sub(end_column + 1):match("^%s*[%p]*$") ~= nil
+		local should_highlight = not explanation_stopwords[word]
 
 		if is_final_word then
-			-- Do not color ambiguous prefixes such as "t" while they may
-			-- still become grammatical glue like "the" or "to".
+			-- Keep ambiguous one-letter endings neutral while they may still
+			-- become grammatical glue such as "a" or "I".
 			should_highlight = #word > 1
 				and not explanation_stopwords[word]
 				and not is_stopword_prefix(word)
-		else
-			should_highlight = not explanation_stopwords[word]
 		end
 
-		if should_highlight then
-			add_range(ranges, "AlphaMessageKey", line_number, first - 1, last)
-		end
+		add_range(
+			ranges,
+			should_highlight and "AlphaMessageKey" or "AlphaMessage",
+			line_number,
+			start_column,
+			end_column
+		)
+		cursor = end_column
+	end
+
+	if cursor < #line then
+		add_range(ranges, "AlphaMessage", line_number, cursor, #line)
 	end
 
 	for _, term in ipairs({ "&value", "*ptr", "+=" }) do
@@ -351,15 +366,14 @@ local function highlight_message(ranges, line_number, line)
 			if not start_index then
 				break
 			end
-			add_range(ranges, "AlphaMessageKey", line_number, start_index - 1, end_index)
-			first = end_index + 1
-		end
-
-		for length = 1, #term - 1 do
-			local prefix = term:sub(1, length)
-			if line:sub(-length) == prefix then
-				add_range(ranges, "AlphaMessageKey", line_number, #line - length, #line)
+			-- The word portion is already highlighted above. Highlight only
+			-- the operator prefix here so no ranges overlap.
+			if term ~= "+=" then
+				add_range(ranges, "AlphaCodeOperator", line_number, start_index - 1, start_index)
+			else
+				add_range(ranges, "AlphaMessageKey", line_number, start_index - 1, end_index)
 			end
+			first = end_index + 1
 		end
 	end
 end
