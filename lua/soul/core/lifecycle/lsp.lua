@@ -88,15 +88,6 @@ function M.setup()
 		end,
 	})
 
-	vim.api.nvim_create_autocmd("LspStop", {
-		group = group,
-		callback = function(args)
-			if args.data and args.data.client_id then
-				cancel_timer(args.data.client_id)
-			end
-		end,
-	})
-
 	vim.api.nvim_create_autocmd("VimLeavePre", {
 		group = group,
 		callback = function()
