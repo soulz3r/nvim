@@ -43,7 +43,9 @@ local function build_animation_timeline(animation, content_width)
 			block_width = math.max(block_width, vim.fn.strdisplaywidth(scene.extra_line))
 		end
 
-		local padding = math.max(0, math.floor((content_width - block_width) / 2))
+		local block_indent = vim.fn.strdisplaywidth((scene.lines[1] or ""):match("^%s*"))
+		local visible_width = math.max(0, block_width - block_indent)
+		local padding = math.max(0, math.floor((content_width - visible_width) / 2) - block_indent)
 		local indent = string.rep(" ", padding)
 
 		local heading = scene.lines[1] or ""
@@ -93,7 +95,12 @@ local function build_animation_timeline(animation, content_width)
 		push(visible)
 
 		local explanation = scene.lines[6] or ""
-		local explanation_padding = math.max(0, math.floor((content_width - vim.fn.strdisplaywidth(explanation)) / 2))
+		local explanation_leading = vim.fn.strdisplaywidth(explanation:match("^%s*"))
+		local explanation_width = math.max(0, vim.fn.strdisplaywidth(explanation) - explanation_leading)
+		local explanation_padding = math.max(
+			0,
+			math.floor((content_width - explanation_width) / 2) - explanation_leading
+		)
 		local explanation_indent = string.rep(" ", explanation_padding)
 
 		for column = 1, #explanation do
