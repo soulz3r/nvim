@@ -12,7 +12,7 @@ local function build_animation_timeline(animation, content_width)
 		local visible = { "", "", "", "", "", "", "" }
 		local cursor_source_line = scene.cursor_source_line or 3
 		local code_line = scene.lines[cursor_source_line] or ""
-		local cursor_line = scene.extra_line and 5 or 4
+		local cursor_line = 4
 		local separator_line = cursor_line + 1
 		local explanation_line = cursor_line + 2
 		local block_width = 0
@@ -75,7 +75,7 @@ local function build_animation_timeline(animation, content_width)
 
 		if scene.extra_line then
 			for column = 1, #scene.extra_line do
-				visible[4] = indent .. scene.extra_line:sub(1, column)
+				visible[5] = indent .. scene.extra_line:sub(1, column)
 				push(visible)
 			end
 		end
