@@ -451,7 +451,7 @@ benchmark_startup() {
   alpha_entry="$data_dir/lazy/alpha-nvim/lua/alpha.lua"
 
   local config_path
-  config_path="$(to_native_path "$ROOT")"
+  config_path="$ROOT"
 
   if [[ ! -f "$lazy_entry" ]]; then
     print_status "CVIM startup benchmark (Lazy unavailable)" "SKIP"
@@ -483,7 +483,6 @@ benchmark_startup() {
         ready_output_native="$(to_native_path "$ready_output")"
 
         if ! CVIM_BENCHMARK=1 CVIM_CONFIG="$config_path" CVIM_BENCHMARK_READY_OUTPUT="$ready_output_native" nvim --headless --startuptime "$log" \
-          --cmd 'lua vim.opt.rtp:prepend(vim.env.CVIM_CONFIG)' \
           -u "$ROOT/init.lua" \
           --cmd 'lua vim.api.nvim_create_autocmd("VimEnter", { once = true, callback = function() vim.schedule(function() local ready = vim.wait(5000, function() return vim.g.cvim_config_loaded == true and vim.g.cvim_alpha_ready == true end, 10); if not ready then io.stderr:write(("CVIM startup readiness timeout: config_loaded=%s, alpha_ready=%s, filetype=%s\\n"):format(tostring(vim.g.cvim_config_loaded), tostring(vim.g.cvim_alpha_ready), vim.bo.filetype)); vim.cmd.cquit(); return end; vim.fn.writefile({ tostring(vim.g.cvim_alpha_ready_ms or -1) }, vim.env.CVIM_BENCHMARK_READY_OUTPUT); vim.cmd("qa!") end) end })' >"$output" 2>&1; then
           failed=1
@@ -583,7 +582,7 @@ profile_startup() {
   mkdir -p "$profile_dir"
 
   local config_path profile_output_path
-  config_path="$(to_native_path "$ROOT")"
+  config_path="$ROOT"
   profile_output_path="$(to_native_path "$profile_output")"
 
   if ! CVIM_CONFIG="$config_path" CVIM_PROFILE_OUTPUT="$profile_output_path" nvim --headless \
