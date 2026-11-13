@@ -16,6 +16,10 @@ package.path = table.concat({
 
 vim.g.cvim_start_ns = vim.uv.hrtime()
 
+-- Set leaders before Lazy or any plugin can define leader mappings.
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+
 if vim.fn.has("nvim-0.12") ~= 1 then
 	error("soulz3r/nvim requires Neovim 0.12 or newer")
 end
@@ -23,8 +27,19 @@ end
 require("soul.launch")
 require("soul.core.helpers.paths")
 require("soul.core.options")
-require("soul.core.keymaps")
 require("soul.core.autocmds")
+
+-- Register core mappings after the first startup screen is ready. The
+-- scheduled callback runs before Neovim begins processing user input.
+vim.api.nvim_create_autocmd("VimEnter", {
+	once = true,
+	callback = function()
+		vim.schedule(function()
+			require("soul.core.keymaps")
+			vim.g.cvim_keymaps_ready = true
+		end)
+	end,
+})
 -- Defer project-history parsing until the startup UI is already available.
 vim.api.nvim_create_autocmd("VimEnter", {
 	once = true,
