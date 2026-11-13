@@ -5,7 +5,12 @@ local function read_registry(path)
 		return nil
 	end
 
-	local ok, data = pcall(vim.json.decode, table.concat(vim.fn.readfile(path), "\n"))
+	local read_ok, lines = pcall(vim.fn.readfile, path)
+	if not read_ok then
+		return nil
+	end
+
+	local ok, data = pcall(vim.json.decode, table.concat(lines, "\n"))
 	if not ok or type(data) ~= "table" then
 		return nil
 	end
@@ -62,6 +67,8 @@ function M.setup()
 		group = group,
 		once = true,
 		callback = function()
+			pcall(vim.api.nvim_del_augroup_by_id, group)
+
 			-- Never override an explicit file or directory supplied by the user.
 			if vim.fn.argc() ~= 0 then
 				return
