@@ -59,20 +59,28 @@ assert(
 	resolved_paths.projects == expected_projects_dir,
 	"Project directory must honor PROJECTS_DIR and otherwise default to ~/projects"
 )
-local pwsh_elapsed_ms = (vim.uv.hrtime() - pwsh_started) / 1e6
 
+-- Importing core paths must be cheap. Full PowerShell probing is deferred until
+-- a feature explicitly requests a validated executable.
+assert(
+	package.loaded["soul.core.helpers.process"] == nil,
+	"Importing paths.lua must not load the process-wait helper"
+)
+
+local pwsh_elapsed_ms = (vim.uv.hrtime() - pwsh_started) / 1e6
 if vim.env.PROFILE_PWSH == "1" then
-	print(("PowerShell resolver completed in %.2f ms (%s)"):format(pwsh_elapsed_ms, tostring(resolved_paths.pwsh)))
+	print(("Core paths import completed in %.2f ms (%s)"):format(pwsh_elapsed_ms, tostring(resolved_paths.pwsh)))
 end
 
 if platform.is_windows and (vim.env.REQUIRE_PWSH == "1" or pwsh_on_path) then
+	local resolved_powershell = resolved_paths.resolve_powershell()
 	assert(
-		type(resolved_paths.pwsh) == "string" and resolved_paths.pwsh ~= "" and resolved_paths.pwsh ~= "pwsh",
+		type(resolved_powershell) == "string" and resolved_powershell ~= "" and resolved_powershell ~= "pwsh",
 		"PowerShell 7 must resolve to a concrete Windows executable path"
 	)
 	assert(
-		vim.fn.executable(resolved_paths.pwsh) == 1,
-		"PWSH resolver returned a path that is not executable: " .. tostring(resolved_paths.pwsh)
+		vim.fn.executable(resolved_powershell) == 1,
+		"PowerShell resolver returned a path that is not executable: " .. tostring(resolved_powershell)
 	)
 
 	-- Invalid inherited environment hints must not prevent PATH discovery.
@@ -81,8 +89,9 @@ if platform.is_windows and (vim.env.REQUIRE_PWSH == "1" or pwsh_on_path) then
 	vim.env.PSHOME = "C:/nvim-ci/missing/PowerShell"
 	package.loaded[paths_module] = nil
 	local invalid_hints = require(paths_module)
+	local invalid_resolved = invalid_hints.resolve_powershell()
 	assert(
-		invalid_hints.pwsh ~= "pwsh" and vim.fn.executable(invalid_hints.pwsh) == 1,
+		invalid_resolved ~= "pwsh" and vim.fn.executable(invalid_resolved) == 1,
 		"Invalid PWSH and PSHOME hints must fall back to a valid PowerShell 7 on PATH"
 	)
 
@@ -94,18 +103,19 @@ if platform.is_windows and (vim.env.REQUIRE_PWSH == "1" or pwsh_on_path) then
 		vim.env.PSHOME = "C:/nvim-ci/missing/PowerShell"
 		package.loaded[paths_module] = nil
 		local rejects_legacy = require(paths_module)
+		local legacy_resolved = rejects_legacy.resolve_powershell()
 		assert(
-			rejects_legacy.pwsh ~= windows_powershell,
+			legacy_resolved ~= windows_powershell,
 			"Windows PowerShell 5.1 must not be selected as the configured shell"
 		)
 	end
 
-	vim.env.PWSH = resolved_paths.pwsh
-	vim.env.PSHOME = resolved_paths.pwsh:gsub("[/\\\\]pwsh%.exe$", "")
+	vim.env.PWSH = resolved_powershell
+	vim.env.PSHOME = resolved_powershell:gsub("[/\\\\]pwsh%.exe$", "")
 	package.loaded[paths_module] = nil
 	local path_with_spaces = require(paths_module)
 	assert(
-		path_with_spaces.pwsh == resolved_paths.pwsh,
+		path_with_spaces.resolve_powershell() == resolved_powershell,
 		"PowerShell discovery must preserve and execute paths containing spaces"
 	)
 	vim.env.PSHOME = original_pshome
