@@ -21,6 +21,24 @@ START_TIME_US="$(timestamp_us)"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# Git Bash uses POSIX paths while native Windows Neovim expects drive paths.
+# Convert only values crossing the process environment boundary.
+to_native_path() {
+  if command -v cygpath >/dev/null 2>&1; then
+    cygpath -w "$1"
+  else
+    printf '%s' "$1"
+  fi
+}
+
+to_shell_path() {
+  if command -v cygpath >/dev/null 2>&1; then
+    cygpath -u "$1"
+  else
+    printf '%s' "$1"
+  fi
+}
+
 # Keep the output readable in narrow terminals and plain logs.
 if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
   RESET=$'\033[0m'
@@ -414,7 +432,11 @@ benchmark_startup() {
   # benchmarking a clean Neovim process.
   local data_dir lazy_entry
   data_dir="$(nvim --headless --clean -u NONE -c 'lua io.write(vim.fn.stdpath("data"))' -c 'qa!' 2>/dev/null)"
+  data_dir="$(to_shell_path "$data_dir")"
   lazy_entry="$data_dir/lazy/lazy.nvim/lua/lazy/init.lua"
+
+  local config_path
+  config_path="$(to_native_path "$ROOT")"
 
   if [[ ! -f "$lazy_entry" ]]; then
     print_status "CVIM startup benchmark (Lazy unavailable)" "SKIP"
@@ -435,8 +457,8 @@ benchmark_startup() {
           break
         fi
       else
-        if ! CVIM_CONFIG="$ROOT" nvim --headless --startuptime "$log" \\
-          --cmd 'lua vim.opt.rtp:prepend(vim.env.CVIM_CONFIG)' \\
+        if ! CVIM_CONFIG="$config_path" nvim --headless --startuptime "$log" \
+          --cmd 'lua vim.opt.rtp:prepend(vim.env.CVIM_CONFIG)' \
           -u "$ROOT/init.lua" -c 'qa!' >"$output" 2>&1; then
           failed=1
           break
@@ -514,7 +536,11 @@ profile_startup() {
   profile_output="$profile_dir/modules.tsv"
   mkdir -p "$profile_dir"
 
-  if ! CVIM_CONFIG="$ROOT" CVIM_PROFILE_OUTPUT="$profile_output" nvim --headless \
+  local config_path profile_output_path
+  config_path="$(to_native_path "$ROOT")"
+  profile_output_path="$(to_native_path "$profile_output")"
+
+  if ! CVIM_CONFIG="$config_path" CVIM_PROFILE_OUTPUT="$profile_output_path" nvim --headless \
     -u "$ROOT/scripts/profile-init.lua" \
     -c 'lua vim.wait(500, function() return vim.g.cvim_profile_done == true end, 10)' \
     -c 'qa!' >"$profile_dir/output.log" 2>&1; then
