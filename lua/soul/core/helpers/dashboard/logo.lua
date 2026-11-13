@@ -172,6 +172,8 @@ local function render_frame(frame, glitch_state)
 	local chromatic = glitch_state.chromatic
 	local block_noise = glitch_state.block_noise
 	local scanline = glitch_state.scanline
+	local burst = glitch_state.burst
+	local interference = glitch_state.interference
 	local glitch_seed = glitch_state.seed
 	local lines = {}
 	local ranges = {}
@@ -185,9 +187,17 @@ local function render_frame(frame, glitch_state)
 		-- Tear a randomly sized fragment at a random position. The rest of
 		-- every line stays exactly where the ASCII artwork placed it.
 		local tear_noise = glitch_noise(art_row, 1, glitch_seed, 1)
-		local tear_start = 3 + (tear_noise % 25)
-		local tear_end = tear_start + 1 + (math.floor(tear_noise / 29) % 4)
-		local tear_shift = (math.floor(tear_noise / 113) % 5) - 2
+		local tear_start = 1 + (tear_noise % 24)
+		local tear_end = tear_start + 5 + (math.floor(tear_noise / 29) % 13)
+		local tear_shift = (math.floor(tear_noise / 113) % 13) - 6
+		local burst_row = glitch_seed % #WORDMARK_CHARS + 1
+		local burst_start = 1 + (math.floor(glitch_seed / 17) % 20)
+		local burst_end = burst_start + 9 + (math.floor(glitch_seed / 43) % 16)
+		local burst_shift = (math.floor(glitch_seed / 97) % 19) - 9
+		local row_shift = tearing and tear_shift or 0
+		if burst and art_row == burst_row then
+			row_shift = burst_shift
+		end
 
 		for column = 1, WIDTH do
 			local char = " "
@@ -200,21 +210,20 @@ local function render_frame(frame, glitch_state)
 
 			local art_column = column - ART_START + 1
 			if art_chars and art_column >= 1 and art_column <= #art_chars then
-				local source_column = art_column
-				if tearing and art_row >= 1 and art_row <= #WORDMARK_CHARS
-					and art_column >= tear_start and art_column <= tear_end
-				then
-					source_column = art_column - tear_shift
-				end
+				local source_column = art_column - row_shift
+				local in_burst = burst and art_row == burst_row
+					and art_column >= burst_start and art_column <= burst_end
+				local in_tear = tearing and art_column >= tear_start and art_column <= tear_end
 				char = art_chars[source_column] or " "
 				group = char ~= " " and wordmark_group(char) or nil
-				if tearing and art_column >= tear_start and art_column <= tear_end and char ~= " " then
-					group = GLITCH_COLORS[glitch_noise(art_row, art_column, glitch_seed, 4) % #GLITCH_COLORS + 1]
+				local noise = glitch_noise(art_row, art_column, glitch_seed, 2)
+				if (in_tear or in_burst) and char ~= " " then
+					group = GLITCH_COLORS[noise % #GLITCH_COLORS + 1]
 				end
 
-				-- Corrupt a few short slices with displaced block fragments.
-				local noise = glitch_noise(art_row, art_column, glitch_seed, 2)
-				if block_noise and noise % 17 < 3 then
+				-- Dense digital corruption: replace glyphs and empty cells with
+				-- bright block fragments instead of merely recoloring the logo.
+				if (block_noise or in_burst or interference) and noise % (in_burst and 3 or 7) < (in_burst and 2 or 2) then
 					char = GLITCH_BLOCKS[math.floor(noise / 17) % #GLITCH_BLOCKS + 1]
 					group = GLITCH_COLORS[math.floor(noise / 71) % #GLITCH_COLORS + 1]
 				end
@@ -230,8 +239,8 @@ local function render_frame(frame, glitch_state)
 			for art_column = 1, #art_chars do
 				local source = art_chars[art_column]
 				local noise = glitch_noise(art_row, art_column, glitch_seed, 3)
-				if source ~= " " and noise % 13 < 2 then
-					local ghost_offset = (math.floor(noise / 13) % 3) - 1
+				if source ~= " " and noise % 5 < 2 then
+					local ghost_offset = (math.floor(noise / 13) % 5) - 2
 					if ghost_offset == 0 then
 						ghost_offset = art_row % 2 == 0 and 1 or -1
 					end
@@ -244,13 +253,14 @@ local function render_frame(frame, glitch_state)
 			end
 		end
 
-		-- A restrained scanline tint briefly touches the existing glyphs.
-		if scanline and art_chars and #art_chars > 0 then
+		-- Bright scanline bands cut through the wordmark for a few frames.
+		if scanline and art_chars and #art_chars > 0 and glitch_noise(art_row, 1, glitch_seed, 5) % 3 == 0 then
 			for column = ART_START, math.min(WIDTH, ART_START + #art_chars - 1) do
-				if cells[column] ~= " " then
-					local noise = glitch_noise(art_row, column - ART_START + 1, glitch_seed, 5)
-					cell_groups[column] = GLITCH_COLORS[noise % #GLITCH_COLORS + 1]
+				local noise = glitch_noise(art_row, column - ART_START + 1, glitch_seed, 5)
+				if noise % 4 == 0 then
+					cells[column] = GLITCH_BLOCKS[math.floor(noise / 17) % #GLITCH_BLOCKS + 1]
 				end
+				cell_groups[column] = GLITCH_COLORS[noise % #GLITCH_COLORS + 1]
 			end
 		end
 
@@ -329,6 +339,8 @@ function M.build()
 		chromatic = false,
 		block_noise = false,
 		scanline = false,
+		burst = false,
+		interference = false,
 		seed = random_int(2147483646),
 	}
 	local glitch_remaining = 0
@@ -361,18 +373,22 @@ function M.build()
 					glitch_state.chromatic = false
 					glitch_state.block_noise = false
 					glitch_state.scanline = false
-					glitch_cooldown = random_int(5)
+					glitch_state.burst = false
+					glitch_state.interference = false
+					glitch_cooldown = random_int(3)
 				end
 			elseif glitch_cooldown > 0 then
 				glitch_cooldown = glitch_cooldown - 1
-			elseif random_int(100) <= 42 then
-				local kind = random_int(5)
-				glitch_state.tearing = kind == 1 or kind == 5
-				glitch_state.chromatic = kind == 2 or kind == 5
-				glitch_state.block_noise = kind == 3 or kind == 5
-				glitch_state.scanline = kind == 4
+			elseif random_int(100) <= 72 then
+				local kind = random_int(7)
+				glitch_state.tearing = kind == 1 or kind == 5 or kind == 6 or kind == 7
+				glitch_state.chromatic = kind == 2 or kind == 5 or kind == 6
+				glitch_state.block_noise = kind == 3 or kind == 5 or kind == 7
+				glitch_state.scanline = kind == 4 or kind == 5
+				glitch_state.burst = kind == 6
+				glitch_state.interference = kind == 7
 				glitch_state.seed = random_int(2147483646)
-				glitch_remaining = random_int(3)
+				glitch_remaining = random_int(4)
 			end
 
 			apply_frame()
