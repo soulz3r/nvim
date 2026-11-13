@@ -345,7 +345,8 @@ compatibility_checks() {
 
   if ! grep -q 'vim.g.cvim_config_loaded = true' init.lua \
     || ! grep -q 'vim.g.cvim_alpha_ready = true' lua/soul/plugins/alpha.lua \
-    || ! grep -q 'vim.g.cvim_config_loaded ~= true or vim.g.cvim_alpha_ready ~= true' scripts/check.sh; then
+    || ! grep -q 'vim.g.cvim_keymaps_ready = true' init.lua \
+    || ! grep -q 'vim.g.cvim_config_loaded ~= true or vim.g.cvim_alpha_ready ~= true or vim.g.cvim_keymaps_ready ~= true' scripts/check.sh; then
     echo "The configured startup benchmark must verify that this checkout loaded."
     return 1
   fi
@@ -499,7 +500,7 @@ benchmark_startup() {
 
         if ! CVIM_BENCHMARK=1 CVIM_CONFIG="$config_path" CVIM_BENCHMARK_READY_OUTPUT="$ready_output_native" nvim --headless --startuptime "$log" \
           -u "$ROOT/init.lua" \
-          --cmd 'lua vim.api.nvim_create_autocmd("VimEnter", { once = true, callback = function() vim.schedule(function() local ready = vim.wait(5000, function() return vim.g.cvim_config_loaded == true and vim.g.cvim_alpha_ready == true end, 10); if not ready then io.stderr:write(("CVIM startup readiness timeout: config_loaded=%s, alpha_ready=%s, filetype=%s\\n"):format(tostring(vim.g.cvim_config_loaded), tostring(vim.g.cvim_alpha_ready), vim.bo.filetype)); vim.cmd.cquit(); return end; vim.fn.writefile({ tostring(vim.g.cvim_alpha_ready_ms or -1) }, vim.env.CVIM_BENCHMARK_READY_OUTPUT); vim.cmd("qa!") end) end })' >"$output" 2>&1; then
+          --cmd 'lua vim.api.nvim_create_autocmd("VimEnter", { once = true, callback = function() vim.schedule(function() local ready = vim.wait(5000, function() return vim.g.cvim_config_loaded == true and vim.g.cvim_alpha_ready == true and vim.g.cvim_keymaps_ready == true end, 10); if not ready then io.stderr:write(("CVIM startup readiness timeout: config_loaded=%s, alpha_ready=%s, keymaps_ready=%s, filetype=%s\\n"):format(tostring(vim.g.cvim_config_loaded), tostring(vim.g.cvim_alpha_ready), tostring(vim.g.cvim_keymaps_ready), vim.bo.filetype)); vim.cmd.cquit(); return end; vim.fn.writefile({ tostring(vim.g.cvim_alpha_ready_ms or -1) }, vim.env.CVIM_BENCHMARK_READY_OUTPUT); vim.cmd("qa!") end) end })' >"$output" 2>&1; then
           failed=1
           break
         fi
