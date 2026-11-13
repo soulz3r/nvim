@@ -351,14 +351,85 @@ local explanation_stopwords = {
 	["this"] = true, ["to"] = true, ["when"] = true, ["with"] = true,
 }
 
-local function is_stopword_prefix(word)
-	for stopword in pairs(explanation_stopwords) do
-		if stopword:sub(1, #word) == word then
-			return true
+-- Explanation terms reuse the same semantic palette as the C snippets.
+-- Ordinary prose stays neutral; only language concepts and important actions
+-- receive syntax-role colors.
+local explanation_roles = {
+	-- C language constructs.
+	["return"] = "AlphaCodeKeyword",
+	["if"] = "AlphaCodeKeyword",
+	["enum"] = "AlphaCodeKeyword",
+	["directives"] = "AlphaCodePreprocessor",
+	["macros"] = "AlphaCodeMacro",
+	["constant"] = "AlphaCodeConstant",
+	["constants"] = "AlphaCodeConstant",
+
+	-- Types and data concepts.
+	["double"] = "AlphaCodeType",
+	["integer"] = "AlphaCodeType",
+	["decimals"] = "AlphaCodeNumber",
+	["character"] = "AlphaCodeType",
+	["characters"] = "AlphaCodeType",
+	["arrays"] = "AlphaCodeType",
+	["structs"] = "AlphaCodeType",
+	["fields"] = "AlphaCodeIdentifier",
+	["strings"] = "AlphaCodeString",
+	["memory"] = "AlphaTopicPointers",
+	["address"] = "AlphaCodeOperator",
+	["pointer"] = "AlphaCodeType",
+	["pointers"] = "AlphaCodeType",
+	["value"] = "AlphaCodeIdentifier",
+	["values"] = "AlphaCodeIdentifier",
+	["index"] = "AlphaCodeNumber",
+	["zero"] = "AlphaCodeNumber",
+	["bits"] = "AlphaCodeNumber",
+	["masks"] = "AlphaCodeConstant",
+
+	-- Functions and operations.
+	["main"] = "AlphaCodeFunction",
+	["puts"] = "AlphaCodeFunction",
+	["stdout"] = "AlphaCodeFunction",
+	["compiler"] = "AlphaCodeStage",
+	["translates"] = "AlphaCodeStage",
+	["stages"] = "AlphaCodeStage",
+	["writes"] = "AlphaCodeFunction",
+	["stores"] = "AlphaCodeFunction",
+	["sends"] = "AlphaCodeFunction",
+	["updates"] = "AlphaCodeOperator",
+	["selects"] = "AlphaCodeOperator",
+	["gives"] = "AlphaCodeOperator",
+	["reads"] = "AlphaCodeFunction",
+	["releases"] = "AlphaCodeFunction",
+	["close"] = "AlphaCodeFunction",
+	["opened"] = "AlphaCodeFunction",
+	["expand"] = "AlphaCodePreprocessor",
+	["expands"] = "AlphaCodePreprocessor",
+	["build"] = "AlphaCodeStage",
+	["individual"] = "AlphaCodeConstant",
+	["true"] = "AlphaCodeConstant",
+}
+
+local function explanation_role(word, is_final_word)
+	local exact = explanation_roles[word]
+	if exact then
+		return exact
+	end
+
+	if not is_final_word then
+		return nil
+	end
+
+	local matched_group
+	for term, group in pairs(explanation_roles) do
+		if term:sub(1, #word) == word then
+			if matched_group and matched_group ~= group then
+				return nil
+			end
+			matched_group = group
 		end
 	end
 
-	return false
+	return matched_group
 end
 
 local function highlight_message(ranges, line_number, line)
@@ -366,8 +437,7 @@ local function highlight_message(ranges, line_number, line)
 		return
 	end
 
-	-- Keep ranges disjoint. Alpha's character-range conversion can otherwise
-	-- let the full-line base range mask the more specific keyword highlights.
+	-- Keep ranges disjoint so each explanation token has exactly one role.
 	local cursor = 0
 
 	for first, word in line:gmatch("()([%a_]+)") do
@@ -379,23 +449,14 @@ local function highlight_message(ranges, line_number, line)
 		end
 
 		local is_final_word = line:sub(end_column + 1):match("^%s*[%p]*$") ~= nil
-		local should_highlight = not explanation_stopwords[word]
-
-		if is_final_word then
-			-- Keep ambiguous one-letter endings neutral while they may still
-			-- become grammatical glue such as "a" or "I".
-			should_highlight = #word > 1
-				and not explanation_stopwords[word]
-				and not is_stopword_prefix(word)
+		local role = explanation_role(word, is_final_word)
+		if not role and is_final_word and explanation_stopwords[word] then
+			role = "AlphaMessage"
+		elseif not role and explanation_stopwords[word] then
+			role = "AlphaMessage"
 		end
 
-		add_range(
-			ranges,
-			should_highlight and "AlphaMessageKey" or "AlphaMessage",
-			line_number,
-			start_column,
-			end_column
-		)
+		add_range(ranges, role or "AlphaMessage", line_number, start_column, end_column)
 		cursor = end_column
 	end
 
@@ -410,12 +471,10 @@ local function highlight_message(ranges, line_number, line)
 			if not start_index then
 				break
 			end
-			-- The word portion is already highlighted above. Highlight only
-			-- the operator prefix here so no ranges overlap.
 			if term ~= "+=" then
 				add_range(ranges, "AlphaCodeOperator", line_number, start_index - 1, start_index)
 			else
-				add_range(ranges, "AlphaMessageKey", line_number, start_index - 1, end_index)
+				add_range(ranges, "AlphaCodeOperator", line_number, start_index - 1, end_index)
 			end
 			first = end_index + 1
 		end
