@@ -142,10 +142,29 @@ before that event: Neovim processes the startup command queue before dispatching
 `VimEnter`, so waiting there would prevent the profiler from ever completing.
 The report covers first-time `require()` calls, Lazy's `setup()` call,
 selected `vim.fn` path lookups (`exepath`, `executable`, `expand`, and
-`stdpath`), Lazy plugin configuration callbacks, and dashboard builder
-functions. This separates the cost of loading Lazy from registering its plugin
-specifications, and shows whether executable discovery or other path lookups
-account for the cost of importing `soul.core.helpers.paths`.
+`stdpath`), plugin-spec configuration callbacks, and dashboard builder
+functions. It also instruments the pinned Lazy.nvim internals without modifying
+the installed plugin source:
+
+- `lazy.phase.config_setup()`: Lazy option and runtime-path setup.
+- `lazy.phase.spec_new()`, `spec_parse()`, `spec_normalize()`, and
+  `spec_import()`: plugin-spec construction, normalization, and imports.
+- `lazy.phase.plugin_state()` and `plugin_load()`: installed-plugin state and
+  spec resolution/loading.
+- `lazy.phase.loader_setup()`: loader setup, handler initialization, and
+  handler registration.
+- `lazy.phase.handler_init()` and `handler_setup()`: lazy event/key/cmd/ft
+  handler setup.
+- `lazy.phase.loader_startup()`: eager plugin init callbacks and start-plugin
+  loading.
+- `lazy.phase.plugin_config_dispatch()`: Lazy's per-plugin config dispatcher.
+  This is separate from the individual `soul.plugins.*.config()` callbacks,
+  which are measured by name when they are present.
+
+The phase timings are nested, so compare exclusive time to find where work
+actually happens. Do not add all inclusive values together. This is diagnostic
+instrumentation only; it does not change the production Lazy setup or plugin
+specifications.
 
 Inclusive time includes nested work; exclusive time subtracts nested module
 loads and measured calls. Profiling adds measurement overhead, so use the normal
