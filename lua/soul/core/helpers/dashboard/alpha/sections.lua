@@ -70,7 +70,7 @@ local function build_animation_timeline(animation, content_width)
 				push(visible)
 			end
 
-			-- Keep the caret hidden until the closing line has finished typing.
+			-- Keep the caret anchored to its target while the closing line types.
 			local caret_column = padding
 				+ vim.fn.strdisplaywidth(code_line:sub(1, target - 1))
 			visible[4] = string.rep(" ", caret_column) .. "^"
