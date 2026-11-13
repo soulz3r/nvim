@@ -1,5 +1,17 @@
 local M = {}
-local FrameProfile = require("soul.core.performance.animation")
+
+-- Keep profiling infrastructure out of normal startup. The dashboard still
+-- uses the same call sites, backed by no-ops unless profiling is requested.
+local FrameProfile
+if vim.env.CVIM_ANIMATION_PROFILE == "1" then
+	FrameProfile = require("soul.core.performance.animation")
+else
+	FrameProfile = {
+		enabled = false,
+		record = function() end,
+		setup = function() end,
+	}
+end
 
 local WIDTH = 66
 local HEIGHT = 15
