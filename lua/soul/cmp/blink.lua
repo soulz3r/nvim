@@ -1,6 +1,6 @@
 local M = {
 	"saghen/blink.cmp",
-	event = { "InsertEnter", "CmdlineEnter" },
+	event = { "BufReadPre", "BufNewFile" },
 	dependencies = { "rafamadriz/friendly-snippets" },
 	version = "1.*",
 
