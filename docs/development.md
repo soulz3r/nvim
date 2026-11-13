@@ -44,6 +44,46 @@ GitHub Actions runs full-repository StyLua validation and static checks on Ubunt
 
 ## Performance and resource lifecycle
 
+
+The lightweight project restore module reads the YAP state registry on empty startup without loading YAP or Telescope. YAP itself is deferred until the first file buffer or project action. DAP loads on its debugger mappings, Treesitter installs parsers per opened filetype, and breadcrumbs wait for LSP attachment. The resource lifecycle implementation lives under `lua/soul/core/lifecycle/`. Use cleanup scopes for timers and autocmd groups, and give every long-lived resource an explicit owner and teardown path. Alpha is a startup-only surface; its animation timer and dashboard state are released when the Alpha buffer is left. LSP clients are shut down gracefully only after their final loaded attached buffer is detached and the idle timeout expires. Hidden buffers intentionally keep their server alive.
+
+Run `nvim --headless --clean -u NONE -l scripts/check-lifecycle.lua` to test cleanup-scope behavior and idle LSP shutdown/cancellation with fake clients. The repository check runs this test automatically. See [performance.md](performance.md) for manual lifecycle checks and repeatable startup/idle benchmarks.
+
+## DAP module boundaries
+
+The DAP plugin specification in `lua/soul/lsp/dap.lua` is the composition layer. Keep it limited to loading the dependencies and wiring their setup functions. Focused helpers own independent concerns:
+
+- `lua/soul/core/helpers/dap/path.lua`: shared path normalization, case-aware project keys, containment checks, and executable checks.
+- `lua/soul/core/helpers/dap/project.lua`: public composition layer for the focused DAP project modules.
+- `lua/soul/core/helpers/dap/project/store.lua`: DAP project metadata reads/writes and registered-project lookup.
+- `lua/soul/core/helpers/dap/project/registry.lua`: independent JSON persistence.
+- `lua/soul/core/helpers/dap/project/resolver.lua`: buffer-aware root detection and manual project activation.
+- `lua/soul/core/helpers/dap/project/selection.lua`: saved-project picker and executable selection UI.
+- `lua/soul/core/helpers/dap/launch.lua`: LLDB adapter/configuration, executable choice, and launch argument prompting/persistence.
+- `lua/soul/core/helpers/dap/keymaps.lua`: grouped session/project, breakpoint, stepping, evaluation/REPL, and UI mappings.
+- `lua/soul/core/helpers/dap/args.lua`: portable launch-argument parsing and formatting.
+- `lua/soul/core/helpers/dap/executables.lua`: bounded project executable discovery and ranking.
+- `lua/soul/core/helpers/dap/registry.lua`: safe migration of legacy DAP files and one-time import of old DAP-specific fields from YAP's former registry.
+- `lua/soul/core/helpers/dap/repl.lua`: REPL discovery, focus, and Telescope-backed search.
+- `lua/soul/core/helpers/dap/ui.lua`: DAP UI setup and restoration of the original source window after a session.
+
+Keep only the coordination between these modules in the plugin entry point. Do not make helpers depend on one another's hidden locals or pass around a shared mutable state bag.
+
+## Manual platform checks
+
+Headless CI cannot exercise a user's terminal emulator, external toolchain, clipboard, or GUI. Run the relevant checks on each platform you actually use:
+
+| Platform | Manual checks |
+|---|---|
+| Windows | PowerShell 7 resolution and ToggleTerm; clangd; LLDB DAP; C build/run; clipboard |
+| WSL | Linux shell and compiler; Windows clipboard bridge; projects under the mounted Windows filesystem; LLDB DAP |
+| Linux | Native shell and clipboard; clangd; LLDB DAP; C build/run; Mini Files and terminal behavior |
+| macOS | POSIX shell; available compiler/debugger; clipboard; C build/run |
+| Termux | Platform detection; available shell/compiler; project paths and terminal behavior |
+| Neovide | GUI startup, font, transparency, borders, cursor/scroll behavior, and window lifecycle |
+
+Do not treat a platform as tested merely because its configuration module imports successfully. Record unavailable external tools as untested rather than silently counting them as passes. The real-plugin and external-tool procedure is in [manual-testing.md](manual-testing.md); [plugin-inventory.md](plugin-inventory.md) records plugin purpose, and [contributing.md](contributing.md) describes the maintenance workflow.
+
 The resource lifecycle implementation lives under `lua/soul/core/lifecycle/`. Use cleanup scopes for timers and autocmd groups, and give every long-lived resource an explicit owner and teardown path. Alpha is a startup-only surface; its animation timer and dashboard state are released when the Alpha buffer is left. LSP clients are shut down gracefully only after their final loaded attached buffer is detached and the idle timeout expires. Hidden buffers intentionally keep their server alive.
 
 Run `nvim --headless --clean -u NONE -l scripts/check-lifecycle.lua` to test cleanup-scope behavior and idle LSP shutdown/cancellation with fake clients. The repository check runs this test automatically. See [performance.md](performance.md) for manual lifecycle checks and repeatable startup/idle benchmarks.
