@@ -526,7 +526,7 @@ profile_startup() {
 
   if [[ ! -s "$profile_output" ]]; then
     print_status "CVIM module profile" "FAIL"
-    printf '      The profiler did not produce its module report.\\n'
+    printf '      The profiler did not produce its module report.\n'
     (( FAIL_COUNT += 1 ))
     return
   fi
