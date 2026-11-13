@@ -37,6 +37,77 @@ assert(
 scope:close()
 assert(cleaned == 1, "closing a scope twice repeated cleanup")
 
+-- Dashboard shortcuts must be real buffer-local mappings, and temporary
+-- departures must pause rather than destroy the animation lifecycle.
+local alpha_autocmds = require("soul.core.helpers.dashboard.alpha.autocmds")
+local original_buffer = vim.api.nvim_get_current_buf()
+local alpha_buffer = vim.api.nvim_create_buf(false, true)
+vim.api.nvim_set_current_buf(alpha_buffer)
+
+local alpha_starts = 0
+local alpha_stops = 0
+local alpha_closes = 0
+local alpha_autocmd_state = {
+	animation = {
+		start = function()
+			alpha_starts = alpha_starts + 1
+		end,
+		stop = function()
+			alpha_stops = alpha_stops + 1
+		end,
+		close = function()
+			alpha_closes = alpha_closes + 1
+		end,
+	},
+	footer = {
+		invalidate = function() end,
+		update = function() end,
+	},
+}
+
+vim.api.nvim_create_user_command("AlphaRedraw", function() end, {})
+alpha_autocmds.register(alpha_autocmd_state)
+vim.bo[alpha_buffer].filetype = "alpha"
+
+local alpha_keymaps = vim.api.nvim_buf_get_keymap(alpha_buffer, "n")
+local find_file_mapping
+for _, mapping in ipairs(alpha_keymaps) do
+	if mapping.lhs == "f" then
+		find_file_mapping = mapping
+		break
+	end
+end
+
+assert(find_file_mapping, "Alpha dashboard did not register its visible find-file shortcut")
+assert(
+	find_file_mapping.rhs:find("Telescope find_files", 1, true),
+	"Alpha find-file shortcut is not bound to its displayed action"
+)
+
+vim.api.nvim_exec_autocmds("BufLeave", {
+	buffer = alpha_buffer,
+	modeline = false,
+})
+assert(alpha_stops == 1, "leaving Alpha did not pause its animation")
+assert(alpha_closes == 0, "leaving Alpha destroyed the animation instead of pausing it")
+
+vim.api.nvim_exec_autocmds("BufEnter", {
+	buffer = alpha_buffer,
+	modeline = false,
+})
+assert(alpha_starts >= 2, "returning to Alpha did not resume its animation")
+
+vim.api.nvim_exec_autocmds("BufWipeout", {
+	buffer = alpha_buffer,
+	modeline = false,
+})
+assert(alpha_closes == 1, "wiping the Alpha buffer did not close its animation")
+vim.api.nvim_del_user_command("AlphaRedraw")
+vim.api.nvim_buf_delete(alpha_buffer, { force = true })
+if vim.api.nvim_buf_is_valid(original_buffer) then
+	vim.api.nvim_set_current_buf(original_buffer)
+end
+
 local lifecycle = require("soul.core.lifecycle.lsp")
 local original_timeout = lifecycle.idle_timeout
 local original_get_client = vim.lsp.get_client_by_id
