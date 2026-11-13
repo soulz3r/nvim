@@ -14,6 +14,8 @@ The entry point is `init.lua`. It loads the core modules, registers plugin group
 | Path | Responsibility |
 |---|---|
 | `lua/soul/core/platform.lua` | Centralized Windows, WSL, Linux, macOS, and Termux detection |
+| `lua/soul/core/lifecycle/scope.lua` | Explicit ownership and reverse-order cleanup for timers and autocmd groups |
+| `lua/soul/core/lifecycle/lsp.lua` | Conservative idle shutdown for LSP clients with no loaded attached buffers |
 | `lua/soul/core/helpers/paths.lua` | Project directory and external tool path resolution |
 | `lua/soul/core/helpers/keymaps.lua` | Shared options for keymap definitions |
 | `lua/soul/core/helpers/process.lua` | Child-process timeout, termination, and reaping |
@@ -79,6 +81,10 @@ YAP's project picker is provided through `telescope-project.nvim`, with runner a
 WSL detection uses WSL environment variables and Linux kernel information. It identifies the OS running Neovim, not the filesystem containing the current project. Run Neovim inside the WSL distribution to use the WSL profile; opening a WSL filesystem from Windows Neovim remains the Windows profile.
 
 Machine-specific tool paths belong in `lua/soul/core/helpers/paths.lua`. Use `PROJECTS_DIR`, `LLDB_DAP`, `PWSH`, and `CLANG` to override the defaults without changing the shared configuration. The C runner and editor shell use the same resolved executable paths.
+
+## Resource lifecycle and performance
+
+Temporary resources live under `lua/soul/core/lifecycle/`. Cleanup scopes own timers and autocmd groups and release them idempotently. Alpha's animation and dashboard state are torn down after leaving the startup dashboard. The LSP lifecycle manager starts a ten-minute shutdown timer only after a client loses its final loaded attached buffer; hidden buffers keep their server alive. See [performance.md](performance.md) for the lifecycle policy and benchmark procedure.
 
 ## LSP and debugging
 
