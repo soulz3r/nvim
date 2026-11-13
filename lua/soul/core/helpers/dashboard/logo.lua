@@ -223,7 +223,7 @@ local function render_frame(frame, glitch_state)
 
 				-- Dense digital corruption: replace glyphs and empty cells with
 				-- bright block fragments instead of merely recoloring the logo.
-				if (block_noise or in_burst or interference) and noise % (in_burst and 3 or 7) < (in_burst and 2 or 2) then
+				if (block_noise or in_burst or interference) and noise % (in_burst and 3 or 7) < 2 then
 					char = GLITCH_BLOCKS[math.floor(noise / 17) % #GLITCH_BLOCKS + 1]
 					group = GLITCH_COLORS[math.floor(noise / 71) % #GLITCH_COLORS + 1]
 				end
