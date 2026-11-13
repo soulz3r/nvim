@@ -250,8 +250,14 @@ compatibility_checks() {
     return 1
   fi
 
-  if ! grep -q 'GET("soul.plugins.undotree")' init.lua; then
-    echo "Undotree plugin specification must be registered from init.lua."
+  if ! grep -q 'GET("soul.plugins")' init.lua \
+    && ! grep -q 'GET("soul.plugins.undotree")' init.lua; then
+    echo "Undotree plugin specification must be registered through the plugin spec import."
+    return 1
+  fi
+
+  if [[ ! -f lua/soul/plugins/undotree.lua ]]; then
+    echo "Undotree plugin specification is missing."
     return 1
   fi
 
