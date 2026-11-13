@@ -46,7 +46,16 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  02 / OUTPUT",
+				"  02 / COMPILATION",
+				"  main.c -> main.i",
+				"  main.i -> main.s",
+				"  main.s -> main.o -> cvim",
+				"  preprocess, compile, assemble, link",
+			},
+		},
+		{
+			lines = {
+				"  03 / OUTPUT",
 				"  #include <stdio.h>",
 				"  puts(\"Hello, C\");",
 				"  return 0;",
@@ -55,7 +64,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  03 / TYPES",
+				"  04 / TYPES",
 				"  int count = 42;",
 				"  double ratio = 0.75;",
 				"  char grade = 'A';",
@@ -64,7 +73,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  04 / CONSTANTS",
+				"  05 / CONSTANTS",
 				"  const int limit = 64;",
 				"  enum { MAX_ITEMS = 32 };",
 				"  static const char *name = \"cvim\";",
@@ -73,7 +82,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  05 / OPERATORS",
+				"  06 / OPERATORS",
 				"  int total = count + 8;",
 				"  int even = total % 2 == 0;",
 				"  total += 1;",
@@ -82,7 +91,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  06 / CONTROL FLOW",
+				"  07 / CONTROL FLOW",
 				"  if (count > 0) {",
 				"      count--;",
 				"  } else { count = 0; }",
@@ -91,7 +100,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  07 / FUNCTIONS",
+				"  08 / FUNCTIONS",
 				"  int add(int a, int b) {",
 				"      return a + b;",
 				"  }",
@@ -100,7 +109,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  08 / ARRAYS",
+				"  09 / ARRAYS",
 				"  int values[3] = { 2, 4, 6 };",
 				"  values[0] = 10;",
 				"  size_t length = 3;",
@@ -109,7 +118,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  09 / STRINGS",
+				"  10 / STRINGS",
 				"  char name[] = \"C language\";",
 				"  const char *text = name;",
 				"  size_t length = strlen(text);",
@@ -118,7 +127,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  10 / STRUCTURES",
+				"  11 / STRUCTURES",
 				"  struct Point { int x, y; };",
 				"  struct Point p = { .x = 2, .y = 4 };",
 				"  p.x = 8;",
@@ -127,7 +136,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  11 / POINTERS",
+				"  12 / POINTERS",
 				"  int value = 42;",
 				"  int *ptr = &value;",
 				"  ptr stores value's address",
@@ -136,7 +145,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  12 / DEREFERENCE",
+				"  13 / DEREFERENCE",
 				"  int *ptr = &value;",
 				"  int copy = *ptr;",
 				"  *ptr = 99;",
@@ -145,7 +154,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  13 / MEMORY",
+				"  14 / MEMORY",
 				"  value @ 0x0010 = 42",
 				"  ptr   @ 0x0020 = 0x0010",
 				"  *ptr  -> 0x0010 -> 42",
@@ -154,7 +163,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  14 / PREPROCESSOR",
+				"  15 / PREPROCESSOR",
 				"  #include <stdint.h>",
 				"  #define BUFFER_SIZE 256",
 				"  #if defined(DEBUG)",
@@ -163,7 +172,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  15 / MACROS",
+				"  16 / MACROS",
 				"  #define SQUARE(x) ((x) * (x))",
 				"  int area = SQUARE(side);",
 				"  #undef SQUARE",
@@ -172,7 +181,7 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  16 / DYNAMIC MEMORY",
+				"  17 / DYNAMIC MEMORY",
 				"  int *items = malloc(count * sizeof *items);",
 				"  if (items != NULL) {",
 				"      free(items);",
@@ -181,20 +190,11 @@ M.animation = {
 		},
 		{
 			lines = {
-				"  17 / FILE I O",
+				"  18 / FILE I O",
 				"  FILE *file = fopen(path, \"rb\");",
 				"  if (file != NULL) {",
 				"      fclose(file);",
 				"  check errors and close opened files",
-			},
-		},
-		{
-			lines = {
-				"  18 / COMPILATION",
-				"  main.c -> main.i",
-				"  main.i -> main.s",
-				"  main.s -> main.o -> cvim",
-				"  preprocess, compile, assemble, link",
 			},
 		},
 		{
