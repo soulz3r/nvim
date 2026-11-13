@@ -1,63 +1,48 @@
 local M = {
 	"lewis6991/gitsigns.nvim",
-	dependencies = { "folke/which-key.nvim" },
-	event = "BufEnter",
+	event = { "BufReadPost", "BufNewFile" },
 	cmd = "Gitsigns",
+	keys = {
+		{ "ih", function() require("gitsigns").select_hunk() end, mode = { "o", "x" }, desc = "Select Git hunk" },
+		{
+			"<leader>gj",
+			"<cmd>lua require('gitsigns').next_hunk({ navigation_message = false })<CR>",
+			desc = "Next Hunk",
+		},
+		{
+			"<leader>gk",
+			"<cmd>lua require('gitsigns').prev_hunk({ navigation_message = false })<CR>",
+			desc = "Prev Hunk",
+		},
+		{ "<leader>gp", "<cmd>lua require('gitsigns').preview_hunk()<CR>", desc = "Preview Hunk" },
+		{ "<leader>gr", "<cmd>lua require('gitsigns').reset_hunk()<CR>", desc = "Reset Hunk" },
+		{ "<leader>gl", "<cmd>lua require('gitsigns').blame_line()<CR>", desc = "Blame" },
+		{ "<leader>gR", "<cmd>lua require('gitsigns').reset_buffer()<CR>", desc = "Reset Buffer" },
+		{ "<leader>gs", "<cmd>lua require('gitsigns').stage_hunk()<CR>", desc = "Stage Hunk" },
+		{ "<leader>gu", "<cmd>lua require('gitsigns').undo_stage_hunk()<CR>", desc = "Undo Stage Hunk" },
+		{ "<leader>gd", "<cmd>Gitsigns diffthis HEAD<CR>", desc = "Git Diff" },
+	},
 }
-M.config = function()
+
+function M.config()
 	local icons = require("soul.core.helpers.icons")
-
-	local gitsigns = require("gitsigns")
-
-	vim.keymap.set({ "o", "x" }, "ih", gitsigns.select_hunk, {
-		desc = "Select Git hunk",
-	})
-
-	local wk = require("which-key")
-	wk.add({
-		{ "<leader>gj", "<cmd>lua require 'gitsigns'.next_hunk({navigation_message = false})<cr>", desc = "Next Hunk" },
-		{ "<leader>gk", "<cmd>lua require 'gitsigns'.prev_hunk({navigation_message = false})<cr>", desc = "Prev Hunk" },
-		{ "<leader>gp", "<cmd>lua require 'gitsigns'.preview_hunk()<cr>", desc = "Preview Hunk" },
-		{ "<leader>gr", "<cmd>lua require 'gitsigns'.reset_hunk()<cr>", desc = "Reset Hunk" },
-		{ "<leader>gl", "<cmd>lua require 'gitsigns'.blame_line()<cr>", desc = "Blame" },
-		{ "<leader>gR", "<cmd>lua require 'gitsigns'.reset_buffer()<cr>", desc = "Reset Buffer" },
-		{ "<leader>gs", "<cmd>lua require 'gitsigns'.stage_hunk()<cr>", desc = "Stage Hunk" },
-		{ "<leader>gu", "<cmd>lua require 'gitsigns'.undo_stage_hunk()<cr>", desc = "Undo Stage Hunk" },
-		{ "<leader>gd", "<cmd>Gitsigns diffthis HEAD<cr>", desc = "Git Diff" },
-	})
 
 	require("gitsigns").setup({
 		signs = {
-
 			add = {
-				-- hl = "GitSignsAdd",
 				text = icons.ui.BoldLineMiddle,
-				-- numhl = "GitSignsAddNr",
-				-- linehl = "GitSignsAddLn",
 			},
 			change = {
-				-- hl = "GitSignsChange",
 				text = icons.ui.BoldLineDashedMiddle,
-				-- numhl = "GitSignsChangeNr",
-				-- linehl = "GitSignsChangeLn",
 			},
 			delete = {
-				-- hl = "GitSignsDelete",
 				text = icons.ui.TriangleShortArrowRight,
-				-- numhl = "GitSignsDeleteNr",
-				-- linehl = "GitSignsDeleteLn",
 			},
 			topdelete = {
-				-- hl = "GitSignsDelete",
 				text = icons.ui.TriangleShortArrowRight,
-				-- numhl = "GitSignsDeleteNr",
-				-- linehl = "GitSignsDeleteLn",
 			},
 			changedelete = {
-				-- hl = "GitSignsChange",
 				text = icons.ui.BoldLineMiddle,
-				-- numhl = "GitSignsChangeNr",
-				-- linehl = "GitSignsChangeLn",
 			},
 		},
 		watch_gitdir = {
