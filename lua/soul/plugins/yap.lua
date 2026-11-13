@@ -22,8 +22,14 @@ local M = {
 
 function M.config()
 	local palette = require("soul.core.helpers.ui.colors").palette
+	local existing_vim_enter = {}
 
-	require("yap").setup({
+	for _, autocmd in ipairs(vim.api.nvim_get_autocmds({ event = "VimEnter" })) do
+		existing_vim_enter[autocmd.id] = true
+	end
+
+	local ok, err = pcall(function()
+		require("yap").setup({
 		projects_dir = require("soul.core.helpers.paths").projects,
 		telescope = true,
 		keymaps = true,
@@ -36,8 +42,21 @@ function M.config()
 			success = { fg = palette.green },
 			warning = { fg = palette.yellow },
 			error = { fg = palette.red },
-		},
-	})
+			},
+		})
+	end)
+
+	-- Core owns project restoration. Remove YAP's own VimEnter callback so a
+	-- lazy-loaded YAP instance cannot leave a callback that can never run.
+	for _, autocmd in ipairs(vim.api.nvim_get_autocmds({ event = "VimEnter" })) do
+		if not existing_vim_enter[autocmd.id] then
+			pcall(vim.api.nvim_del_autocmd, autocmd.id)
+		end
+	end
+
+	if not ok then
+		error(err)
+	end
 end
 
 return M
