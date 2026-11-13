@@ -142,6 +142,29 @@ local function has_prefix(tokens, word)
 	return false
 end
 
+local partial_token_groups = {
+	{ tokens = c_types, group = "AlphaCodeType" },
+	{ tokens = c_keywords, group = "AlphaCodeKeyword" },
+	{ tokens = c_storage, group = "AlphaCodeStorage" },
+	{ tokens = c_constants, group = "AlphaCodeConstant" },
+	{ tokens = c_functions, group = "AlphaCodeFunction" },
+}
+
+local function partial_token_group(word)
+	local matched_group
+
+	for _, candidate in ipairs(partial_token_groups) do
+		if has_prefix(candidate.tokens, word) then
+			if matched_group and matched_group ~= candidate.group then
+				return nil
+			end
+			matched_group = candidate.group
+		end
+	end
+
+	return matched_group
+end
+
 local function highlight_c_code(ranges, line_number, line)
 	add_range(ranges, "AlphaCodeText", line_number, 0, #line)
 
@@ -176,17 +199,14 @@ local function highlight_c_code(ranges, line_number, line)
 			local word = line:sub(index, finish - 1)
 			local next_char = line:sub(finish):match("^%s*(.)")
 			local partial = finish > #line
+			local is_macro = word:match("^[A-Z_][A-Z%d_]*$") and (not partial or #word >= 2)
 			local group = c_types[word] and "AlphaCodeType"
 				or c_keywords[word] and "AlphaCodeKeyword"
 				or c_storage[word] and "AlphaCodeStorage"
 				or c_constants[word] and "AlphaCodeConstant"
-				or word:match("^[A-Z_][A-Z%d_]*$") and "AlphaCodeMacro"
+				or is_macro and "AlphaCodeMacro"
 				or next_char == "(" and "AlphaCodeFunction"
-				or partial and has_prefix(c_types, word) and "AlphaCodeType"
-				or partial and has_prefix(c_keywords, word) and "AlphaCodeKeyword"
-				or partial and has_prefix(c_storage, word) and "AlphaCodeStorage"
-				or partial and has_prefix(c_constants, word) and "AlphaCodeConstant"
-				or partial and has_prefix(c_functions, word) and "AlphaCodeFunction"
+				or partial and partial_token_group(word)
 				or "AlphaCodeIdentifier"
 			add_range(ranges, group, line_number, index - 1, finish - 1)
 			index = finish
