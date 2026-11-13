@@ -84,8 +84,8 @@ local c_keywords = {
 	["return"] = true, ["if"] = true, ["else"] = true, ["for"] = true,
 	["while"] = true, ["do"] = true, ["switch"] = true, ["case"] = true,
 	["break"] = true, ["continue"] = true, ["struct"] = true, ["union"] = true,
-	["enum"] = true, ["typedef"] = true, ["static"] = true, ["extern"] = true,
-	["sizeof"] = true, ["goto"] = true, ["default"] = true,
+	["enum"] = true, ["typedef"] = true, ["sizeof"] = true, ["goto"] = true,
+	["default"] = true,
 }
 
 local c_storage = {
@@ -178,9 +178,9 @@ local function highlight_preprocessor(ranges, line_number, line)
 		add_range(ranges, "AlphaCodePreprocessor", line_number, directive_start - 1, directive_end)
 	end
 
-	local define_start = line:find("#%s*define%s+")
-	if define_start then
-		local name_start, name_end = line:find("[%a_][%w_]*", define_start)
+	local _, define_end = line:find("#%s*define%s+")
+	if define_end then
+		local name_start, name_end = line:find("[%a_][%w_]*", define_end + 1)
 		if name_start then
 			add_range(ranges, "AlphaCodeMacro", line_number, name_start - 1, name_end)
 		end
