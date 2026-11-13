@@ -232,6 +232,7 @@ vim.notify = function(message, level, opts)
 end
 
 local animation_module = require("soul.core.helpers.dashboard.animation")
+require("soul.core.helpers.dashboard.logo")
 local animation_profiler = package.loaded["soul.core.performance.animation"]
 if vim.env.CVIM_ANIMATION_PROFILE == "1" then
 	assert(animation_profiler and animation_profiler.enabled, "Opt-in dashboard profiling must load and enable its profiler")
