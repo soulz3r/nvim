@@ -11,9 +11,9 @@ local ART_START = 29
 local ART_TOP = 3
 local GLITCH_FRAMES = 20
 local TAGLINE = "C, with a better editor."
-local TAGLINE_RULE = " ──────────"
 local TAGLINE_START = math.floor((WIDTH - #TAGLINE) / 2) + 1
 local TAGLINE_RULE_START = TAGLINE_START + #TAGLINE
+local TAGLINE_RULE = require("soul.core.helpers.dashboard.horizontal_rule").build(WIDTH - TAGLINE_RULE_START + 1)
 
 local WORDMARK = {
 	"               ▄▄▄                 ",
@@ -221,9 +221,9 @@ local function render_frame(frame, glitch_frame)
 			end
 
 			-- A short rule follows the tagline without changing its alignment.
-			for column = 1, #TAGLINE_RULE do
+			for column = 1, vim.fn.strchars(TAGLINE_RULE) do
 				local target = TAGLINE_RULE_START + column - 1
-				cells[target] = TAGLINE_RULE:sub(column, column)
+				cells[target] = vim.fn.strcharpart(TAGLINE_RULE, column - 1, 1)
 				cell_groups[target] = "AlphaTeal"
 			end
 		end
